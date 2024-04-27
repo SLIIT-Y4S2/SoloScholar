@@ -6,8 +6,14 @@ import documentRouter from "../routes/document.routes";
 import authRouter from "../routes/auth.routes";
 import requireUser from "../middlewares/requireUser.middleware";
 import cors from "cors";
+import helmet from "helmet";
+import ragRouter from "../routes/rag.routes";
 
 const server = express();
+
+// middlewares
+// helmet
+server.use(helmet());
 
 // cors
 server.use(cors({ origin: "http://localhost:3000", credentials: true }));
@@ -26,8 +32,9 @@ server.use(uploads.single("pdf_doc"));
 server.use(express.json());
 
 // routes
-server.use("/api/v1/docs", documentRouter);
+server.use("/api/v1/ref-docs", documentRouter);
 server.use("/api/v1/auth", authRouter);
+server.use("/api/v1/rag", ragRouter);
 server.get("/api/v1/protected", requireUser, (req: Request, res: Response) => {
   res.json({ message: "Hello from protected route", user: res.locals.user });
 });
