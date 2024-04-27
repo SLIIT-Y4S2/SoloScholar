@@ -8,5 +8,6 @@ const MONGO_URI: string = process.env.MONGO_URI!;
 
 const OPENAI_API_KEY: string = process.env.OPENAI_API_KEY!;
 
+const JWT_SECRET: string = process.env.JWT_SECRET!;
 
-export { PORT, MONGO_URI, OPENAI_API_KEY };
+export { PORT, MONGO_URI, JWT_SECRET, OPENAI_API_KEY };

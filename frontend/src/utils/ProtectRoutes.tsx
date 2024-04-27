@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../provider/authProvider";
+import MainLayout from "../Layouts/Main";
 
 export const ProtectedRoute = () => {
   const { userDetails } = useAuth();
@@ -11,5 +12,9 @@ export const ProtectedRoute = () => {
   }
 
   // If authenticated, render the child routes
-  return <Outlet />;
+  return (
+    <MainLayout>
+      <Outlet />
+    </MainLayout>
+  );
 };

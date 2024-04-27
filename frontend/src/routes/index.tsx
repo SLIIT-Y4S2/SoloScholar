@@ -1,4 +1,9 @@
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import {
+  Navigate,
+  RouteObject,
+  RouterProvider,
+  createBrowserRouter,
+} from "react-router-dom";
 import { useAuth } from "../provider/authProvider";
 import { ProtectedRoute } from "../utils/ProtectRoutes";
 import Login from "../pages/Login";
@@ -9,9 +14,10 @@ const Routes = () => {
   const { userDetails } = useAuth();
 
   // Define public routes accessible to all users
-  const routesForPublic = [
+  const routesForPublic: RouteObject[] = [
     {
       path: "/logout",
+
       element: <Logout />,
     },
     {
@@ -21,7 +27,7 @@ const Routes = () => {
   ];
 
   // Define routes accessible only to authenticated users
-  const routesForAuthenticatedOnly = [
+  const routesForAuthenticatedOnly: RouteObject[] = [
     {
       path: "/",
       element: <ProtectedRoute />, // Wrap the component in ProtectedRoute
@@ -38,12 +44,16 @@ const Routes = () => {
           path: "/logout",
           element: <Logout />,
         },
+        {
+          path: "/login",
+          element: <Navigate to="/" />,
+        },
       ],
     },
   ];
 
   // Define routes accessible only to non-authenticated users
-  const routesForNotAuthenticatedOnly = [
+  const routesForNotAuthenticatedOnly: RouteObject[] = [
     {
       path: "/login",
       element: <Login />,

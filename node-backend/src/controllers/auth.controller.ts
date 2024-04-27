@@ -36,7 +36,10 @@ async function createUserSessionHandler(req: Request, res: Response) {
 
     return res.send(user);
   } catch (error) {
-    return res.status(400).send("Session creation failed");
+    return res.status(400).json({
+      message: "Something went wrong",
+      error: error.message,
+    });
   }
 }
 

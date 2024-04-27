@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 
 const Home = () => {
+  // TODO: remove this
   const [responseData, setResponseData] = useState<any>(null);
 
   useEffect(() => {
