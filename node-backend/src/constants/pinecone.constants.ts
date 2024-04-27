@@ -1,0 +1,4 @@
+const VECTORDIMENSIONS = 3072;
+const TEXT_EMBEDDING_MODEL = "text-embedding-3-large";
+
+export { VECTORDIMENSIONS, TEXT_EMBEDDING_MODEL };
