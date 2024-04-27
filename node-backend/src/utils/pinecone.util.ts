@@ -1,27 +1,66 @@
 import { Pinecone } from "@pinecone-database/pinecone";
-import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
 import { Document } from "@langchain/core/documents";
-import { TEXT_EMBEDDING_MODEL } from "../constants/pinecone.constants";
-import { OPENAI_API_KEY, PINECONE_API_KEY, PINECONE_INDEX } from "../constants/app.constants";
+import { PINECONE_API_KEY, PINECONE_CLOUD_PROVIDER, PINECONE_INDEX, PINECONE_REGION, VECTORDIMENSIONS } from "../constants/pinecone.constants";
+import { getEmbeddings } from "./openai.util";
 
 
-const embeddings = new OpenAIEmbeddings({
-    apiKey: OPENAI_API_KEY,
-    model: TEXT_EMBEDDING_MODEL,
-});
 
-const pinecone = new Pinecone({
-    apiKey: PINECONE_API_KEY,
+/**
+ * @returns A Pinecone Index object
+ */
 
-});
+async function getPineconeIndex() {
+    const pinecone = new Pinecone({
+        apiKey: PINECONE_API_KEY,
 
-const pineconeIndex = pinecone.Index(PINECONE_INDEX);
+    });
+
+    const pineconeIndexList = await pinecone.listIndexes();
+
+    let isPineconeIndexExist: boolean = false;
+
+    for (const index of pineconeIndexList.indexes!) {
+        if (index.name === PINECONE_INDEX) {
+            isPineconeIndexExist = true;
+            break;
+        }
+    }
+
+    if (isPineconeIndexExist === true) {
+        return pinecone.Index(PINECONE_INDEX);
+    }
+    else {
+        pinecone.createIndex({
+            name: PINECONE_INDEX,
+            dimension: VECTORDIMENSIONS,
+            metric: 'cosine',
+            spec: {
+                serverless: {
+                    cloud: PINECONE_CLOUD_PROVIDER,
+                    region: PINECONE_REGION
+                }
+            }
+        });
+
+        return pinecone.Index(PINECONE_INDEX);
+    }
+
+}
 
 
-const uploadDocumentToPinecone = async (chunks: Document<Record<string, any>>[]) => {
+/**
+ * 
+ * @param chunks - Array of text chunks
+ * @returns A PineconeStore object
+ */
+async function uploadDocumentToPinecone(chunks: Document<Record<string, any>>[]) {
 
-    const vectorStore = await PineconeStore.fromDocuments(chunks, embeddings, {
+    const pineconeIndex = await getPineconeIndex();
+
+    const embeddingModel = getEmbeddings();
+
+    const vectorStore = await PineconeStore.fromDocuments(chunks, embeddingModel, {
         pineconeIndex,
         maxConcurrency: 5,
     });
@@ -29,11 +68,7 @@ const uploadDocumentToPinecone = async (chunks: Document<Record<string, any>>[])
     return vectorStore;
 };
 
-const retrieveVectorsFromPinecone = async () => {
-    const vectorStore = await PineconeStore.fromExistingIndex(
-        embeddings,
-        { pineconeIndex }
-    );
-};
 
-export { uploadDocumentToPinecone, retrieveVectorsFromPinecone };
+
+
+export { uploadDocumentToPinecone, getPineconeIndex };

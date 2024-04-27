@@ -1,43 +1,74 @@
 import { Document } from "@langchain/core/documents";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
-import { uploadDocumentToPinecone, retrieveVectorsFromPinecone } from "./pinecone.util";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { encoding_for_model } from "tiktoken";
 import { VECTORDIMENSIONS } from "../constants/pinecone.constants";
+import { uploadDocumentToPinecone } from "./pinecone.util";
 
-const enc = (text: string) => {
+function enc(text: string) {
     const encoding = encoding_for_model("text-davinci-003");
-    return encoding;
+    const encodedText = encoding.encode(text);
+
+    return encodedText;
 }
 
-const splitPDFintoChunks = async (file: Express.Multer.File) => {
+/**
+ * 
+ * @param file Multer file object
+ * @returns Array of text chunks 
+ */
+async function splitPDFintoChunks(file: Express.Multer.File) {
     const data = file.buffer;
     const mimeType = file.mimetype;
 
+    // Create a Blob object from the file data
     const blob = new Blob([data], { type: mimeType });
 
     const loader = new PDFLoader(blob);
 
+    // Load the PDF document
     const doc = await loader.load();
 
+    // Instantiate the RecursiveCharacterTextSplitter
     const splitter = new RecursiveCharacterTextSplitter({
         separators: ['\n'],
-        chunkOverlap: 256,
         chunkSize: VECTORDIMENSIONS,
+        chunkOverlap: 256,
     });
+
+    // Split the document into text chunks
     const splitedTextChunks = await splitter.splitDocuments(doc);
+
     return splitedTextChunks;
 };
 
-const uploadChunkstoVectorDB = async (textChunks: Document<Record<string, any>>[]) => {
+
+/**
+ * 
+ * @param textChunks Array of text chunks
+ * @returns A PineconeStore object
+ */
+async function uploadChunkstoVectorDB(textChunks: Document<Record<string, any>>[]) {
     const vectorStore = await uploadDocumentToPinecone(textChunks);
 
     return vectorStore;
 };
 
-const docsToString = async (req: Request, res: Response) => {
-
+/**
+ * 
+ * @param documents Array of Document objects
+ * @returns A string of concatenated documents formatted in a way that LLM can understand
+ */
+async function convertDocsToString(documents: Document[]) {
+    return documents
+        .map(document => {
+            return `<document>\n ${document.pageContent} \n</document>`
+        })
+        .join("\n");
 };
 
 
-export { splitPDFintoChunks, uploadChunkstoVectorDB, docsToString, enc };
+
+
+export { convertDocsToString, enc, splitPDFintoChunks, uploadChunkstoVectorDB };
+
