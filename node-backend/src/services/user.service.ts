@@ -4,7 +4,10 @@ import UserModel, { UserDocument, UserInput } from "../models/user.model";
 
 export async function createUser(input: UserInput) {
   try {
+    // M
     const user = await UserModel.create(input);
+    // Sql
+
     return omit(user.toJSON(), "password");
   } catch (e: any) {
     throw new Error(e);

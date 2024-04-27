@@ -1,30 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../provider/authProvider";
 import { Form, Input } from "antd";
-import axios from "axios";
+import authService from "../services/auth.services";
 
 const Login = () => {
   const { setUserDetails } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = (values: { username: string; password: string }) => {
-    axios
-      .post(
-        "http://localhost:5000/api/v1/auth/login",
-        {
-          studentId: values.username,
-          password: values.password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      )
+    authService
+      .login(values.username, values.password)
       .then((response) => {
-        console.log("Response from server:", response.data);
-        setUserDetails(response.data);
+        setUserDetails(response);
         navigate("/", { replace: true });
       })
       .catch((error) => {
