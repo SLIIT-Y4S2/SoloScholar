@@ -3,7 +3,6 @@ import { config } from "dotenv";
 config();
 
 const VECTORDIMENSIONS: number = 3072;
-// const PINECONE_INDEX: string = "rag-pinecone-index";
 const PINECONE_INDEX: string = "reference-doc-pinecone-index";
 const PINECONE_API_KEY: string = process.env.PINECONE_API_KEY!;
 const PINECONE_CLOUD_PROVIDER: ServerlessSpecCloudEnum = process.env
