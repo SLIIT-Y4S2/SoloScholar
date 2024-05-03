@@ -10,7 +10,7 @@ const OPENAI_API_KEY: string = process.env.OPENAI_API_KEY!;
 
 const JWT_SECRET: string = process.env.JWT_SECRET!;
 
-process.env.LANGCHAIN_VERBOSE = "true";
+// process.env.LANGCHAIN_VERBOSE = "true";
 
 const AZURE_SQL_HOST: string = process.env.AZURE_SQL_HOST!;
 

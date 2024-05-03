@@ -13,7 +13,6 @@ function getEmbeddings(): OpenAIEmbeddings {
   return new OpenAIEmbeddings({
     apiKey: OPENAI_API_KEY,
     model: TEXT_EMBEDDING_MODEL,
-    verbose: true,
   });
 }
 
