@@ -1,3 +1,5 @@
+// Open a terminal in "models" directory and run the following command to push new changes to the database and generate the Prisma client with new changes
+// npx prisma db push
 generator client {
   provider = "prisma-client-js"
 }
