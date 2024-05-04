@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { PORT, MONGO_URI } from "./constants/app.constants";
 import server from "./utils/server.util";
-import { logger } from "./utils/logger";
+import { logger } from "./utils/logger.utils";
 
 const app = server;
 
