@@ -8,6 +8,7 @@ import requireUser from "../middlewares/requireUser.middleware";
 import cors from "cors";
 import helmet from "helmet";
 import ragRouter from "../routes/rag.routes";
+import dashboardRouter from "../routes/dashboard.routes";
 
 const server = express();
 
@@ -35,6 +36,7 @@ server.use(express.json());
 server.use("/api/v1/ref-docs", documentRouter);
 server.use("/api/v1/auth", authRouter);
 server.use("/api/v1/rag", ragRouter);
+server.use("/api/v1/dashboard", dashboardRouter);
 server.get("/api/v1/protected", requireUser, (req: Request, res: Response) => {
   res.json({ message: "Hello from protected route", user: res.locals.user });
 });
