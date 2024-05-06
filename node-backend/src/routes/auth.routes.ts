@@ -17,12 +17,5 @@ authRouter.post(
   userController.createUserHandler
 );
 
-// authRouter.get("/api/sessions", requireUser, authController.getUserSessionsHandler);
-
-// authRouter.delete(
-//   "/api/sessions",
-//   requireUser,
-//   authController.deleteSessionHandler
-// );
 authRouter.post("/logout", authController.invalidateUserSessionHandler);
 export default authRouter;

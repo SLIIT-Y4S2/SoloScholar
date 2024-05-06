@@ -1,14 +1,34 @@
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { documentRetrievalPipeline } from "./rag.service";
-import { getChatModel } from "../utils/openai.util";
-
+import { getChatModel, getEmbeddings } from "../utils/openai.util";
 import {
-  DetailedLessonOutline,
-  GenerateQuestions,
+  DetailedLessonOutlinePrompt,
+  GenerateQuestionsPrompt,
 } from "../prompt-templates/tutorial.template";
 import { LessonOutlineType } from "../types/lesson.types";
+import { PineconeStore } from "@langchain/pinecone";
+import { getPineconeIndex } from "../utils/pinecone.util";
+import { convertDocsToString } from "../utils/rag.util";
+
+// MARK: Detailed Lesson Outline
+
+async function documentRetrievalPipelineForDetailedOutline() {
+  const pineconeIndex = await getPineconeIndex();
+  const embeddingModel = getEmbeddings();
+  // Get the PineconeStore object
+  const pineconeStore = await PineconeStore.fromExistingIndex(embeddingModel, {
+    pineconeIndex,
+  });
+  const retriever = pineconeStore.asRetriever();
+  // Create a runnable sequence
+  const runnableSequence = RunnableSequence.from([
+    (input) => input.searchingKeywords,
+    retriever,
+    convertDocsToString,
+  ]);
+  return runnableSequence;
+}
 
 /**
  * Synthesize a detailed lesson outline from a lesson outline and searching keywords
@@ -17,17 +37,18 @@ import { LessonOutlineType } from "../types/lesson.types";
  * @returns The detailed lesson outline
  *
  **/
+
 async function synthesizeDetailedLessonOutline(
   searchingKeywords: string,
   lessonOutline: string
 ): Promise<{ subtopic: string; description: string }[]> {
   const answerGenerationPrompt = ChatPromptTemplate.fromTemplate(
-    DetailedLessonOutline
+    DetailedLessonOutlinePrompt
   );
 
   const retrievalChain = RunnableSequence.from([
     {
-      context: documentRetrievalPipeline,
+      context: documentRetrievalPipelineForDetailedOutline,
       lessonOutline: (input) => input.lessonOutline,
     },
     answerGenerationPrompt,
@@ -36,7 +57,7 @@ async function synthesizeDetailedLessonOutline(
   ]);
 
   const response = await retrievalChain.invoke({
-    question: searchingKeywords,
+    searchingKeywords,
     lessonOutline,
   });
 
@@ -88,6 +109,25 @@ function convertLessonOutlineToText(lesson: LessonOutlineType) {
   return text;
 }
 
+// MARK: Question Generation
+
+async function documentRetrievalPipelineForQuestionGeneration() {
+  const pineconeIndex = await getPineconeIndex();
+  const embeddingModel = getEmbeddings();
+  // Get the PineconeStore object
+  const pineconeStore = await PineconeStore.fromExistingIndex(embeddingModel, {
+    pineconeIndex,
+  });
+  const retriever = pineconeStore.asRetriever(3);
+  // Create a runnable sequence
+  const runnableSequence = RunnableSequence.from([
+    (input) => input.searchingKeywords,
+    retriever,
+    convertDocsToString,
+  ]);
+  return runnableSequence;
+}
+
 /**
  * Synthesize questions for a subtopic
  */
@@ -105,12 +145,13 @@ async function synthesizeQuestionsForSubtopic(
     answer: string;
   }[]
 > {
-  const questionGenerationPrompt =
-    ChatPromptTemplate.fromTemplate(GenerateQuestions);
+  const questionGenerationPrompt = ChatPromptTemplate.fromTemplate(
+    GenerateQuestionsPrompt
+  );
 
   const retrievalChain = RunnableSequence.from([
     {
-      context: documentRetrievalPipeline,
+      context: documentRetrievalPipelineForQuestionGeneration,
       subtopic: (input) => input.subtopic,
       description: (input) => input.description,
       learningOutcomes: (input) => input.learningOutcomes,
@@ -123,8 +164,8 @@ async function synthesizeQuestionsForSubtopic(
     new StringOutputParser(),
   ]);
 
-  const response = await retrievalChain.invoke({
-    question: searchingKeywords,
+  const essayQuestionResponse = await retrievalChain.invoke({
+    searchingKeywords,
     subtopic,
     description,
     learningOutcomes,
@@ -133,7 +174,14 @@ async function synthesizeQuestionsForSubtopic(
     totalNumberOfQuestions,
   });
 
-  return JSON.parse(response);
+  const essayQuestions = JSON.parse(essayQuestionResponse).map(
+    (question: { question: string; answer: string }) => ({
+      ...question,
+      type: "essay",
+    })
+  );
+
+  return essayQuestions;
 }
 
 export {

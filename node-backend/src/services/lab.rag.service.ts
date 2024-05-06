@@ -7,7 +7,7 @@ import { getPineconeIndex } from "../utils/pinecone.util";
 import { convertDocsToString, splitPDFintoChunks, uploadChunkstoVectorDB } from "../utils/rag.util";
 import { SetterQuesionGenerationPrompt, SetterRealWorldScenarioPrompt, SetterPracticalLabOutlinePrompt, SetterSupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
 import { LessonOutlineType } from "../types/lesson.types";
-import { LESSON_OUTLINE } from "../dummyData/lessonOutline";
+import { MODULE_OUTLINE_LESSON_ARRAY } from "../dummyData/lessonOutline";
 
 // Define the type of the output for the real-world scenario prompt
 interface RealWorldScenarioPromptOutput {
@@ -87,7 +87,7 @@ async function documentRetrievalPipeline(keyWords: string) {
 async function responseSythesizerForLabs(topic: String) {
 
     // Topic of the lab
-    const lessonOutline = LESSON_OUTLINE.find((lesson) => lesson.lessonTitle === topic)!;
+    const lessonOutline = MODULE_OUTLINE_LESSON_ARRAY.find((lesson) => lesson.lessonTitle === topic)!;
 
     // Extract keywords from the lesson outline
     const keyWords = extractKeywordsFromLessonOutline(lessonOutline);
