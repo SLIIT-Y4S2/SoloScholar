@@ -16,7 +16,7 @@ const initLogger = () => {
         new winston.transports.Console(),
         new LokiTransport({
           host: `${process.env.GRAFANA_LOKI_HOST}`,
-          labels: { service_name: "product-service" },
+          labels: { service_name: "main-backend" },
           basicAuth: `${process.env.GRAFANA_LOKI_USERID}:${process.env.GRAFANA_LOKI_API_TOKEN}`,
           json: true,
           format: winston.format.json(),
