@@ -8,7 +8,7 @@ import { useAuth } from "../provider/authProvider";
 const Header = () => {
   const { userDetails } = useAuth();
   return (
-    <div className="flex justify-between items-center text-base bg-white h-16 px-6 shadow-md">
+    <div className="flex justify-between items-center text-base bg-white h-16 px-6 shadow-md" style={{ boxShadow: "0px 4px 50px 0px rgba(0, 0, 0, 0.10)" }}>
       <Link to={APP_ROUTES.HOME}>
         <img src="/assets/soloscholar-logo.svg" alt="logo" className="h-12" />
       </Link>

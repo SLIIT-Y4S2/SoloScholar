@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import SideNav from "../Components/Sidenav";
 
 const Home = () => {
   // TODO: remove this
@@ -20,7 +21,8 @@ const Home = () => {
 
   return (
     <div>
-      <div>Home</div>
+      {/* <div>Home</div> */}
+      <SideNav/>
       {responseData && (
         <div>Response from server: {JSON.stringify(responseData)}</div>
       )}
