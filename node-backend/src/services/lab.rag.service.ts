@@ -1,19 +1,14 @@
-import { StringOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { PineconeStore } from "@langchain/pinecone";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import { getChatModel, getEmbeddings } from "../utils/openai.util";
 import { getPineconeIndex } from "../utils/pinecone.util";
 import { convertDocsToString, splitPDFintoChunks, uploadChunkstoVectorDB } from "../utils/rag.util";
-import { SetterQuesionGenerationPrompt, SetterRealWorldScenarioPrompt, SetterPracticalLabOutlinePrompt, SetterSupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
+import { QuestionGenerationPrompt, RealWorldScenarioPrompt, PracticalLabOutlinePrompt, SupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
 import { LessonOutlineType } from "../types/lesson.types";
 import { MODULE_OUTLINE_LESSON_ARRAY } from "../dummyData/lessonOutline";
-
-// Define the type of the output for the real-world scenario prompt
-interface RealWorldScenarioPromptOutput {
-    realWorldScenario: string;
-}
-
+import { StringOutputParser, StructuredOutputParser } from "@langchain/core/output_parsers";
+import { z } from "zod";
 
 /**
  * Ingestion pipeline
@@ -66,6 +61,8 @@ async function documentRetrievalPipeline(keyWords: string) {
     // Fetch the top 10 similar documents.
     const retriever = pineconeStore.asRetriever();
 
+    // const parser = JsonOutput 
+
     // Create a runnable sequence
     const runnableSequence = RunnableSequence.from([
         (input) => input.keyWords,
@@ -81,122 +78,93 @@ async function documentRetrievalPipeline(keyWords: string) {
 
 /**
  * This function is responsible for generating a practical lab activities.
- * @param topicOftheLab 
+ * @param topic - The topic of the lab 
  * @returns 
  */
-async function responseSythesizerForLabs(topic: String) {
-
-    // Topic of the lab
+async function responseSynthesizerForLabs(topic: string) {
+    // Get the lesson outline for the given topic
     const lessonOutline = MODULE_OUTLINE_LESSON_ARRAY.find((lesson) => lesson.lessonTitle === topic)!;
 
-    // Extract keywords from the lesson outline
-    const keyWords = extractKeywordsFromLessonOutline(lessonOutline);
+    // Extract the keywords from the lesson outline
+    const keywords = extractKeywordsFromLessonOutline(lessonOutline);
+
+    // Retrieve related context to the keywords from the vector database
+    const relatedContext = await documentRetrievalPipeline(keywords);
+
+    // Generate a detailed outline for the lab activity using the related context and incomplete lab outline
+    const practicalLabDetailedOutlinePrompt = PromptTemplate.fromTemplate(PracticalLabOutlinePrompt);
+
+    // Define the output parser for the detailed lab outline using Zod schema
+    const zodSchemaForDetailedLabOutline = z.object(
+        {
+            subTopics: z.array(
+                z.object({
+                    title: z.string().describe("The title of the subtopic"),
+                    description: z.string().describe("The description of the subtopic"),
+                })
+            )
+        }
+    );
+
+    const outputParserForDetailedLabOutline = StructuredOutputParser.fromZodSchema(zodSchemaForDetailedLabOutline);
 
 
-
-    // Document retrieval pipeline
-    const relatedContext = await documentRetrievalPipeline(keyWords);
-
-
-    // Runnable sequence for generating the practical lab outline
-    const practicalLabOutlinePrompt = ChatPromptTemplate.fromTemplate(SetterPracticalLabOutlinePrompt);
-
+    // Create a runnable sequence for generating a detailed lab outline
     const practicalLabOutlinePipeline = RunnableSequence.from([
         {
             learningOutcomes: (input) => input.learningOutcomes,
             incompleteOutline: (input) => input.incompleteOutline,
+            formatInstructions: (input) => input.formatInstructions,
             context: (input) => input.relatedContext
         },
-        practicalLabOutlinePrompt,
+        practicalLabDetailedOutlinePrompt,
         getChatModel,
-        new StringOutputParser()
+        outputParserForDetailedLabOutline
     ]);
 
-    const subTopicsForPracticalLab = await practicalLabOutlinePipeline.invoke({
-        learningOutcomes: lessonOutline.learningOutcomes,
+    const detailedLabOutline = await practicalLabOutlinePipeline.invoke({
+        relatedContext: relatedContext,
         incompleteOutline: lessonOutline,
-        relatedContext: relatedContext
-    });
-
-    // Runnable sequence for generating a real-world scenario
-    const realWorldScenarioGenerationPrompt = ChatPromptTemplate.fromTemplate(SetterRealWorldScenarioPrompt);
-
-    const realWorldScenarioGenerationPipeline = RunnableSequence.from([
-        {
-            context: (input) => input.context,
-            learningOutcomes: (input) => input.learningOutcomes,
-            subTopics: (input) => input.subTopics
-        },
-        realWorldScenarioGenerationPrompt,
-        getChatModel,
-        new StringOutputParser()
-    ]);
-
-    const realWorldScenario: RealWorldScenarioPromptOutput = {
-        realWorldScenario: await realWorldScenarioGenerationPipeline.invoke({
-            context: relatedContext,
-            subTopics: subTopicsForPracticalLab,
-            learningOutcomes: lessonOutline.learningOutcomes
-        })
-    } as RealWorldScenarioPromptOutput
-
-
-    // Runnable sequence for generating supporting materials for the lab
-    const supportingMaterialGenerationPrompt = ChatPromptTemplate.fromTemplate(SetterSupportingMaterialGenerationPrompt);
-
-    const supportingMaterialGenerationPipeline = RunnableSequence.from([
-        {
-            context: (input) => input.context,
-            learningOutcomes: (input) => input.learningOutcomes,
-            subTopics: (input) => input.subTopics,
-            realWorldScenario: (input) => input.realWorldScenario
-        },
-        supportingMaterialGenerationPrompt,
-        getChatModel,
-        new StringOutputParser()
-    ]);
-
-    const supportingMat = await supportingMaterialGenerationPipeline.invoke({
-        context: relatedContext,
         learningOutcomes: lessonOutline.learningOutcomes,
-        subTopics: subTopicsForPracticalLab,
-        realWorldScenario: realWorldScenario.realWorldScenario
+        formatInstructions: outputParserForDetailedLabOutline.getFormatInstructions()
     });
 
+    // Generate a real-world scenario for the lab activity using the related context and subtopics
+    const realWorldScenarioPrompt = PromptTemplate.fromTemplate(RealWorldScenarioPrompt);
+
+    // Define the output parser for the real-world scenario prompt using Zod schema
+    const zodSchemaForRealWorldScenario = z.string().describe("The real-world scenario for the lab activity");
 
 
-    // Runnable sequence for generating questions based on the real-world scenario
-    const questionGenerationPrompt = ChatPromptTemplate.fromTemplate(SetterQuesionGenerationPrompt);
+    const outputParserForRealWorldScenario = StructuredOutputParser.fromZodSchema(zodSchemaForRealWorldScenario);
 
-    const questionGenerationPipeline = RunnableSequence.from([
+    // Create a runnable sequence for generating a real-world scenario
+    const realWorldScenarioPipeline = RunnableSequence.from([
         {
-            context: (input) => input.context,
+            context: (input) => input.relatedContext,
             learningOutcomes: (input) => input.learningOutcomes,
-            subTopics: (input) => input.subTopics,
-            realWorldScenario: (input) => input.realWorldScenario,
-            supportingMaterial: (input) => input.supportingMaterial
+            detailedOutline: (input) => input.detailedOutline,
         },
-        questionGenerationPrompt,
+        realWorldScenarioPrompt,
         getChatModel,
         new StringOutputParser()
     ]);
 
-    const labActivity = await questionGenerationPipeline.invoke({
-        context: relatedContext,
+    const realWorldScenario = await realWorldScenarioPipeline.invoke({
+        relatedContext: relatedContext,
         learningOutcomes: lessonOutline.learningOutcomes,
-        subTopics: subTopicsForPracticalLab,
-        realWorldScenario: realWorldScenario.realWorldScenario,
-        supportingMaterial: supportingMat
+        detailedOutline: detailedLabOutline,
+        formatInstructions: outputParserForRealWorldScenario.getFormatInstructions()
     });
 
+    //ToDo Generate supporting materials for the lab activity using the real-world scenario
+    const supportingMaterialPrompt = PromptTemplate.fromTemplate(SupportingMaterialGenerationPrompt);
 
-    return ({
-        realWorldScenario: realWorldScenario.realWorldScenario,
-        subTopics: JSON.parse(subTopicsForPracticalLab),
-        supportingMaterial: supportingMat,
-        labActivity: JSON.parse(labActivity)
-    });
+    return {
+        realWorldScenario: realWorldScenario,
+    };
+
 }
 
 
-export { documentRetrievalPipeline, ingestionPipeline, responseSythesizerForLabs };
+export { documentRetrievalPipeline, ingestionPipeline, responseSynthesizerForLabs };
