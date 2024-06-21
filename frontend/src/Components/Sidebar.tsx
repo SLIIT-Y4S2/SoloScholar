@@ -11,7 +11,7 @@ interface DropdownProps {
     options: string[];
 }
 
-// ! Add this to data folder
+//Todo:  Add this to data folder or fetch from db
 const LEARNING_LEVEL = {
     label: "Learning Level",
     options: ["Beginner", "Intermediate", "Advanced"],
@@ -86,12 +86,10 @@ export default function Sidebar({ componentName, moduleCode }: SidebarProps) {
             </button>
             <Collapse
                 items={items}
-                accordion={true}
                 className="w-full max-w-[380px]"
                 size="middle"
                 ghost={true}
                 expandIconPosition="right"
-
             />
         </aside>
     );
