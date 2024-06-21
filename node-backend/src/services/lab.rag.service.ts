@@ -61,8 +61,6 @@ async function documentRetrievalPipeline(keyWords: string) {
     // Fetch the top 10 similar documents.
     const retriever = pineconeStore.asRetriever();
 
-    // const parser = JsonOutput 
-
     // Create a runnable sequence
     const runnableSequence = RunnableSequence.from([
         (input) => input.keyWords,
@@ -132,7 +130,7 @@ async function responseSynthesizerForLabs(topic: string) {
     // Generate a real-world scenario for the lab activity using the related context and subtopics
     const realWorldScenarioPrompt = PromptTemplate.fromTemplate(RealWorldScenarioPrompt);
 
-    // Define the output parser for the real-world scenario prompt using Zod schema
+    // Define the output parser for the real-world scenario prompt using Zod
     const zodSchemaForRealWorldScenario = z.string().describe("The real-world scenario for the lab activity");
 
 
@@ -157,11 +155,139 @@ async function responseSynthesizerForLabs(topic: string) {
         formatInstructions: outputParserForRealWorldScenario.getFormatInstructions()
     });
 
-    //ToDo Generate supporting materials for the lab activity using the real-world scenario
+    // Generate supporting materials for the lab activity using the real-world scenario
     const supportingMaterialPrompt = PromptTemplate.fromTemplate(SupportingMaterialGenerationPrompt);
 
-    return {
+    // Define zod schemas for the supporting materials
+
+    // Schema for columns in a table
+    const columnSchema = z.object({
+        name: z.string().describe("The name of the column"),
+        type: z.string().describe("The data type of the column"),
+    });
+
+    // Schema for rows in a table
+    const exampleRowSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.date()])).describe("Schema for example rows in a table");
+
+    // Schema for tables
+    const zodSchemaForTables = z.object(
+
+        {
+            tableName: z.string().describe("The name of the table"),
+            columns: z.array(columnSchema).describe("The columns of the table"),
+            rows: z.array(exampleRowSchema).describe("The example rows of the table"),
+        }
+    );
+
+    // Schema for json documents
+    const zodSchemaForJsonDocuments = z.object(
+        {
+            collections:
+                z.array(
+                    z.object(
+                        {
+                            collectionName: z.string().describe("The name of the collection"),
+                            exampleDocuments: z.array(
+                                z.record(
+                                    z.string(),
+                                    z.union([z.string(), z.number(), z.boolean(), z.date()])
+                                )
+                            ).describe("The example documents in the collection"),
+                        }
+                    )
+                )
+        }
+    );
+
+    // Schema for relational schema
+    const relationalSchemaSchema = z.record(
+        z.string(),
+        z.array(columnSchema)
+    ).describe("A record of table names to their columns");
+
+
+    // Schema for supporting material
+    const zodSchemaForSupportingMaterial = z.object(
+        {
+            tables: z.array(zodSchemaForTables.optional().nullable()).describe("An optional list of tables if SQL is used"),
+            jsonDocument: zodSchemaForJsonDocuments.optional().nullable().describe("An optional JSON document schema  if NoSQL is used"),
+            relationalSchema: relationalSchemaSchema.optional().nullable().describe("An optional relational schema if SQL is used"),
+        }
+    );
+
+    // Define the output parser for the supporting material prompt using Zod
+    const outputParserForSupportingMaterial = StructuredOutputParser.fromZodSchema(zodSchemaForSupportingMaterial);
+
+    // Create a runnable sequence for generating supporting materials
+    const supportingMaterialPipeline = RunnableSequence.from([
+        {
+            context: (input) => input.relatedContext,
+            learningOutcomes: (input) => input.learningOutcomes,
+            topicOfTheLab: (input) => input.topicOfTheLab,
+            detailedOutline: (input) => input.detailedOutline,
+            realWorldScenario: (input) => input.realWorldScenario,
+            formatInstructions: (input) => input.formatInstructions
+        },
+        supportingMaterialPrompt,
+        getChatModel,
+        outputParserForSupportingMaterial
+    ]);
+
+    const supportingMaterial = await supportingMaterialPipeline.invoke({
+        relatedContext: relatedContext,
+        learningOutcomes: lessonOutline.learningOutcomes,
+        topicOfTheLab: lessonOutline.lessonTitle,
+        detailedOutline: detailedLabOutline,
         realWorldScenario: realWorldScenario,
+        formatInstructions: outputParserForSupportingMaterial.getFormatInstructions()
+    });
+
+    // Define question generation prompt
+    const questionGenerationPrompt = PromptTemplate.fromTemplate(QuestionGenerationPrompt);
+
+    //Define the output parser for the question generation prompt using Zod
+    const zodSchemaForQuestions = z.array(
+        z.object({
+            question: z.string().describe("The question for the lab activity"),
+            answer: z.string().describe("The answer to the question"),
+            exampleQuestion: z.string().describe("An example question that covers the same topic as the question"),
+            exampleAnswer: z.string().describe("Answer to the example question"),
+        })
+    ).describe("A list of questions for the lab activity");
+
+    const outputParserForQuestions = StructuredOutputParser.fromZodSchema(zodSchemaForQuestions);
+
+    // Create a runnable sequence for generating questions
+    const questionGenerationPipeline = RunnableSequence.from([
+        {
+            context: (input) => input.relatedContext,
+            learningOutcomes: (input) => input.learningOutcomes,
+            topicOfTheLab: (input) => input.topicOfTheLab,
+            detailedOutline: (input) => input.detailedOutline,
+            realWorldScenario: (input) => input.realWorldScenario,
+            supportingMaterial: (input) => input.supportingMaterial,
+            formatInstructions: (input) => input.formatInstructions
+        },
+        questionGenerationPrompt,
+        getChatModel,
+        outputParserForQuestions
+    ]);
+
+    const questions = await questionGenerationPipeline.invoke({
+        relatedContext: relatedContext,
+        learningOutcomes: lessonOutline.learningOutcomes,
+        topicOfTheLab: lessonOutline.lessonTitle,
+        detailedOutline: detailedLabOutline,
+        realWorldScenario: realWorldScenario,
+        supportingMaterial: supportingMaterial,
+        formatInstructions: outputParserForQuestions.getFormatInstructions()
+    });
+
+    return {
+        realWorldScenario,
+        detailedLabOutline,
+        supportingMaterial,
+        questions
     };
 
 }

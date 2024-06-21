@@ -27,7 +27,7 @@ Be verbose and provide as much detail as possible.
     {learningOutcomes}
 </LearningOutcomes>
 
-You must provide the output in following JSON format (Replace the placeholders with the actual values) : 
+You must provide the output in following JSON format (Replace the placeholders with the actual values). You must not provide the output in markdown format or any other format.:
 {formatInstructions}
 `;
 
@@ -55,12 +55,13 @@ Detailed Outline of the lab is provided within the <DetailedOutline> tag.
     {learningOutcomes}
 </LearningOutcomes>
 
-You must provide the output as a string. Do not provide the output in JSON format or markdown format or any other format. Just plain text is enough.
+You must provide the output as a string. You must not provide the output in markdown format or any other format. Just plain text is enough.
 `;
 
 const SupportingMaterialGenerationPrompt = `
 You are an experienced lecturer at a University. As the lecturer, you are responsible for writing supporting materials for a self-guided practical lab activity for the Database Systems module.
-For example, support materials can be tables if SQL is used, or if NoSQL is used, you can provide a sample JSON document also, relational schema can be provided as supporting material.
+For example, support materials can be tables if SQL is used, or if NoSQL is used, you can provide a sample JSON document also, relational schema must be provided as supporting material if SQL is used in the lab.
+You do not need to provide both tables and JSON documents, you can provide either one of them based on the topic of the lab, detailed outline, and real-world scenario.
 
 - You need to analyze the subtopics of the lab, real-world scenario, and the learning outcomes associated with the given lab.
 - Then based on the real-world scenario, you need to write supporting material covering the given sub-topics and learning outcomes.
@@ -94,7 +95,7 @@ The real-world scenario is provided within the <RealWorldScenario> tag.
 </RealWorldScenario>
 
 
-You must provide the output in the following JSON format (Replace the placeholders with the actual values) : 
+You must provide the output in the following JSON format (Replace the placeholders with the actual values). You must not provide the output in markdown format or any other format.: 
 {formatInstructions}
 
 `;
@@ -122,6 +123,10 @@ The detailed outline of the lab is provided within the <DetailedOutline> tag.
     {context}
 </RelatedContext>
 
+<TopicOfTheLab>
+    {topicOfTheLab}
+</TopicOfTheLab>    
+
 <DetailedOutline>
     {detailedOutline}
 </DetailedOutline>
@@ -138,28 +143,8 @@ The detailed outline of the lab is provided within the <DetailedOutline> tag.
     {supportingMaterial}
 </SupportingMaterial>
 
-You should output the assessment in following example JSON array format (Replace the placeholders with the actual values). :
-    
-    [
-        {{
-            question: "Your question",
-            sampleAnswer: "Your answer",
-            exampleQuestion: "Similar question",
-            exampleAnswer: "Similar answer"
-        }},
-        {{
-            question: "Your question",
-            sampleAnswer: "Your answer",
-            exampleQuestion: "Similar question",
-            exampleAnswer: "Similar answer"
-        }},
-        {{
-            question: "Your question",
-            sampleAnswer: "Your answer",
-            exampleQuestion: "Similar question",
-            exampleAnswer: "Similar answer"
-        }}
-    ]
+You must provide the output in the following JSON format (Replace the placeholders with the actual values). You must not provide the output in markdown format or any other format.: 
+{formatInstructions}
 
 `;
 
