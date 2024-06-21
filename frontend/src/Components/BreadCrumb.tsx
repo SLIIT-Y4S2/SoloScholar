@@ -1,13 +1,13 @@
 import { Breadcrumb } from "antd";
 
-export interface BreadCrumbProps {
+export interface BreadCrumbProp {
   module: string;
   activity: string;
   subActivity?: string;
   twClassNames?: string;
 }
 
-const BreadCrumb = (props: BreadCrumbProps) => {
+const BreadCrumb = (props: BreadCrumbProp) => {
   const { module, activity, subActivity, twClassNames } = props;
   return (
     <Breadcrumb
