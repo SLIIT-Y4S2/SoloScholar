@@ -1,11 +1,22 @@
 import { Request, Response } from "express";
-import { responseSythesizerForLabs } from "../services/lab.rag.service";
+import { responseSynthesizerForLabs } from "../services/lab.rag.service";
 
 const getPracticalLabActivities = async (req: Request, res: Response) => {
     const { topicOfTheLab } = req.body;
-    const retrievedChunks = await responseSythesizerForLabs(topicOfTheLab);
 
-    return res.status(200).json(retrievedChunks);
+    try {
+        const practicalLabData = await responseSynthesizerForLabs(topicOfTheLab);
+
+        return res.status(200).json(practicalLabData);
+    }
+    catch (err) {
+        if (err instanceof Error) {
+            console.error(err.message);
+            err.stack && console.error(err.stack);
+        }
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+   
 };
 
 export { getPracticalLabActivities };

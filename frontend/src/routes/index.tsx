@@ -9,6 +9,7 @@ import { ProtectedRoute } from "../utils/ProtectRoutes";
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Home from "../pages/Home";
+import Lab from "../pages/Lab";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -48,6 +49,10 @@ const Routes = () => {
           path: "/login",
           element: <Navigate to="/" />,
         },
+        {
+          path: "/lab",
+          element: <Lab />,
+        }
       ],
     },
   ];
