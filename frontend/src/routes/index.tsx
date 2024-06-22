@@ -10,6 +10,12 @@ import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Home from "../pages/Home";
 import Lab from "../pages/Lab";
+import Dashboard from "../pages/dashboard/Dashboard";
+import CustomAnalyticalIndicator from "../pages/dashboard/CustomAnalyticalIndicator";
+import LecturesOverview from "../pages/dashboard/LecturesOverview";
+import TutorialsOverview from "../pages/dashboard/TutorialsOverview";
+import LabsOverview from "../pages/dashboard/LabsOverview";
+import MyIndicators from "../pages/dashboard/MyIndicators";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -52,7 +58,33 @@ const Routes = () => {
         {
           path: "/lab",
           element: <Lab />,
-        }
+        },
+        {
+          path: "/dashboard",
+          element: <Dashboard />,
+          children: [
+            {
+              path: "/dashboard/lectures-overview",
+              element: <LecturesOverview />,
+            },
+            {
+              path: "/dashboard/tutorials-overview",
+              element: <TutorialsOverview />,
+            },
+            {
+              path: "/dashboard/labs-overview",
+              element: <LabsOverview />,
+            },
+            {
+              path: "/dashboard/custom-analytical-indicator",
+              element: <CustomAnalyticalIndicator />,
+            },
+            {
+              path: "/dashboard/my-indicators",
+              element: <MyIndicators />,
+            },
+          ],
+        },
       ],
     },
   ];
