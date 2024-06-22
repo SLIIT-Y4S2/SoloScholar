@@ -1,6 +1,6 @@
 import { RunnableSequence } from "@langchain/core/runnables";
 import { PineconeStore } from "@langchain/pinecone";
-import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
+import { PromptTemplate } from "@langchain/core/prompts";
 import { getChatModel, getEmbeddings } from "../utils/openai.util";
 import { getPineconeIndex } from "../utils/pinecone.util";
 import { convertDocsToString, splitPDFintoChunks, uploadChunkstoVectorDB } from "../utils/rag.util";
