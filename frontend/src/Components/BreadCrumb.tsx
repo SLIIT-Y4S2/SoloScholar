@@ -1,23 +1,29 @@
+import { Link } from "react-router-dom";
 import { Breadcrumb } from "antd";
 
+interface BreadCrumbItem {
+  label: string;
+  linkTo?: string;
+}
 export interface BreadCrumbProp {
-  module: string;
-  activity: string;
-  subActivity?: string;
-  twClassNames?: string;
+  module: BreadCrumbItem;
+  sidebarOption: BreadCrumbItem;
 }
 
 const BreadCrumb = (props: BreadCrumbProp) => {
-  const { module, activity, subActivity, twClassNames } = props;
+  const { module, sidebarOption } = props;
   return (
-    <Breadcrumb
-      style={{ margin: "55px 0 0 45px" }}
-      className={twClassNames ?? ""}
-    >
-      <Breadcrumb.Item>Modules</Breadcrumb.Item>
-      <Breadcrumb.Item>{module}</Breadcrumb.Item>
-      <Breadcrumb.Item>{activity}</Breadcrumb.Item>
-      <Breadcrumb.Item>{subActivity ?? ""}</Breadcrumb.Item>
+    <Breadcrumb className="mt-[55px] mr-[0px] mb-[0px] ml-[45px]">
+      <Breadcrumb.Item>
+        <Link to="#">Modules</Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Item>
+        <Link to={`${module.linkTo}`}>{module.label}</Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Item>
+        <Link to="#">Dashboard</Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Item>{sidebarOption.label}</Breadcrumb.Item>
     </Breadcrumb>
   );
 };
