@@ -1,21 +1,11 @@
 import { PropsWithChildren } from "react";
 import Header from "../Components/Header";
-import Sidebar from "../Components/Sidebar";
-const MainLayout = (props: PropsWithChildren) => {
-  
-  //Todo: Replace with actual data
-  const moduleData = {
-    componentName: "Introduction to Database Management Systems",
-    moduleCode: "SE3020",
-  };
 
+const MainLayout = (props: PropsWithChildren) => {
   return (
-    <div className="font-roboto w-screen h-screen">
+    <div className="font-roboto h-screen flex flex-col">
       <Header />
-      <div className="grid grid-cols-[auto,1fr]">
-        <Sidebar {...moduleData} />
-        {props.children}
-      </div>
+      {props.children}
     </div>
   );
 };
