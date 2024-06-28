@@ -3,7 +3,8 @@ import { responseSynthesizerForLabs } from "../services/lab.rag.service";
 
 const getPracticalLabActivities = async (req: Request, res: Response) => {
     const { topicOfTheLab } = req.body;
-
+ 
+    // TODO - Handle the errors gracefully
     try {
         const practicalLabData = await responseSynthesizerForLabs(topicOfTheLab);
 
