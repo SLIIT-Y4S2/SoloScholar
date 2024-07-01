@@ -14,6 +14,38 @@ import {
   AZURE_SQL_USERNAME,
 } from "../constants/azure.constants";
 
+const datasource: DataSource = new DataSource({
+  type: "mssql",
+  host: AZURE_SQL_HOST,
+  database: AZURE_SQL_DATABASE,
+  username: AZURE_SQL_USERNAME,
+  password: AZURE_SQL_PASSWORD,
+});
+const model: ChatOpenAI<ChatOpenAICallOptions> = new ChatOpenAI({
+  model: OPENAI_CHAT_MODEL,
+  apiKey: OPENAI_API_KEY,
+  temperature: 0.2,
+});
+const jsonParser: StructuredOutputParser<
+  ZodObject<
+    {
+      [k: string]: ZodString;
+    },
+    "strip",
+    ZodTypeAny,
+    {
+      [x: string]: string;
+    },
+    {
+      [x: string]: string;
+    }
+  >
+> = StructuredOutputParser.fromNamesAndDescriptions({
+  query: "The SQL query for the question",
+});
+
+let database: SqlDatabase | null = null;
+
 async function getSqlQueryChain(): Promise<
   RunnableSequence<
     {
@@ -24,41 +56,13 @@ async function getSqlQueryChain(): Promise<
     }
   >
 > {
-  const datasource: DataSource = new DataSource({
-    type: "mssql",
-    host: AZURE_SQL_HOST,
-    database: AZURE_SQL_DATABASE,
-    username: AZURE_SQL_USERNAME,
-    password: AZURE_SQL_PASSWORD,
-  });
-
-  const database: SqlDatabase = await SqlDatabase.fromDataSourceParams({
-    appDataSource: datasource,
-  });
-
-  const model: ChatOpenAI<ChatOpenAICallOptions> = new ChatOpenAI({
-    model: OPENAI_CHAT_MODEL,
-    apiKey: OPENAI_API_KEY,
-    temperature: 0.2,
-  });
-
-  const jsonParser: StructuredOutputParser<
-    ZodObject<
-      {
-        [k: string]: ZodString;
-      },
-      "strip",
-      ZodTypeAny,
-      {
-        [x: string]: string;
-      },
-      {
-        [x: string]: string;
-      }
-    >
-  > = StructuredOutputParser.fromNamesAndDescriptions({
-    query: "The SQL query for the question",
-  });
+  if (database == null) {
+    await datasource.initialize();
+    database = await SqlDatabase.fromDataSourceParams({
+      appDataSource: datasource,
+      ignoreTables: ["database_firewall_rules"],
+    });
+  }
 
   /**
    * Create a new RunnableSequence where we pipe the output from `db.getTableInfo()`
@@ -73,9 +77,10 @@ async function getSqlQueryChain(): Promise<
     }
   > = RunnableSequence.from([
     {
-      schema: async () => await database.getTableInfo(),
+      schema: async () => await database?.getTableInfo(),
       formatInstructions: () => jsonParser.getFormatInstructions(),
       question: (input: { question: string }) => input.question,
+      defaultQuery: () => "SELECT NULL",
     },
     SQL_MSSQL_PROMPT,
     model.bind({}),
@@ -85,6 +90,41 @@ async function getSqlQueryChain(): Promise<
   return sqlQueryChain;
 }
 
+interface Column {
+  name: string;
+  data_type: string;
+  description: string;
+}
+interface Table {
+  name: string;
+  description: string;
+  columns: Column[];
+}
+
+/**
+ *  Function that converts the table information in JSON form into an array of metadata objects.
+ */
+async function getTableMetadata(tableInformation: { table_info: Table[] }) {
+  return tableInformation.table_info.map((table) => {
+    const columns: Column[] = table.columns;
+
+    // Extract column details
+    const columnNames = columns.map((column) => column.name);
+    const columnDataTypes = columns.map((column) => column.data_type);
+    const columnDescriptions = columns.map((column) => column.description);
+
+    // Create metadata object
+    return {
+      table_name: table.name,
+      table_description: table.description,
+      column_names: JSON.stringify(columnNames),
+      data_types: JSON.stringify(columnDataTypes),
+      column_descriptions: JSON.stringify(columnDescriptions),
+    };
+  });
+}
+
 export const dashboardUtil = {
   getSqlQueryChain,
+  getTableMetadata,
 };
