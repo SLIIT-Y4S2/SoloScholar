@@ -3,6 +3,8 @@ import { Layout, Typography, Input, Select, Button } from "antd";
 import BreadCrumb from "../../Components/BreadCrumb";
 import CustomLineChart from "./visualizations/CustomLineChart";
 import { useState } from "react";
+import CustomBarChart from "./visualizations/CustomBarChart";
+import CustomPieChart from "./visualizations/CustomPieChart";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -18,17 +20,17 @@ const visualizationChoices: VisualizationChoice[] = [
   {
     value: "Bar Chart",
     label: <span>Bar Chart</span>,
-    visualization: <CustomLineChart />,
+    visualization: <CustomBarChart />,
   },
   {
     value: "Pie Chart",
     label: <span>Pie Chart</span>,
-    visualization: <p>sdsd</p>,
+    visualization: <CustomPieChart />,
   },
   {
     value: "Line Chart",
     label: <span>Line Chart</span>,
-    visualization: <p>aaaaa</p>,
+    visualization: <CustomLineChart />,
   },
   {
     value: "Dougnout Chart",
@@ -56,9 +58,9 @@ const CustomAnalyticalIndicator = () => {
       rounded-[15px]
       "
       >
-        <div className="grid grid-rows-3 gap-[58px] ">
-          <div className="flex gap-[41px]">
-            <Text className="font-medium text-[16px] w-fit">Analysis Goal</Text>
+        <div className="grid gap-[58px]">
+          <div className="flex gap-[41px] h-fit">
+            <Text className="font-medium text-[16px]">Analysis Goal</Text>
             <TextArea
               className="font-normal text-[14px] rounded-[5px] resize-none"
               rows={3}
@@ -66,12 +68,12 @@ const CustomAnalyticalIndicator = () => {
 E.g. I want to see how many beginner level students have scored more than average for each tutorial"
             />
           </div>
-          <div className="flex gap-[41px]">
+          <div className="flex">
             <Text className="font-medium text-[16px]">
-              Visualization <br />
-              Choice
+              Visualization Choice
             </Text>
             <Select
+              className="w-full"
               showSearch
               onChange={(e: string) =>
                 setVisualization(
@@ -83,8 +85,8 @@ E.g. I want to see how many beginner level students have scored more than averag
               options={visualizationChoices}
             />
           </div>
-          <div className="flex gap-[41px]">
-            <Text className="font-medium text-[16px] w-max">Preview</Text>
+          <div className="flex gap-[70px]">
+            <Text className="font-medium text-[16px] w-[66px]">Preview</Text>
             {visualization}
           </div>
         </div>

@@ -1,17 +1,18 @@
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Label,
+  Rectangle,
 } from "recharts";
 
-interface CustomLineChartProps {
+interface CustomBarChartProps {
   data?: JSON[];
-  lineColor?: string;
+  barColor?: string;
   xLabel?: string;
   yLabel?: string;
 }
@@ -44,23 +45,23 @@ const previewData: PreviewData[] = [
   },
 ];
 
-const CustomLineChart = (props: CustomLineChartProps) => {
-  const { data, lineColor, xLabel, yLabel } = props;
+const CustomBarChart = (props: CustomBarChartProps) => {
+  const { data, barColor, xLabel, yLabel } = props;
   return (
     <ResponsiveContainer
       height={200}
       className="
-      pt-[10px] pb-[10px]
-      border-[#eee] rounded-[5px] border-[2px]"
+    pt-[10px] pb-[10px]
+    border-[#eee] rounded-[5px] border-[2px]"
     >
-      <LineChart data={data ? data : previewData}>
+      <BarChart data={data ? data : previewData}>
         <CartesianGrid className="stroke-[#909090]" strokeDasharray="3 3" />
         <Tooltip />
-        <Line
+        <Bar
           type="monotone"
           dataKey="yValue"
-          stroke={lineColor ? lineColor : "#8884d8"}
-          activeDot={{ r: 6 }}
+          fill={barColor ? barColor : "#8884d8"}
+          activeBar={<Rectangle />}
         />
         <XAxis dataKey="xValue">
           <Label
@@ -77,9 +78,9 @@ const CustomLineChart = (props: CustomLineChartProps) => {
             offset={-5}
           />
         </YAxis>
-      </LineChart>
+      </BarChart>
     </ResponsiveContainer>
   );
 };
 
-export default CustomLineChart;
+export default CustomBarChart;
