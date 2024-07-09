@@ -2,9 +2,10 @@ import { Fragment } from "react/jsx-runtime";
 import { Layout, Typography, Input, Select, Button } from "antd";
 import BreadCrumb from "../../Components/BreadCrumb";
 import CustomLineChart from "./visualizations/CustomLineChart";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import CustomBarChart from "./visualizations/CustomBarChart";
 import CustomPieChart from "./visualizations/CustomPieChart";
+import { DashboardContext } from "../../provider/DashboardContext";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -40,9 +41,10 @@ const visualizationChoices: VisualizationChoice[] = [
 ];
 
 const CustomAnalyticalIndicator = () => {
-  const [visualization, setVisualization] = useState<JSX.Element>(
-    visualizationChoices[0].visualization
-  );
+  const { createIndicator } = useContext(DashboardContext);
+  const [analysisGoal, setAnalysisGoal] = useState<string>("");
+  const [visualizationChoice, setVisualizationChoice] =
+    useState<VisualizationChoice>(visualizationChoices[0]);
 
   return (
     <Fragment>
@@ -66,6 +68,8 @@ const CustomAnalyticalIndicator = () => {
               rows={3}
               placeholder="Enter your analysis goal here...
 E.g. I want to see how many beginner level students have scored more than average for each tutorial"
+              value={analysisGoal}
+              onChange={(e: any) => setAnalysisGoal(e.target.value)}
             />
           </div>
           <div className="flex">
@@ -76,9 +80,10 @@ E.g. I want to see how many beginner level students have scored more than averag
               className="w-full"
               showSearch
               onChange={(e: string) =>
-                setVisualization(
-                  visualizationChoices.find((choice) => choice.value === e)
-                    ?.visualization || <></>
+                setVisualizationChoice(
+                  visualizationChoices.find(
+                    (visualizationChoice) => visualizationChoice.value === e
+                  )!
                 )
               }
               defaultValue={visualizationChoices[0].value}
@@ -87,12 +92,18 @@ E.g. I want to see how many beginner level students have scored more than averag
           </div>
           <div className="flex gap-[70px]">
             <Text className="font-medium text-[16px] w-[66px]">Preview</Text>
-            {visualization}
+            {visualizationChoice.visualization}
           </div>
         </div>
         <br />
         <div className="flex justify-end">
-          <Button type="primary" className="rounded-[2px]">
+          <Button
+            type="primary"
+            className="rounded-[2px]"
+            onClick={() => {
+              createIndicator(analysisGoal, visualizationChoice.value);
+            }}
+          >
             Generate
           </Button>
         </div>
