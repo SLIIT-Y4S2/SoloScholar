@@ -54,10 +54,9 @@ const CustomAnalyticalIndicator = () => {
       />
       <Content
         className="
-      pt-[53px] pr-[45px] pb-[39px] pl-[45px] 
-      mt-[35px] mr-[80px] mb-[98px] ml-[47px] 
-      bg-[#ffff] 
-      rounded-[15px]
+      pt-[69px] pr-[54px] pb-[69px] pl-[54px]
+      mt-[35px] mr-[80px] mb-[68px] ml-[45px]
+      min-h-[280px] bg-[#ffff] rounded-[15px]
       "
       >
         <div className="grid gap-[58px]">
@@ -67,7 +66,7 @@ const CustomAnalyticalIndicator = () => {
               className="font-normal text-[14px] rounded-[5px] resize-none"
               rows={3}
               placeholder="Enter your analysis goal here...
-E.g. I want to see how many beginner level students have scored more than average for each tutorial"
+    E.g. I want to see how many beginner level students have scored more than average for each tutorial"
               value={analysisGoal}
               onChange={(e: any) => setAnalysisGoal(e.target.value)}
             />
