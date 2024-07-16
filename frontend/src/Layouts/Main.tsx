@@ -6,7 +6,8 @@ const MainLayout = (props: PropsWithChildren) => {
     <div className="font-roboto h-screen flex flex-col">
       <Header />
       {props.children}
-    </div>
+    </Layout>
+    // </div>
   );
 };
 

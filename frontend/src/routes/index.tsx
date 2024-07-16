@@ -24,7 +24,6 @@ const Routes = () => {
   const routesForPublic: RouteObject[] = [
     {
       path: "/logout",
-
       element: <Logout />,
     },
     {
