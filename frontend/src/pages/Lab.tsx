@@ -3,13 +3,14 @@ import { LabProvider } from "../provider/LabContext";
 import CustomBreadcrumb from "../Components/CustomBreadcrumb";
 import Sidebar from "../Components/Sidebar";
 import { ModuleProvider } from "../provider/ModuleContext";
+import { Layout } from "antd";
 
 export default function Lab() {
     return (
         <ModuleProvider>
-            <div className="grid grid-cols-[auto,1fr] flex-grow ">
+            <Layout className="grid grid-cols-[auto,1fr] flex-grow">
                 <Sidebar />
-                <div className="flex flex-col gap-8 my-6 mx-4">
+                <div className="flex flex-col gap-8 my-6 mx-4 h-max">
                     {/* Remove static values */}
                     <CustomBreadcrumb
                         module={{ title: "Database Management Systems-SE3020", path: "/modules/dbms" }}
@@ -20,9 +21,9 @@ export default function Lab() {
                         <QuestionCardForLab />
                     </LabProvider>
                 </div>
-            </div>
+            </Layout>
 
-        </ModuleProvider>
+        </ModuleProvider >
 
     );
 }
