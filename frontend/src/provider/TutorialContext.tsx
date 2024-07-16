@@ -6,11 +6,9 @@ import {
   useState,
 } from "react";
 import dummyQuestions from "../dummyData/tutorialQuestions.json";
-
 interface TutorialProviderProps {
   children: ReactNode;
 }
-
 export interface TutorialQuestion {
   questionNumber: number;
   question: string;
