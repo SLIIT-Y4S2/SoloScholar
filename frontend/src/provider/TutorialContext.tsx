@@ -6,11 +6,9 @@ import {
   useState,
 } from "react";
 import dummyQuestions from "../dummyData/tutorialQuestions.json";
-
 interface TutorialProviderProps {
   children: ReactNode;
 }
-
 export interface TutorialQuestion {
   questionNumber: number;
   question: string;
@@ -49,12 +47,12 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   ] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  const displayedQuestion = questions[currentQuestionNumber - 1];
+
   useEffect(() => {
     if (currentQuestionNumber === 0) return;
-    setStudentsAnswerForTheCurrentQuestion(
-      questions[currentQuestionNumber - 1].studentAnswer
-    );
-  }, [currentQuestionNumber, questions]);
+    setStudentsAnswerForTheCurrentQuestion(displayedQuestion?.studentAnswer);
+  }, [displayedQuestion?.studentAnswer, currentQuestionNumber, questions]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -86,13 +84,11 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   ) => {
     if (nextQuestionNumber < 1 || nextQuestionNumber > questions.length) return;
     if (
-      studentsAnswerForTheCurrentQuestion !==
-      questions[currentQuestion - 1].studentAnswer
+      studentsAnswerForTheCurrentQuestion !== displayedQuestion?.studentAnswer
     ) {
       //TODO submit the answer to the backend with next question number as current question
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      questions[currentQuestion - 1].studentAnswer =
-        studentsAnswerForTheCurrentQuestion;
+      displayedQuestion.studentAnswer = studentsAnswerForTheCurrentQuestion;
 
       // TODO: If submitting the answer to the backend is successful, then only change the question
       setCurrentQuestionNumber(nextQuestionNumber);
