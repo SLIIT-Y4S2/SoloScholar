@@ -7,6 +7,8 @@ interface ModuleProviderProps {
 }
 
 interface ModuleContextType {
+    learningLevel: string;
+    setLearningLevel: (learningLevel: string) => void
     moduleName: string;
     moduleCode: string;
     lessonOutline: LessonOutlineType[];
@@ -35,6 +37,7 @@ export function ModuleProvider({ children }: ModuleProviderProps) {
     const [lectureTopic, setLectureTopic] = useState<string | null>(null);
     const [tutorialTopic, setTutorialTopic] = useState<string | null>(null);
     const [labTopic, setLabTopic] = useState<string | null>(null);
+    const [learningLevel, setLearningLevel] = useState<string>("Beginner");
 
     //TODO : Get the module name, module code and lesson outline from the database
     const moduleName = "Introduction to Programming";
@@ -44,7 +47,7 @@ export function ModuleProvider({ children }: ModuleProviderProps) {
 
 
     return (
-        <ModuleContext.Provider value={{ moduleName, moduleCode, lessonOutline, lectureTopic, setLectureTopic, tutorialTopic, setTutorialTopic, labTopic, setLabTopic }}>
+        <ModuleContext.Provider value={{ learningLevel, setLearningLevel, moduleName, moduleCode, lessonOutline, lectureTopic, setLectureTopic, tutorialTopic, setTutorialTopic, labTopic, setLabTopic }}>
             {children}
         </ModuleContext.Provider>
     );
