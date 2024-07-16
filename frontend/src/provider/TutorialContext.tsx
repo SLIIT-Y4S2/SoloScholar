@@ -41,7 +41,7 @@ export function useTutorialContext() {
 }
 
 export function TutorialProvider({ children }: TutorialProviderProps) {
-  const [currentQuestionNumber, setCurrentQuestionNumber] = useState<number>(0);
+  const [currentQuestionNumber, setCurrentQuestionNumber] = useState<number>(1);
   const [questions, setQuestions] = useState<TutorialQuestion[]>([]);
   const [
     studentsAnswerForTheCurrentQuestion,
@@ -75,7 +75,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
           };
         })
       );
-      setCurrentQuestionNumber(2);
+      setCurrentQuestionNumber(1);
       setIsLoading(false);
     }, 1000);
   }, []);
