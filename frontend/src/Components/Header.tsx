@@ -14,7 +14,23 @@ const Header = () => {
       </Link>
       <div className="flex justify-center items-center gap-4">
         <Link to={APP_ROUTES.HOME}>Home</Link>
-        <Link to={APP_ROUTES.MODULES}>Modules</Link>
+        {/* <Link to={APP_ROUTES.MODULES}>Modules</Link> */}
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: "modules",
+                label: <Link to={APP_ROUTES.ds}>Database Systems</Link>,
+              },
+              {
+                key: "tutorial",
+                label: <Link to={APP_ROUTES.tute}>Tute (TEMP....)</Link>,
+              },
+            ],
+          }}
+        >
+          <div className="">Modules</div>
+        </Dropdown>
         <ProfileIcon studentId={userDetails?.studentId || ""} />
       </div>
     </div>
