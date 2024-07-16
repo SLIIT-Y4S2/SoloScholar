@@ -5,7 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import dummyQuestions from "../data/dummyQuestions.json";
+import dummyQuestions from "../dummyData/tutorialQuestions.json";
 
 interface TutorialProviderProps {
   children: ReactNode;
