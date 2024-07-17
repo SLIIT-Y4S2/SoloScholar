@@ -12,13 +12,11 @@ const LecturesOverview = () => {
         sidebarOption={{ label: "Lectures Overview" }}
       />
       <Content
-        style={{
-          padding: "69px 54px 69px 54px",
-          margin: "35px 80px 68px 45px",
-          minHeight: 280,
-          background: "#ffff",
-          borderRadius: "15px",
-        }}
+        className="
+      pt-[69px] pr-[54px] pb-[69px] pl-[54px]
+      mt-[35px] mr-[80px] mb-[68px] ml-[45px]
+      min-h-[280px] bg-[#ffff] rounded-[15px]
+      "
       >
         <p>Lectures Overview</p>
       </Content>
