@@ -1,7 +1,8 @@
 import { Tooltip, ResponsiveContainer, Pie, PieChart } from "recharts";
+import { DashboardContext } from "../../../provider/DashboardContext";
+import { useContext } from "react";
 
 interface CustomPieChartProps {
-  data?: JSON[];
   pieColor?: string;
 }
 
@@ -20,7 +21,9 @@ const previewData: PreviewData[] = [
 ];
 
 const CustomPieChart = (props: CustomPieChartProps) => {
-  const { data, pieColor } = props;
+  const { pieColor } = props;
+  const { data } = useContext(DashboardContext);
+
   return (
     <ResponsiveContainer
       height={250}
@@ -34,7 +37,11 @@ const CustomPieChart = (props: CustomPieChartProps) => {
           className="rounded-[5px] border-[#eee]"
           dataKey="value"
           isAnimationActive={true}
-          data={data ? data : previewData}
+          data={
+            data && data.visualizationChoice === "Pie Chart"
+              ? data.formattedData
+              : previewData
+          }
           outerRadius={100}
           fill={pieColor ? pieColor : "#8884d8"}
           label

@@ -1,3 +1,5 @@
+import { useContext } from "react";
+import { DashboardContext } from "../../../provider/DashboardContext";
 import {
   BarChart,
   Bar,
@@ -11,7 +13,6 @@ import {
 } from "recharts";
 
 interface CustomBarChartProps {
-  data?: JSON[];
   barColor?: string;
   xLabel?: string;
   yLabel?: string;
@@ -46,7 +47,9 @@ const previewData: PreviewData[] = [
 ];
 
 const CustomBarChart = (props: CustomBarChartProps) => {
-  const { data, barColor, xLabel, yLabel } = props;
+  const { barColor, xLabel, yLabel } = props;
+  const { data } = useContext(DashboardContext);
+
   return (
     <ResponsiveContainer
       height={200}
@@ -54,7 +57,13 @@ const CustomBarChart = (props: CustomBarChartProps) => {
     pt-[10px] pb-[10px]
     border-[#eee] rounded-[5px] border-[2px]"
     >
-      <BarChart data={data ? data : previewData}>
+      <BarChart
+        data={
+          data && data.visualizationChoice === "Bar Chart"
+            ? data.formattedData
+            : previewData
+        }
+      >
         <CartesianGrid className="stroke-[#909090]" strokeDasharray="3 3" />
         <Tooltip />
         <Bar
