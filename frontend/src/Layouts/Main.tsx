@@ -1,11 +1,15 @@
 import { PropsWithChildren } from "react";
 import Header from "../Components/Header";
+import { Layout } from "antd";
 
 const MainLayout = (props: PropsWithChildren) => {
   return (
     <div className="font-roboto h-screen flex flex-col">
-      <Header />
-      {props.children}
+      <Layout className="h-full">
+        <Header />
+        {props.children}
+      </Layout>
+      //{" "}
     </div>
   );
 };

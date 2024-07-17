@@ -16,6 +16,8 @@ import LecturesOverview from "../pages/dashboard/LecturesOverview";
 import TutorialsOverview from "../pages/dashboard/TutorialsOverview";
 import LabsOverview from "../pages/dashboard/LabsOverview";
 import MyIndicators from "../pages/dashboard/MyIndicators";
+import Tutorial from "../pages/[module]/[lesson]/tutorial";
+import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -24,7 +26,6 @@ const Routes = () => {
   const routesForPublic: RouteObject[] = [
     {
       path: "/logout",
-
       element: <Logout />,
     },
     {
@@ -54,6 +55,27 @@ const Routes = () => {
         {
           path: "/login",
           element: <Navigate to="/" />,
+        },
+        {
+          path: "/:module/:lesson",
+          children: [
+            {
+              path: "tutorial",
+              element: <Tutorial />,
+            },
+            {
+              path: "tutorial/:tutorialId",
+              element: <TutorialView />,
+            },
+            {
+              path: "lab",
+              element: <div>Lab</div>,
+            },
+            {
+              path: "lab/:labId",
+              element: <div>Lab</div>,
+            },
+          ],
         },
         {
           path: "/lab",
