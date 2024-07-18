@@ -15,18 +15,21 @@ const Tutorial = () => {
   // TODO: fetch past tutorials
   const [pastTutorials, setPastTutorials] = useState([
     {
+      key: 1,
       difficulty: "Beginner",
       date: "2021-10-10 17:00",
       status: "Completed", // generating, completed, in progress
       score: 80,
     },
     {
+      key: 2,
       difficulty: "Intermediate",
       date: "2021-10-10 17:00",
       status: "Completed",
       score: 90,
     },
     {
+      key: 3,
       difficulty: "Advanced",
       date: "2021-10-10 17:00",
       status: "Completed",

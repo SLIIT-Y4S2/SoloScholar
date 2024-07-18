@@ -14,16 +14,31 @@ export interface TutorialQuestion {
   question: string;
   options: string[];
   type: "short-answer" | "mcq";
+  answer: string;
   studentAnswer: string | null;
+  feedbackType?: "skip" | "basic" | "detailed";
+  isStudentAnswerCorrect?: boolean;
 }
+type TutorialStatus =
+  | "generating"
+  | "generated"
+  | "submitted"
+  | "feedback-generating"
+  | "feedback-generated"
+  | "ended";
 
 interface TutorialContextType {
   questions: TutorialQuestion[];
+  status?: TutorialStatus;
   currentQuestionNumber: number;
   isLoading: boolean;
   studentsAnswerForTheCurrentQuestion: string | null;
   setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
-  submitAnswer: (currentQuestion: number, nextQuestionNumber: number) => void;
+
+  submitAnswer: (
+    currentQuestion: number,
+    nextQuestionNumber: number | null
+  ) => void;
 }
 
 const TutorialProviderContext = createContext<TutorialContextType | null>(null);
@@ -39,6 +54,7 @@ export function useTutorialContext() {
 }
 
 export function TutorialProvider({ children }: TutorialProviderProps) {
+  const [status, setStatus] = useState<TutorialStatus | undefined>();
   const [currentQuestionNumber, setCurrentQuestionNumber] = useState<number>(1);
   const [questions, setQuestions] = useState<TutorialQuestion[]>([]);
   const [
@@ -58,6 +74,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     setIsLoading(true);
     // fetch the questions from the backend
     setTimeout(() => {
+      setStatus("generated");
       setQuestions(
         dummyQuestions.map((question, index) => {
           const type: "mcq" | "short-answer" =
@@ -70,6 +87,8 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
             options: question.options ?? [],
             type,
             studentAnswer: null,
+            answer: question.answer,
+            // isStudentAnswerCorrect: true,
           };
         })
       );
@@ -80,8 +99,16 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
 
   const submitAnswer = async (
     currentQuestion: number,
-    nextQuestionNumber: number
+    nextQuestionNumber: number | null
   ) => {
+    if (nextQuestionNumber === null) {
+      //TODO finish the tutorial
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setCurrentQuestionNumber(1);
+      setStatus("submitted");
+      return;
+    }
+
     if (nextQuestionNumber < 1 || nextQuestionNumber > questions.length) return;
     if (
       studentsAnswerForTheCurrentQuestion !== displayedQuestion?.studentAnswer
@@ -98,6 +125,8 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     }
   };
 
+  //
+
   return (
     <TutorialProviderContext.Provider
       value={{
@@ -107,6 +136,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         studentsAnswerForTheCurrentQuestion,
         setStudentsAnswerForTheCurrentQuestion,
         submitAnswer,
+        status,
       }}
     >
       {children}
