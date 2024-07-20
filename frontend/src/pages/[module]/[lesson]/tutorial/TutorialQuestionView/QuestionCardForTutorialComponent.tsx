@@ -44,7 +44,7 @@ const QuestionCardForTutorialComponent = () => {
           }
         />
       ) : (
-        options.map((option) => (
+        options.map((option, index) => (
           <div
             key={option}
             onClick={() => setStudentsAnswerForTheCurrentQuestion(option)}
@@ -54,7 +54,7 @@ const QuestionCardForTutorialComponent = () => {
                 : ""
             }`}
           >
-            {option}
+            {String.fromCharCode(97 + index)}. {option}
           </div>
         ))
       )}

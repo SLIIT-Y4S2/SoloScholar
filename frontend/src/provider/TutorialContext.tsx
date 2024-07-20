@@ -33,11 +33,14 @@ interface TutorialContextType {
   currentQuestionNumber: number;
   isLoading: boolean;
   studentsAnswerForTheCurrentQuestion: string | null;
-  setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
 
-  submitAnswer: (
-    currentQuestion: number,
-    nextQuestionNumber: number | null
+  setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
+  submitAnswer: (current: number, next: number | null) => void;
+  requestFeedback: (
+    questionFeedback: {
+      questionNumber: number;
+      feedbackType: string;
+    }[]
   ) => void;
 }
 
@@ -77,7 +80,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
       setStatus("generated");
       setQuestions(
         dummyQuestions.map((question, index) => {
-          const type: "mcq" | "short-answer" =
+          const type =
             question.type === "mcq" || question.type === "short-answer"
               ? question.type
               : "short-answer";
@@ -88,7 +91,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
             type,
             studentAnswer: null,
             answer: question.answer,
-            // isStudentAnswerCorrect: true,
+            isStudentAnswerCorrect: true,
           };
         })
       );
@@ -97,35 +100,46 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     }, 1000);
   }, []);
 
-  const submitAnswer = async (
-    currentQuestion: number,
-    nextQuestionNumber: number | null
-  ) => {
-    if (nextQuestionNumber === null) {
-      //TODO finish the tutorial
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+  const submitAnswer = async (current: number, next: number | null) => {
+    if (next === null) {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Finish the tutorial
+      updateQuestionAnswer(current);
       setCurrentQuestionNumber(1);
       setStatus("submitted");
       return;
     }
 
-    if (nextQuestionNumber < 1 || nextQuestionNumber > questions.length) return;
+    if (next < 1 || next > questions.length) return;
+
     if (
       studentsAnswerForTheCurrentQuestion !== displayedQuestion?.studentAnswer
     ) {
-      //TODO submit the answer to the backend with next question number as current question
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      displayedQuestion.studentAnswer = studentsAnswerForTheCurrentQuestion;
-
-      // TODO: If submitting the answer to the backend is successful, then only change the question
-      setCurrentQuestionNumber(nextQuestionNumber);
-    } else {
-      // change the question to next or given number
-      setCurrentQuestionNumber(nextQuestionNumber);
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Submit answer to backend
+      updateQuestionAnswer(current);
     }
+
+    setCurrentQuestionNumber(next); // TODO: Change question only if submission is successful
   };
 
-  //
+  const updateQuestionAnswer = (questionNumber: number) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((q) =>
+        q.questionNumber === questionNumber
+          ? { ...q, studentAnswer: studentsAnswerForTheCurrentQuestion }
+          : q
+      )
+    );
+  };
+
+  const requestFeedback = async (
+    questionFeedback: { questionNumber: number; feedbackType: string }[]
+  ) => {
+    setStatus("feedback-generating");
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Request feedback from backend
+    console.log(questionFeedback);
+
+    setStatus("feedback-generated");
+  };
 
   return (
     <TutorialProviderContext.Provider
@@ -137,6 +151,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         setStudentsAnswerForTheCurrentQuestion,
         submitAnswer,
         status,
+        requestFeedback,
       }}
     >
       {children}

@@ -26,7 +26,7 @@ const QuestionCardForTutorialFeedback = ({
       {type === "short-answer" ? (
         <TextArea value={studentAnswer || ""} disabled />
       ) : (
-        options.map((option) => (
+        options.map((option, index) => (
           <div
             key={option}
             className={`p-2 border rounded-lg ${
@@ -37,7 +37,7 @@ const QuestionCardForTutorialFeedback = ({
                 : ""
             }`}
           >
-            {option}
+            {String.fromCharCode(97 + index)}. {option}
           </div>
         ))
       )}

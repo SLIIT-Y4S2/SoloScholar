@@ -2,10 +2,10 @@ import { Content } from "antd/es/layout/layout";
 import React from "react";
 import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import QuestionCardForTutorialFeedback from "./QuestionCardForTutorialFeedback";
-import { Button, Radio } from "antd";
+import { Button, Form, Radio } from "antd";
 
 const RequestFeedback = () => {
-  const { questions, isLoading } = useTutorialContext();
+  const { questions, isLoading, requestFeedback } = useTutorialContext();
 
   if (isLoading || questions.length === 0) {
     return <>Loading...</>;
@@ -40,33 +40,56 @@ const RequestFeedback = () => {
         and incorrect answers to reinforce your knowledge.
       </p>
 
-      {questions.map((question) => (
-        <div
-          key={question.questionNumber}
-          className="flex justify-between 
-          items-center gap-4 p-4 border rounded-lg bg-white shadow-md
-          "
-        >
-          <QuestionCardForTutorialFeedback question={question} />
-          <div className="flex flex-col">
-            Explanation
-            <Radio.Group
-              onChange={(e) => console.log(e.target.value)}
-              value={question.feedbackType}
-              className="flex flex-col gap-2"
-            >
-              <Radio value={"skip"} disabled={!question.isStudentAnswerCorrect}>
-                Skip
-              </Radio>
-              <Radio value={"basic"}>Basic</Radio>
-              <Radio value={"detailed"}>Detailed</Radio>
-            </Radio.Group>
+      <Form
+        onFinish={(values) => {
+          console.log(values);
+          requestFeedback(
+            questions.map((question) => ({
+              questionNumber: question.questionNumber,
+              feedbackType: values[question.questionNumber],
+            }))
+          );
+        }}
+        className="flex flex-col gap-4"
+      >
+        {questions.map((question) => (
+          <div
+            key={question.questionNumber}
+            className="flex justify-between 
+        items-center gap-4 p-4 border rounded-lg bg-white shadow-md
+        "
+          >
+            <QuestionCardForTutorialFeedback question={question} />
+            <div className="flex flex-col">
+              Explanation
+              <Form.Item
+                name={`${question.questionNumber}`}
+                initialValue={
+                  question.isStudentAnswerCorrect ? "skip" : "basic"
+                }
+              >
+                <Radio.Group
+                  // onChange={(e) => console.log(e.target.value)}
+                  // value={question.feedbackType}
+                  className="flex flex-col gap-2"
+                >
+                  <Radio
+                    value={"skip"}
+                    disabled={!question.isStudentAnswerCorrect}
+                  >
+                    Skip
+                  </Radio>
+                  <Radio value={"basic"}>Basic</Radio>
+                  <Radio value={"detailed"}>Detailed</Radio>
+                </Radio.Group>
+              </Form.Item>
+            </div>
           </div>
-        </div>
-      ))}
-      <Button type="primary" className="mt-4 ml-auto">
-        Start Feedback Session
-      </Button>
+        ))}
+        <Button type="primary" className="mt-4 ml-auto" htmlType="submit">
+          Start Feedback Session
+        </Button>
+      </Form>
     </Content>
   );
 };
