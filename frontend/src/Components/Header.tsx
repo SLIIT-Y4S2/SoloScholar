@@ -26,6 +26,11 @@ const Header = () => {
                 key: "tutorial",
                 label: <Link to={APP_ROUTES.tute}>Tute (TEMP....)</Link>,
               },
+              {
+                key: "lab",
+                label: <Link to={APP_ROUTES.lab}>Lab </Link>,
+              },
+
             ],
           }}
         >

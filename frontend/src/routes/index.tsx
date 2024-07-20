@@ -9,7 +9,7 @@ import { ProtectedRoute } from "../utils/ProtectRoutes";
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Home from "../pages/Home";
-import Lab from "../pages/Lab";
+import Lab from "../pages/[module]/[lesson]/lab";
 import Dashboard from "../pages/dashboard/Dashboard";
 import CustomAnalyticalIndicator from "../pages/dashboard/CustomAnalyticalIndicator";
 import LecturesOverview from "../pages/dashboard/LecturesOverview";
@@ -69,7 +69,7 @@ const Routes = () => {
             },
             {
               path: "lab",
-              element: <div>Lab</div>,
+              element: <Lab />,
             },
             {
               path: "lab/:labId",
