@@ -2,25 +2,24 @@ import { useContext } from "react";
 import { DashboardContext } from "../../../provider/DashboardContext";
 import { previewData } from "../../../utils/data_visualization_preview_data";
 import {
-  BarChart,
-  Bar,
+  CartesianGrid,
+  Label,
+  ResponsiveContainer,
+  Scatter,
+  ScatterChart,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Label,
-  Rectangle,
 } from "recharts";
 
-interface CustomBarChartProps {
-  barColor?: string;
+interface CustomScatterChartProps {
+  dotColor?: string;
   xLabel?: string;
   yLabel?: string;
 }
 
-const CustomBarChart = (props: CustomBarChartProps) => {
-  const { barColor, xLabel, yLabel } = props;
+const CustomScatterChart = (props: CustomScatterChartProps) => {
+  const { dotColor, xLabel, yLabel } = props;
   const { data } = useContext(DashboardContext);
 
   return (
@@ -30,29 +29,26 @@ const CustomBarChart = (props: CustomBarChartProps) => {
     pt-[10px] pb-[10px]
     border-[#eee] rounded-[5px] border-[2px]"
     >
-      <BarChart
-        data={
-          data && data.visualizationChoice === "Bar Chart"
-            ? data.formattedData
-            : previewData
-        }
-      >
+      <ScatterChart>
         <CartesianGrid className="stroke-[#909090]" strokeDasharray="3 3" />
         <Tooltip />
-        <Bar
-          type="monotone"
-          dataKey="yValue"
-          fill={barColor ? barColor : "#8884d8"}
-          activeBar={<Rectangle />}
+        <Scatter
+          name="A school"
+          data={
+            data && data.visualizationChoice === "Bar Chart"
+              ? data.formattedData
+              : previewData
+          }
+          fill={dotColor ? dotColor : "#8884d8"}
         />
-        <XAxis dataKey="xValue">
+        <XAxis dataKey="xValue" name={xLabel ? xLabel : "X Label"}>
           <Label
             value={xLabel ? xLabel : "X Label"}
             position="bottom"
             offset={-5}
           />
         </XAxis>
-        <YAxis dataKey="yValue">
+        <YAxis dataKey="yValue" name={yLabel ? yLabel : "Y Label"}>
           <Label
             value={yLabel ? yLabel : "Y Label"}
             position="left"
@@ -60,9 +56,9 @@ const CustomBarChart = (props: CustomBarChartProps) => {
             offset={-5}
           />
         </YAxis>
-      </BarChart>
+      </ScatterChart>
     </ResponsiveContainer>
   );
 };
 
-export default CustomBarChart;
+export default CustomScatterChart;

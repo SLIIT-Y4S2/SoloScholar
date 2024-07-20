@@ -1,24 +1,11 @@
 import { Tooltip, ResponsiveContainer, Pie, PieChart } from "recharts";
 import { DashboardContext } from "../../../provider/DashboardContext";
+import { pieChartPreviewData } from "../../../utils/data_visualization_preview_data";
 import { useContext } from "react";
 
 interface CustomPieChartProps {
   pieColor?: string;
 }
-
-interface PreviewData {
-  name: string;
-  value: number;
-}
-
-const previewData: PreviewData[] = [
-  { name: "A", value: 2400 },
-  { name: "B", value: 4567 },
-  { name: "C", value: 1398 },
-  { name: "D", value: 9800 },
-  { name: "E", value: 3908 },
-  { name: "F", value: 4800 },
-];
 
 const CustomPieChart = (props: CustomPieChartProps) => {
   const { pieColor } = props;
@@ -40,7 +27,7 @@ const CustomPieChart = (props: CustomPieChartProps) => {
           data={
             data && data.visualizationChoice === "Pie Chart"
               ? data.formattedData
-              : previewData
+              : pieChartPreviewData
           }
           outerRadius={100}
           fill={pieColor ? pieColor : "#8884d8"}

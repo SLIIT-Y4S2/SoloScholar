@@ -1,6 +1,8 @@
+import CustomAreaChart from "../pages/dashboard/visualizations/CustomAreaChart";
 import CustomBarChart from "../pages/dashboard/visualizations/CustomBarChart";
 import CustomLineChart from "../pages/dashboard/visualizations/CustomLineChart";
 import CustomPieChart from "../pages/dashboard/visualizations/CustomPieChart";
+import CustomScatterChart from "../pages/dashboard/visualizations/CustomScatterChart";
 
 export interface VisualizationChoice {
   value: string;
@@ -25,8 +27,13 @@ export const visualizationChoices: VisualizationChoice[] = [
     visualization: <CustomLineChart />,
   },
   {
-    value: "Dougnout Chart",
-    label: <span>Dougnout Chart</span>,
-    visualization: <p>saaaaaaaaaa</p>,
+    value: "Area Chart",
+    label: <span>Area Chart</span>,
+    visualization: <CustomAreaChart />,
+  },
+  {
+    value: "Scatter Chart",
+    label: <span>Scatter Chart</span>,
+    visualization: <CustomScatterChart />,
   },
 ];

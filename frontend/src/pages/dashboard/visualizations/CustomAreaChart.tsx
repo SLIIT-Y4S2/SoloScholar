@@ -1,7 +1,9 @@
+import { useContext } from "react";
+import { DashboardContext } from "../../../provider/DashboardContext";
 import { previewData } from "../../../utils/data_visualization_preview_data";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -10,30 +12,37 @@ import {
   Label,
 } from "recharts";
 
-interface CustomLineChartProps {
-  data?: JSON[];
-  lineColor?: string;
+interface CustomAreaChartProps {
+  areaColor?: string;
   xLabel?: string;
   yLabel?: string;
 }
 
-const CustomLineChart = (props: CustomLineChartProps) => {
-  const { data, lineColor, xLabel, yLabel } = props;
+const CustomAreaChart = (props: CustomAreaChartProps) => {
+  const { areaColor, xLabel, yLabel } = props;
+  const { data } = useContext(DashboardContext);
+
   return (
     <ResponsiveContainer
       height={200}
       className="
-      pt-[10px] pb-[10px]
-      border-[#eee] rounded-[5px] border-[2px]"
+    pt-[10px] pb-[10px]
+    border-[#eee] rounded-[5px] border-[2px]"
     >
-      <LineChart data={data ? data : previewData}>
+      <AreaChart
+        data={
+          data && data.visualizationChoice === "Area Chart"
+            ? data.formattedData
+            : previewData
+        }
+      >
         <CartesianGrid className="stroke-[#909090]" strokeDasharray="3 3" />
         <Tooltip />
-        <Line
+        <Area
           type="monotone"
           dataKey="yValue"
-          stroke={lineColor ? lineColor : "#8884d8"}
-          activeDot={{ r: 6 }}
+          stroke={areaColor ? areaColor : "#8884d8"}
+          fill={areaColor ? areaColor : "#8884d8"}
         />
         <XAxis dataKey="xValue">
           <Label
@@ -50,9 +59,9 @@ const CustomLineChart = (props: CustomLineChartProps) => {
             offset={-5}
           />
         </YAxis>
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   );
 };
 
-export default CustomLineChart;
+export default CustomAreaChart;

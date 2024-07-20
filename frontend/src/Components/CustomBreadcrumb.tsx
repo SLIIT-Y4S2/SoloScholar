@@ -1,32 +1,31 @@
 import { Breadcrumb } from "antd";
-import { Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
-interface BreadCrumbItem {
-    title: string;
-    path: string;
+// Format path for breadcrumbs
+function formatPathForBreadcrumb(path: string) {
+    const segments = path
+        .split("/")
+        .map((path) => path.trim().replace(/-/g, " "));
+
+    let currentPath = "";
+    return segments.map((segment) => {
+        if (segment !== "") {
+            currentPath += `/${segment.replace(/ /g, "-")}`; // reconstruct path with original hyphens
+            return {
+                title: segment.charAt(0).toUpperCase() + segment.slice(1),
+                href: currentPath,
+            };
+        } else {
+            return {};
+        }
+    });
 }
 
-interface BreadcrumbProps {
-    module: BreadCrumbItem;
-    topic: BreadCrumbItem;
-    materialType: BreadCrumbItem;
-}
+export default function CustomBreadcrumb() {
+    // Get the current location
+    const { pathname } = useLocation();
 
-export default function CustomBreadcrumb({ module, topic, materialType }: BreadcrumbProps) {
-    return (
-        <Breadcrumb>
-            <Breadcrumb.Item>
-                <Link to="/">Modules</Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>
-                <Link to={module.path}>{module.title}</Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>
-                <Link to={topic.path}>{topic.title}</Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>
-                <Link to={materialType.path}>{materialType.title}</Link>
-            </Breadcrumb.Item>
-        </Breadcrumb>
-    )
+    const pathSegments = formatPathForBreadcrumb(pathname);
+
+    return <Breadcrumb items={[{ title: "Module" }, ...pathSegments]} />;
 }
