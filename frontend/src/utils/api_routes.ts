@@ -10,4 +10,6 @@ export const LAB_API_URLS = {
   GET_LAB_SHEET: `${BASE_API_URL}/lab/get-lab-sheet`, //TODO: Add query params
 };
 
-
+export const DASHBOARD_API_URLS = {
+  CREATE_INDICATOR: `${BASE_API_URL}/dashboard`,
+};
