@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useState } from "react";
 import { useMemo } from "react";
 import getFormattedData from "../utils/data_visualization_formatter";
+import { DASHBOARD_API_URLS } from "../utils/api_routes";
 interface DashboardProviderProps {
   children: ReactNode;
 }
@@ -31,7 +32,7 @@ export function DashboardProvider({
    */
   const createIndicator = async (goal: string, visualizationChoice: string) => {
     try {
-      const response = await fetch("http://localhost:5000/api/v1/dashboard", {
+      const response = await fetch(DASHBOARD_API_URLS.CREATE_INDICATOR, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

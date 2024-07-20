@@ -18,6 +18,7 @@ import LabsOverview from "../pages/dashboard/LabsOverview";
 import MyIndicators from "../pages/dashboard/MyIndicators";
 import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
+import Main from "../pages/dashboard/Main";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -85,6 +86,10 @@ const Routes = () => {
           path: "/dashboard",
           element: <Dashboard />,
           children: [
+            {
+              path: "/dashboard",
+              element: <Main />,
+            },
             {
               path: "/dashboard/lectures-overview",
               element: <LecturesOverview />,
