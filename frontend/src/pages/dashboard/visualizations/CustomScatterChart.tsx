@@ -12,14 +12,8 @@ import {
   YAxis,
 } from "recharts";
 
-interface CustomScatterChartProps {
-  dotColor?: string;
-  xLabel?: string;
-  yLabel?: string;
-}
-
-const CustomScatterChart = (props: CustomScatterChartProps) => {
-  const { dotColor, xLabel, yLabel } = props;
+const CustomScatterChart = (props: { dotColor?: string }) => {
+  const { dotColor } = props;
   const { data } = useContext(DashboardContext);
 
   return (
@@ -33,24 +27,41 @@ const CustomScatterChart = (props: CustomScatterChartProps) => {
         <CartesianGrid className="stroke-[#909090]" strokeDasharray="3 3" />
         <Tooltip />
         <Scatter
-          name="A school"
           data={
-            data && data.visualizationChoice === "Bar Chart"
-              ? data.formattedData
+            data && data.visualizationChoice === "Scatter Chart"
+              ? data.formattedData.values
               : previewData
           }
           fill={dotColor ? dotColor : "#8884d8"}
         />
-        <XAxis dataKey="xValue" name={xLabel ? xLabel : "X Label"}>
+        <XAxis
+          dataKey="xValue"
+          name={
+            data?.formattedData.xLabel ? data?.formattedData.xLabel : "X Label"
+          }
+        >
           <Label
-            value={xLabel ? xLabel : "X Label"}
+            value={
+              data?.formattedData.xLabel
+                ? data?.formattedData.xLabel
+                : "X Label"
+            }
             position="bottom"
             offset={-5}
           />
         </XAxis>
-        <YAxis dataKey="yValue" name={yLabel ? yLabel : "Y Label"}>
+        <YAxis
+          dataKey="yValue"
+          name={
+            data?.formattedData.YLabel ? data?.formattedData.YLabel : "Y Label"
+          }
+        >
           <Label
-            value={yLabel ? yLabel : "Y Label"}
+            value={
+              data?.formattedData.yLabel
+                ? data?.formattedData.yLabel
+                : "Y Label"
+            }
             position="left"
             angle={-90}
             offset={-5}

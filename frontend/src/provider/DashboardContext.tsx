@@ -11,9 +11,11 @@ export function DashboardProvider({
   children,
 }: Readonly<DashboardProviderProps>) {
   const [data, setData] = useState<{
+    analysisGoal: string;
     formattedData: any;
     visualizationChoice: string;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   /**
    * Function to clear out the data stored in the context.
@@ -37,25 +39,28 @@ export function DashboardProvider({
         body: JSON.stringify({ goal }),
       });
       const data = await response.json();
-      if (data.result) {
+      if (data.error) {
+        setErrorMessage(data.error);
+        console.log(data.error);
+      } else {
         setData({
+          analysisGoal: data.goal,
           formattedData: await getFormattedData(
             data.result,
             visualizationChoice
           ),
           visualizationChoice: visualizationChoice,
         });
-      } else {
-        console.log(data.error);
       }
     } catch (error: any) {
-      console.log(error);
+      setErrorMessage(error);
+      console.log(error.message);
     }
   };
 
   const contextValue = useMemo(
-    () => ({ data, createIndicator, clearData }),
-    [data, createIndicator, clearData]
+    () => ({ data, errorMessage, createIndicator, clearData }),
+    [data, errorMessage, createIndicator, clearData]
   );
 
   return (
