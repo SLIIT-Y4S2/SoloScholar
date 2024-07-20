@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { DashboardContext } from "../../../provider/DashboardContext";
+import { previewData } from "../../../utils/data_visualization_preview_data";
 import {
   BarChart,
   Bar,
@@ -17,34 +18,6 @@ interface CustomBarChartProps {
   xLabel?: string;
   yLabel?: string;
 }
-
-interface PreviewData {
-  xValue: string;
-  yValue: number;
-}
-
-const previewData: PreviewData[] = [
-  {
-    xValue: "x1",
-    yValue: 70,
-  },
-  {
-    xValue: "x2",
-    yValue: 100,
-  },
-  {
-    xValue: "x1",
-    yValue: 40,
-  },
-  {
-    xValue: "x2",
-    yValue: 100,
-  },
-  {
-    xValue: "x1",
-    yValue: 10,
-  },
-];
 
 const CustomBarChart = (props: CustomBarChartProps) => {
   const { barColor, xLabel, yLabel } = props;

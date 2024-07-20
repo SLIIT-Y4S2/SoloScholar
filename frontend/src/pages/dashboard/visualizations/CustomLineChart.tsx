@@ -1,3 +1,4 @@
+import { previewData } from "../../../utils/data_visualization_preview_data";
 import {
   LineChart,
   Line,
@@ -15,34 +16,6 @@ interface CustomLineChartProps {
   xLabel?: string;
   yLabel?: string;
 }
-
-interface PreviewData {
-  xValue: string;
-  yValue: number;
-}
-
-const previewData: PreviewData[] = [
-  {
-    xValue: "x1",
-    yValue: 70,
-  },
-  {
-    xValue: "x2",
-    yValue: 100,
-  },
-  {
-    xValue: "x1",
-    yValue: 40,
-  },
-  {
-    xValue: "x2",
-    yValue: 100,
-  },
-  {
-    xValue: "x1",
-    yValue: 10,
-  },
-];
 
 const CustomLineChart = (props: CustomLineChartProps) => {
   const { data, lineColor, xLabel, yLabel } = props;
