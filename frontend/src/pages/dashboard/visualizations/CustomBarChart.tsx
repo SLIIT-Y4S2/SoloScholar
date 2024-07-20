@@ -13,14 +13,8 @@ import {
   Rectangle,
 } from "recharts";
 
-interface CustomBarChartProps {
-  barColor?: string;
-  xLabel?: string;
-  yLabel?: string;
-}
-
-const CustomBarChart = (props: CustomBarChartProps) => {
-  const { barColor, xLabel, yLabel } = props;
+const CustomBarChart = (props: { barColor?: string }) => {
+  const { barColor } = props;
   const { data } = useContext(DashboardContext);
 
   return (
@@ -33,7 +27,7 @@ const CustomBarChart = (props: CustomBarChartProps) => {
       <BarChart
         data={
           data && data.visualizationChoice === "Bar Chart"
-            ? data.formattedData
+            ? data.formattedData.values
             : previewData
         }
       >
@@ -47,14 +41,22 @@ const CustomBarChart = (props: CustomBarChartProps) => {
         />
         <XAxis dataKey="xValue">
           <Label
-            value={xLabel ? xLabel : "X Label"}
+            value={
+              data?.formattedData.xLabel
+                ? data?.formattedData.xLabel
+                : "X Label"
+            }
             position="bottom"
             offset={-5}
           />
         </XAxis>
         <YAxis dataKey="yValue">
           <Label
-            value={yLabel ? yLabel : "Y Label"}
+            value={
+              data?.formattedData.yLabel
+                ? data?.formattedData.yLabel
+                : "Y Label"
+            }
             position="left"
             angle={-90}
             offset={-5}

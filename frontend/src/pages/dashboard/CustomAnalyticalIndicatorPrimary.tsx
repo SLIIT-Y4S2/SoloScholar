@@ -91,15 +91,13 @@ E.g. I want to see how many beginner level students have scored more than averag
                 type="primary"
                 className="rounded-[2px]"
                 onClick={() => {
-                  if (analysisGoal === "") {
-                    messageApi.open({
-                      type: "error",
-                      content: "Please enter an analysis goal",
-                    });
-                  } else {
-                    setIsLoading(true);
-                    createIndicator(analysisGoal, visualizationChoice.value);
-                  }
+                  analysisGoal === ""
+                    ? messageApi.open({
+                        type: "error",
+                        content: "Please enter an analysis goal",
+                      })
+                    : setIsLoading(true);
+                  createIndicator(analysisGoal, visualizationChoice.value);
                 }}
               >
                 Generate

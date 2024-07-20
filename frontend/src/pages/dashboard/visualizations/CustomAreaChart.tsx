@@ -12,14 +12,8 @@ import {
   Label,
 } from "recharts";
 
-interface CustomAreaChartProps {
-  areaColor?: string;
-  xLabel?: string;
-  yLabel?: string;
-}
-
-const CustomAreaChart = (props: CustomAreaChartProps) => {
-  const { areaColor, xLabel, yLabel } = props;
+const CustomAreaChart = (props: { areaColor?: string }) => {
+  const { areaColor } = props;
   const { data } = useContext(DashboardContext);
 
   return (
@@ -32,7 +26,7 @@ const CustomAreaChart = (props: CustomAreaChartProps) => {
       <AreaChart
         data={
           data && data.visualizationChoice === "Area Chart"
-            ? data.formattedData
+            ? data.formattedData.values
             : previewData
         }
       >
@@ -46,14 +40,22 @@ const CustomAreaChart = (props: CustomAreaChartProps) => {
         />
         <XAxis dataKey="xValue">
           <Label
-            value={xLabel ? xLabel : "X Label"}
+            value={
+              data?.formattedData.xLabel
+                ? data?.formattedData.xLabel
+                : "X Label"
+            }
             position="bottom"
             offset={-5}
           />
         </XAxis>
         <YAxis dataKey="yValue">
           <Label
-            value={yLabel ? yLabel : "Y Label"}
+            value={
+              data?.formattedData.yLabel
+                ? data?.formattedData.yLabel
+                : "Y Label"
+            }
             position="left"
             angle={-90}
             offset={-5}
