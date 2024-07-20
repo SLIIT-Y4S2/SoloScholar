@@ -22,6 +22,7 @@ export function DashboardProvider({
    * Function to clear out the data stored in the context.
    */
   const clearData = () => {
+    setErrorMessage(null);
     setData(null);
   };
 
@@ -42,8 +43,14 @@ export function DashboardProvider({
       const data = await response.json();
       if (data.error) {
         setErrorMessage(data.error);
-        console.log(data.error);
+        console.log("sdsdsdsdsd", data.error);
       } else {
+        if (data.result.length === 1 && Object.keys(data.result[0])[0] === "") {
+          setErrorMessage(
+            "Sorry, there is insufficient data available to visualize this analysis goal. Provide more information or try again with a different analysis goal."
+          );
+          return;
+        }
         setData({
           analysisGoal: data.goal,
           formattedData: await getFormattedData(

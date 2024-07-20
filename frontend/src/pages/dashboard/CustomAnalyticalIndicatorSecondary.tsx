@@ -65,28 +65,30 @@ const CustomAnalyticalIndicatorSecondary = (props: {
           </div>
         )}
         <div className="flex justify-end gap-[8px]">
-          <Button className="rounded-[2px]" onClick={clearData}>
-            Back
-          </Button>
           {errorMessage ? (
-            <Button className="rounded-[2px]" onClick={"" /*TODO*/}>
+            <Button className="rounded-[2px]" onClick={clearData}>
               Retry
             </Button>
           ) : (
-            <Button
-              type="primary"
-              className="rounded-[2px]"
-              onClick={
-                indicatorName === ""
-                  ? messageApi.open({
-                      type: "error",
-                      content: "Please enter an analysis goal",
-                    })
-                  : ""
-              }
-            >
-              Save
-            </Button>
+            <Fragment>
+              <Button className="rounded-[2px]" onClick={clearData}>
+                Back
+              </Button>
+              <Button
+                type="primary"
+                className="rounded-[2px]"
+                onClick={
+                  indicatorName === ""
+                    ? messageApi.open({
+                        type: "error",
+                        content: "Please enter an analysis goal",
+                      })
+                    : ""
+                }
+              >
+                Save
+              </Button>
+            </Fragment>
           )}
         </div>
       </Content>
