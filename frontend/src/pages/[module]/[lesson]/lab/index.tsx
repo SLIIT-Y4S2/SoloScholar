@@ -3,6 +3,7 @@ import { LabProvider } from "../../../../provider/LabContext";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import { ModuleProvider } from "../../../../provider/ModuleContext";
 import { Layout } from "antd";
+import { SupportMaterialsForLab } from "../../../../Components/lab/SupportMaterialsForLab";
 
 export default function Lab() {
   return (
@@ -11,6 +12,7 @@ export default function Lab() {
         <CustomBreadcrumb />
         <LabProvider>
           <QuestionCardForLab />
+          <SupportMaterialsForLab />
         </LabProvider>
       </Layout>
     </ModuleProvider>

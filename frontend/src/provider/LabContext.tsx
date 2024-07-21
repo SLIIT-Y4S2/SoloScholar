@@ -1,13 +1,23 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import {
+    createContext,
+    ReactNode,
+    useCallback,
+    useContext,
+    useMemo,
+    useState,
+} from "react";
 import { labSheet } from "../dummyData/labQuestions";
 // import axios from "axios";
 import { evaluateStudentsAnswer } from "../services/lab.service";
+import { SupportingMaterial } from "../types/lab.types";
 
 interface LabProviderProps {
     children: ReactNode;
 }
 
 interface LabContextType {
+    realWorldScenario: string;
+    supportMaterials: SupportingMaterial;
     questions: LabQuestion[];
     currentQuestionIndex: number;
     totalQuestions: number;
@@ -18,7 +28,6 @@ interface LabContextType {
     evaluateAnswer: (answer: string) => Promise<void>;
     getHintForCurrentQuestion: () => Promise<void>;
     goToNextQuestion: () => void;
-
 }
 
 interface LabQuestion {
@@ -61,84 +70,110 @@ export function LabProvider({ children }: LabProviderProps) {
         })
     );
 
+    const realWorldScenario: string = labSheet.realWorldScenario;
+
+    const supportMaterials = labSheet.supportingMaterial;
+
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
 
     const [isLabCompleted, setIsLabCompleted] = useState<boolean>(false);
 
-    const [hintForCurrentQuestion, setHintForCurrentQuestion] = useState<string>("");
+    const [hintForCurrentQuestion, setHintForCurrentQuestion] =
+        useState<string>("");
 
-    const [isAnsForCurrQuesCorrect, setIsAnsForCurrQuesCorrect] = useState<boolean>(false);
+    const [isAnsForCurrQuesCorrect, setIsAnsForCurrQuesCorrect] =
+        useState<boolean>(false);
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const totalQuestions = labSheet.questions.length;
 
     //TODO: Implement the logic to evaluate the answer from backend
-    async function evaluateAnswer(answer: string) {
-        console.log("Questions", questions[currentQuestionIndex]);
-        setIsLoading(true);
+    const evaluateAnswer = useCallback(
+        async (answer: string) => {
+            setIsLoading(true);
 
-        // Evaluate the answer
-        const isCorrectAnswer = await evaluateStudentsAnswer(
-            answer,
-            questions[currentQuestionIndex].answer
-        );
-        console.log("Is correct", isCorrectAnswer);
+            // Evaluate the answer
+            const isCorrectAnswer = await evaluateStudentsAnswer(
+                answer,
+                questions[currentQuestionIndex].answer
+            );
+            console.log("Is correct", isCorrectAnswer);
 
-        // Update student answers and current answer
-        setQuestions((prevQuestions) =>
-            prevQuestions.map((question, index) =>
-                index === currentQuestionIndex
-                    ? {
-                        ...question,
-                        studentAnswers: [...question.studentAnswers, answer],
-                        currentAnswer: answer,
-                        isAnswered: true,
-                        attempts: question.attempts + 1,
-                        isCorrect: isCorrectAnswer,
-                    }
-                    : question
-            )
-        );
+            // Update student answers and current answer
+            setQuestions((prevQuestions) =>
+                prevQuestions.map((question, index) =>
+                    index === currentQuestionIndex
+                        ? {
+                            ...question,
+                            studentAnswers: [...question.studentAnswers, answer],
+                            currentAnswer: answer,
+                            isAnswered: true,
+                            attempts: question.attempts + 1,
+                            isCorrect: isCorrectAnswer,
+                        }
+                        : question
+                )
+            );
 
-        setIsAnsForCurrQuesCorrect(isCorrectAnswer);
+            setIsAnsForCurrQuesCorrect(isCorrectAnswer);
 
-        setIsLoading(false);
-        console.log("Questions", questions[currentQuestionIndex]?.isCorrect);
-    }
+            setIsLoading(false);
+            console.log("Questions", questions[currentQuestionIndex]?.isCorrect);
+        },
+        [questions, currentQuestionIndex, setIsLoading, setIsAnsForCurrQuesCorrect]
+    );
 
-    async function getHintForCurrentQuestion() {
-        setHintForCurrentQuestion("Hint for the current question");
-    }
+    const getHintForCurrentQuestion = useCallback(
+        async () => {
+            setHintForCurrentQuestion("Hint for the current question");
+        }, [setHintForCurrentQuestion]);
 
-    async function goToNextQuestion() {
-        if (currentQuestionIndex < totalQuestions - 1) {
-            setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-            setHintForCurrentQuestion("");
-            setIsAnsForCurrQuesCorrect(false);
-        } else {
-            setIsLabCompleted(true);
-        }
-    }
+    const goToNextQuestion = useCallback(
+        async () => {
+            if (currentQuestionIndex < totalQuestions - 1) {
+                setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+                setHintForCurrentQuestion("");
+                setIsAnsForCurrQuesCorrect(false);
+            } else {
+                setIsLabCompleted(true);
+            }
+        }, [currentQuestionIndex, totalQuestions, setCurrentQuestionIndex, setHintForCurrentQuestion, setIsLabCompleted]
+    );
 
-
-
+    const contextValues = useMemo<LabContextType>(
+        () => ({
+            realWorldScenario,
+            supportMaterials,
+            questions,
+            currentQuestionIndex,
+            totalQuestions,
+            isLoading,
+            hintForCurrentQuestion,
+            isAnsForCurrQuesCorrect,
+            isLabCompleted,
+            evaluateAnswer,
+            getHintForCurrentQuestion,
+            goToNextQuestion,
+        }),
+        [
+            realWorldScenario,
+            supportMaterials,
+            questions,
+            currentQuestionIndex,
+            totalQuestions,
+            isLoading,
+            hintForCurrentQuestion,
+            isAnsForCurrQuesCorrect,
+            isLabCompleted,
+            evaluateAnswer,
+            getHintForCurrentQuestion,
+            goToNextQuestion,
+        ]
+    );
 
     return (
-        <LabProviderContext.Provider
-            value={{
-                questions,
-                currentQuestionIndex,
-                totalQuestions,
-                isLoading,
-                hintForCurrentQuestion,
-                evaluateAnswer,
-                getHintForCurrentQuestion,
-                goToNextQuestion,
-                isAnsForCurrQuesCorrect,
-                isLabCompleted,
-            }}
-        >
+        <LabProviderContext.Provider value={contextValues}>
             {children}
         </LabProviderContext.Provider>
     );
