@@ -4,6 +4,7 @@ import { Layout, Typography, Input, Button, Result, message } from "antd";
 import { useContext, useState } from "react";
 import { DashboardContext } from "../../provider/DashboardContext";
 import { visualizationChoices } from "../../utils/data_visualization_choices";
+import { customMessage } from "../../types/dashboard.types";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -12,9 +13,9 @@ const { TextArea } = Input;
 const CustomAnalyticalIndicatorSecondary = (props: {
   analysisGoal?: string;
   visualizationChoice?: string;
-  errorMessage?: string;
+  customMessage?: customMessage;
 }) => {
-  const { analysisGoal, visualizationChoice, errorMessage } = props;
+  const { analysisGoal, visualizationChoice, customMessage } = props;
   const [messageApi, contextHolder] = message.useMessage();
   const { clearData } = useContext(DashboardContext);
   const [indicatorName, setIndicatorName] = useState<string>("");
@@ -28,13 +29,13 @@ const CustomAnalyticalIndicatorSecondary = (props: {
       />
       <Content
         className="
-        pt-[69px] pr-[54px] pb-[69px] pl-[54px]
-        mt-[35px] mr-[80px] mb-[68px] ml-[45px]
-        min-h-[280px] bg-[#ffff] rounded-[15px]
+        pt-[43px] pr-[46px] pb-[39px] pl-[46px]
+        mt-[35px] mr-[80px] mb-[98px] ml-[45px]
+        bg-[#ffff] rounded-[15px]
         "
       >
-        {errorMessage ? (
-          <Result status="error" title={errorMessage} />
+        {customMessage ? (
+          <Result status={customMessage?.type} title={customMessage?.content} />
         ) : (
           <div className="grid gap-[58px]">
             <div className="flex gap-[29px] h-fit">
@@ -65,7 +66,7 @@ const CustomAnalyticalIndicatorSecondary = (props: {
           </div>
         )}
         <div className="flex justify-end gap-[8px]">
-          {errorMessage ? (
+          {customMessage ? (
             <Button className="rounded-[2px]" onClick={clearData}>
               Retry
             </Button>

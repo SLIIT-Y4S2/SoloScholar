@@ -2,6 +2,8 @@ import { createContext, ReactNode, useState } from "react";
 import { useMemo } from "react";
 import getFormattedData from "../utils/data_visualization_formatter";
 import { DASHBOARD_API_URLS } from "../utils/api_routes";
+import { customMessage } from "../types/dashboard.types";
+
 interface DashboardProviderProps {
   children: ReactNode;
 }
@@ -16,13 +18,15 @@ export function DashboardProvider({
     formattedData: any;
     visualizationChoice: string;
   } | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [customMessage, setCustomMessage] = useState<customMessage | null>(
+    null
+  );
 
   /**
    * Function to clear out the data stored in the context.
    */
   const clearData = () => {
-    setErrorMessage(null);
+    setCustomMessage(null);
     setData(null);
   };
 
@@ -42,13 +46,22 @@ export function DashboardProvider({
       });
       const data = await response.json();
       if (data.error) {
-        setErrorMessage(data.error);
-        console.log("sdsdsdsdsd", data.error);
+        setCustomMessage({
+          type: "error",
+          content:
+            "Sorry, an unexpected error occurred. Please enter a valid analysis goal and try again.",
+        });
       } else {
-        if (data.result.length === 1 && Object.keys(data.result[0])[0] === "") {
-          setErrorMessage(
-            "Sorry, there is insufficient data available to visualize this analysis goal. Provide more information or try again with a different analysis goal."
-          );
+        if (
+          data.result.length === 1 &&
+          Object.keys(data.result[0])[0] === "" &&
+          data.result[0][Object.keys(data.result[0])[0]] === null
+        ) {
+          setCustomMessage({
+            type: "info",
+            content:
+              "Sorry, there is insufficient data available to visualize this analysis goal. Provide more information or try again with a different analysis goal.",
+          });
           return;
         }
         setData({
@@ -61,14 +74,13 @@ export function DashboardProvider({
         });
       }
     } catch (error: any) {
-      setErrorMessage(error);
-      console.log(error.message);
+      setCustomMessage({ type: "error", content: error.message });
     }
   };
 
   const contextValue = useMemo(
-    () => ({ data, errorMessage, createIndicator, clearData }),
-    [data, errorMessage, createIndicator, clearData]
+    () => ({ data, customMessage, createIndicator, clearData }),
+    [data, customMessage, createIndicator, clearData]
   );
 
   return (
