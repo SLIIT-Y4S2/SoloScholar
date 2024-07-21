@@ -53,6 +53,7 @@ model learner {
   password    String        @unique(map: "UQ__learner__6E2DBEDE1EC71B29") @db.VarChar(20)
   interaction interaction[]
   system_log  system_log[]
+  tutorial    tutorial[]
 }
 
 model learning_material {
@@ -95,6 +96,7 @@ model lesson {
   learning_material       learning_material[]
   module                  module                    @relation(fields: [module_id], references: [id], onUpdate: NoAction, map: "FK__lesson__module_i__53584DE9")
   lesson_learning_outcome lesson_learning_outcome[]
+  tutorial                tutorial[]
 }
 
 model lesson_learning_outcome {
@@ -129,16 +131,57 @@ model system_log {
   learner    learner  @relation(fields: [learner_id], references: [id], onUpdate: NoAction, map: "FK__system_lo__learn__4E9398CC")
 }
 
+// old
+// model tutorial {
+//   id                Int                 @id(map: "PK__tutorial__3213E83F5DE7AB0E")
+//   learning_material learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction, map: "FK__tutorial__id__6B2FD77A")
+//   tutorial_question tutorial_question[]
+// }
+
+// model tutorial_question {
+//   id          Int      @id(map: "PK__tutorial__3213E83FF1353649") @default(autoincrement())
+//   question    String   @db.VarChar(300)
+//   answer      String   @db.VarChar(2000)
+//   tutorial_id Int
+//   tutorial    tutorial @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction, map: "FK__tutorial___tutor__6E0C4425")
+// }
+
 model tutorial {
-  id                Int                 @id(map: "PK__tutorial__3213E83F5DE7AB0E")
-  learning_material learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction, map: "FK__tutorial__id__6B2FD77A")
-  tutorial_question tutorial_question[]
+  id                String              @id(map: "PK__tutorial__3213E83F5DE7AB0E") @default(uuid())
+  questions         tutorial_question[]
+  learning_level    String              @db.VarChar(12)
+  status            String              @db.VarChar(10)
+  //-
+  learning_material learning_material   @relation(fields: [learning_m_id], references: [id], onUpdate: NoAction, map: "FK__tutorial__id__6B2FD77A")
+  learning_m_id     Int                 @unique
+  learner           learner             @relation(fields: [learnerId], references: [id])
+  learnerId         Int
+  lesson            lesson              @relation(fields: [lessonId], references: [id])
+  lessonId          Int
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([learnerId, lessonId], map: "UQ__tutorial__lesson__6D0D32F4")
 }
 
 model tutorial_question {
-  id          Int      @id(map: "PK__tutorial__3213E83FF1353649") @default(autoincrement())
-  question    String   @db.VarChar(300)
-  answer      String   @db.VarChar(2000)
-  tutorial_id Int
-  tutorial    tutorial @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction, map: "FK__tutorial___tutor__6E0C4425")
+  id                        Int                        @id(map: "PK__tutorial__3213E83FF1353649") @default(autoincrement())
+  question                  String                     @db.VarChar(300)
+  answer                    String                     @db.VarChar(2000)
+  question_number           Int
+  options                   tutorial_question_option[]
+  type                      String                     @db.VarChar(20)
+  student_answer            String?                    @db.VarChar(2000)
+  feedback_type             String?                    @db.VarChar(10)
+  is_student_answer_correct Boolean?
+  tutorial                  tutorial                   @relation(fields: [tutorialId], references: [id])
+  tutorialId                String
+}
+
+model tutorial_question_option {
+  id   Int    @id @default(autoincrement())
+  text String @db.VarChar(300)
+
+  tutorialQuestionId Int
+  tutorial_question  tutorial_question @relation(fields: [tutorialQuestionId], references: [id])
 }

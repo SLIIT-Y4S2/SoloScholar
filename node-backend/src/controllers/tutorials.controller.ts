@@ -6,6 +6,25 @@ import {
   synthesizeQuestionsForSubtopic,
 } from "../services/tutorial.rag.service";
 import { MODULE_OUTLINE_LESSON_ARRAY } from "../dummyData/lessonOutline";
+import {
+  createTutorial,
+  deleteTutorial,
+} from "../services/db/tutorial.db.service";
+
+// const getTutorials = async (req: Request, res: Response) => {
+//   try {
+//     const tutorials = await getAllTutorials();
+
+//     res.status(200).json({
+//       message: "Tutorials fetched successfully",
+//       data: tutorials,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: "Internal server error" });
+
+//     console.error(error);
+//   }
+// };
 
 const generateTutorials = async (req: Request, res: Response) => {
   try {
@@ -16,9 +35,9 @@ const generateTutorials = async (req: Request, res: Response) => {
     // MARK: STEP 1
     // get the lesson outline from the database
 
-    const { moduleName, lessonTitle, learningRate } = req.body;
+    const { moduleName, lessonTitle, learningLevel } = req.body;
 
-    if (!moduleName || !lessonTitle || !learningRate) {
+    if (!moduleName || !lessonTitle || !learningLevel) {
       return res.status(400).json({
         message: "Invalid request body",
       });
@@ -72,7 +91,7 @@ const generateTutorials = async (req: Request, res: Response) => {
           subtopic.description,
           learningOutcomes,
           combinedBloomLevels,
-          learningRate, // "Beginner", "Intermediate", "Advanced"
+          learningLevel, // "Beginner", "Intermediate", "Advanced"
           totalNumberOfQuestionsPerSubtopics
         );
         return subtopicQuestions;
