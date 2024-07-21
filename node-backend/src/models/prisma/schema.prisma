@@ -16,7 +16,7 @@ model cognitive_level {
 }
 
 model interaction {
-  learner_id           Int
+  learner_id           String
   learning_material_id Int
   interaction_type     String            @db.VarChar(30)
   interaction_response String            @db.VarChar(Max)
@@ -46,14 +46,26 @@ model labsheet_question {
 }
 
 model learner {
-  id          Int           @id(map: "PK__learner__3213E83FEAF2AAB5") @default(autoincrement())
+  id          String        @id(map: "PK__learner__3213E83FEAF2AAB5") @default(uuid())
   first_name  String        @db.VarChar(30)
   last_name   String        @db.VarChar(30)
+  student_Id  String        @unique @db.VarChar(10)
   email       String        @unique(map: "UQ__learner__AB6E6164DAE2B60F") @db.VarChar(30)
-  password    String        @unique(map: "UQ__learner__6E2DBEDE1EC71B29") @db.VarChar(20)
+  password    String        @unique(map: "UQ__learner__6E2DBEDE1EC71B29") @db.VarChar(60)
   interaction interaction[]
   system_log  system_log[]
   tutorial    tutorial[]
+  session     session[]
+}
+
+model session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      learner  @relation(fields: [userId], references: [id])
+  valid     Boolean  @default(true)
+  userAgent String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model learning_material {
@@ -127,24 +139,9 @@ model system_log {
   id         Int      @id(map: "PK__system_l__3213E83F20305885") @default(autoincrement())
   action     String   @db.VarChar(30)
   timestamp  DateTime @default(dbgenerated("getutcdate()"), map: "DF__system_lo__times__4D9F7493") @db.DateTime
-  learner_id Int
+  learner_id String
   learner    learner  @relation(fields: [learner_id], references: [id], onUpdate: NoAction, map: "FK__system_lo__learn__4E9398CC")
 }
-
-// old
-// model tutorial {
-//   id                Int                 @id(map: "PK__tutorial__3213E83F5DE7AB0E")
-//   learning_material learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction, map: "FK__tutorial__id__6B2FD77A")
-//   tutorial_question tutorial_question[]
-// }
-
-// model tutorial_question {
-//   id          Int      @id(map: "PK__tutorial__3213E83FF1353649") @default(autoincrement())
-//   question    String   @db.VarChar(300)
-//   answer      String   @db.VarChar(2000)
-//   tutorial_id Int
-//   tutorial    tutorial @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction, map: "FK__tutorial___tutor__6E0C4425")
-// }
 
 model tutorial {
   id                String              @id(map: "PK__tutorial__3213E83F5DE7AB0E") @default(uuid())
@@ -155,7 +152,7 @@ model tutorial {
   learning_material learning_material   @relation(fields: [learning_m_id], references: [id], onUpdate: NoAction, map: "FK__tutorial__id__6B2FD77A")
   learning_m_id     Int                 @unique
   learner           learner             @relation(fields: [learnerId], references: [id])
-  learnerId         Int
+  learnerId         String
   lesson            lesson              @relation(fields: [lessonId], references: [id])
   lessonId          Int
   createdAt         DateTime            @default(now())

@@ -1,6 +1,5 @@
 import { config } from "dotenv";
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import prisma from "../../utils/prisma-client.util";
 
 /**
  * Create tutorial
@@ -98,11 +97,11 @@ export const createTutorial = async (
 export const getTutorialById = async (
   id: string
 ): Promise<{
-  id: number;
+  id: string;
   lessonId: number;
   learnerId: number;
   questions: {
-    id: string;
+    id: number;
     question: string;
     answer: string;
     type: string;
@@ -150,7 +149,7 @@ export const getTutorialById = async (
 
 export const getAllTutorials = async (): Promise<
   {
-    id: number;
+    id: string;
     lessonId: number;
     learnerId: number;
   }[]
