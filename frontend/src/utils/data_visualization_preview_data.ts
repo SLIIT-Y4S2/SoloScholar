@@ -2,6 +2,8 @@
  * This file contains the data for data visualization previews.
  */
 
+import type { TableColumnsType } from "antd";
+
 interface PreviewData {
   xValue: number | string;
   yValue: number | string;
@@ -19,6 +21,32 @@ export const pieChartPreviewData: PieChartPreviewData[] = [
   { name: "D", value: 9800 },
   { name: "E", value: 3908 },
   { name: "F", value: 4800 },
+];
+
+export const tablePreviewColumns: TableColumnsType<any> = [
+  {
+    title: "Column 1",
+    dataIndex: "column1",
+  },
+  {
+    title: "Column 2",
+    dataIndex: "column2",
+  },
+];
+
+export const tablePreviewData: any[] = [
+  {
+    column1: "John Brown",
+    column2: 32,
+  },
+  {
+    column1: "Jim Green",
+    column2: 42,
+  },
+  {
+    column1: "Joe Black",
+    column2: 32,
+  },
 ];
 
 export const previewData: PreviewData[] = [

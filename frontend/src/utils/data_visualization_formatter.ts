@@ -8,14 +8,30 @@ const getFormattedData = async (
   data: Object[],
   visualizationChoice: string
 ) => {
-  let formattedData: { xLabel?: string; yLabel?: string; values: Object[] };
+  let formattedData: {
+    xLabel?: string;
+    yLabel?: string;
+    values?: Object[];
+    tableColumns?: {
+      title: string;
+      dataIndex: string;
+    }[];
+    tableData?: any;
+  };
   if (visualizationChoice === "Pie Chart") {
     formattedData = await getPieChartFormattedData(data);
+  } else if (visualizationChoice === "Table") {
+    formattedData = await getTableFormattedData(data);
   } else {
     formattedData = await getDefaultFormattedData(data);
   }
   return formattedData;
 };
+
+/**
+ * TODO Define a function to check for data types and no.of keys in the input data. Accordingly appropriate
+ * data formatting function should be called.
+ */
 
 /**
  * Format data for pie chart.
@@ -32,6 +48,32 @@ const getPieChartFormattedData = async (data: any) => {
   return {
     values: formattedValues,
   };
+};
+
+/**
+ * Format data for table.
+ * @param data
+ */
+const getTableFormattedData = async (data: any) => {
+  // Extract column definitions
+  const keys: string[] = Object.keys(data[0]);
+  const tableColumns: {
+    title: string;
+    dataIndex: string;
+  }[] = keys.map((key) => ({
+    title: key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+    dataIndex: key,
+  }));
+
+  // Extract data
+  const tableData = data.map((datum: any) => {
+    const formattedDatum: any = {};
+    keys.forEach((key) => {
+      formattedDatum[key] = datum[key];
+    });
+    return formattedDatum;
+  });
+  return { tableColumns, tableData };
 };
 
 /**
