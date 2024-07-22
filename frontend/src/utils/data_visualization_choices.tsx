@@ -3,6 +3,7 @@ import CustomBarChart from "../pages/dashboard/visualizations/CustomBarChart";
 import CustomLineChart from "../pages/dashboard/visualizations/CustomLineChart";
 import CustomPieChart from "../pages/dashboard/visualizations/CustomPieChart";
 import CustomScatterChart from "../pages/dashboard/visualizations/CustomScatterChart";
+import CustomTable from "../pages/dashboard/visualizations/CustomTable";
 
 export interface VisualizationChoice {
   value: string;
@@ -35,5 +36,10 @@ export const visualizationChoices: VisualizationChoice[] = [
     value: "Scatter Chart",
     label: <span>Scatter Chart</span>,
     visualization: <CustomScatterChart />,
+  },
+  {
+    value: "Table",
+    label: <span>Table</span>,
+    visualization: <CustomTable />,
   },
 ];
