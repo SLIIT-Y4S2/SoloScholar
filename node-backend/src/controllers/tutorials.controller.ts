@@ -1,17 +1,17 @@
-import { includes } from "lodash";
 import { Request, Response } from "express";
 import {
   convertLessonOutlineToText,
   extractSearchingKeywordsFromLessonOutline,
   synthesizeDetailedLessonOutline,
-  synthesizeQuestionsForSubtopic,
+  synthesizeShortAnswerQuestionsForSubtopic,
 } from "../services/tutorial.rag.service";
 import { MODULE_OUTLINE_LESSON_ARRAY } from "../dummyData/lessonOutline";
 import {
   createTutorial,
-  deleteTutorial,
+  updateTutorialQuestions,
+  getTutorialByLearnerId,
 } from "../services/db/tutorial.db.service";
-import prisma from "../utils/prisma-client.util";
+import { getLessonOutlineByModuleAndLessonName } from "../services/db/module.db.service";
 
 export const generateTutorials = async (req: Request, res: Response) => {
   try {
@@ -30,64 +30,10 @@ export const generateTutorials = async (req: Request, res: Response) => {
         message: "Invalid request body",
       });
     }
-
-    // const lessonOutline = MODULE_OUTLINE_LESSON_ARRAY.find(
-    //   (lesson) => lesson.lessonTitle === lessonTitle
-    // );
-
-    const module = await prisma.module.findFirst({
-      where: { name: moduleName },
-      include: {
-        lesson: {
-          where: { title: lessonTitle },
-          include: {
-            lesson_learning_outcome: {
-              include: {
-                learning_outcome: {
-                  include: {
-                    learning_outcome_cognitive_level: {
-                      include: {
-                        cognitive_level: {
-                          select: {
-                            level: true,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            lesson_subtopic: true,
-          },
-        },
-      },
-    });
-
-    // const lessonOutline = module?.lesson[0];
-
-    const lesson = module?.lesson[0];
-
-    if (!lesson) {
-      return res.status(404).json({
-        message: "Lesson not found",
-      });
-    }
-
-    const lessonOutline = {
-      ...lesson,
-      lesson_subtopic: lesson.lesson_subtopic.map((subtopic) => subtopic.text),
-      lesson_learning_outcome: lesson.lesson_learning_outcome.map(
-        (outcome) => ({
-          outcome: outcome.learning_outcome.description,
-          cognitive_level:
-            outcome.learning_outcome.learning_outcome_cognitive_level.map(
-              (cognitiveLevel) => cognitiveLevel.cognitive_level.level
-            ),
-        })
-      ),
-    };
-
+    const lessonOutline = await getLessonOutlineByModuleAndLessonName(
+      moduleName,
+      lessonTitle
+    );
     // create a tutorial for the student
     const tutorial = await createTutorial(
       lessonOutline.id,
@@ -107,59 +53,63 @@ export const generateTutorials = async (req: Request, res: Response) => {
       lessonOutlineAsAText
     );
 
-    // // MARK: STEP 3
-    // // loop through the detailed lesson plan and create questions for each subtopic
-    // const totalNumberOfQuestions = 15; // TEMPORARY
-    // const totalNumberOfQuestionsPerSubtopics = Math.floor(
-    //   totalNumberOfQuestions / lessonOutline.subtopics.length
-    // );
+    // MARK: STEP 3
+    // loop through the detailed lesson plan and create questions for each subtopic
+    const totalNumberOfQuestions = 15; // TEMPORARY
+    const totalNumberOfQuestionsPerSubtopics = Math.floor(
+      totalNumberOfQuestions / lessonOutline.lesson_subtopic.length
+    );
 
-    // const learningOutcomes = lessonOutline.learningOutcomes.map(
-    //   (outcome) => outcome.outcome
-    // );
+    const learningOutcomes = lessonOutline.lesson_learning_outcome.map(
+      (outcome) => outcome.outcome
+    );
 
-    // const combinedBloomLevels = lessonOutline.learningOutcomes.reduce(
-    //   (acc, outcome) => {
-    //     return acc.concat(outcome.bloomsLevels);
-    //   },
-    //   [] as string[]
-    // );
+    const combined_cognitive_level =
+      lessonOutline.lesson_learning_outcome.reduce((acc, outcome) => {
+        return acc.concat(outcome.cognitive_level);
+      }, [] as string[]);
 
-    // const questions = await Promise.all(
-    //   detailedLessonOutline.map(async (subtopic) => {
-    //     const subtopicQuestions = await synthesizeQuestionsForSubtopic(
-    //       `${subtopic.subtopic} ${subtopic.description}`,
-    //       subtopic.subtopic,
-    //       subtopic.description,
-    //       learningOutcomes,
-    //       combinedBloomLevels,
-    //       learningLevel, // "Beginner", "Intermediate", "Advanced"
-    //       totalNumberOfQuestionsPerSubtopics
-    //     );
-    //     return subtopicQuestions;
-    //   })
-    // ).then((result) => result.flat());
+    const questions = await Promise.all(
+      detailedLessonOutline.map(async (subtopic) => {
+        const subtopicQuestions =
+          await synthesizeShortAnswerQuestionsForSubtopic(
+            `${subtopic.subtopic} ${subtopic.description}`,
+            subtopic.subtopic,
+            subtopic.description,
+            learningOutcomes,
+            combined_cognitive_level,
+            learningLevel, // "Beginner", "Intermediate", "Advanced"
+            totalNumberOfQuestionsPerSubtopics
+          );
+        return subtopicQuestions;
+      })
+    ).then((result) => result.flat());
 
-    // // MARK: STEP 4
-    // // save the tutorial to the database
-    // // change the status of the tutorial to generated
-    // // return the tutorial to the student
-    // res.status(200).json({
-    //   message: "Tutorial generated successfully",
-    //   data: {
-    //     questions: questions,
-    //     detailedLessonOutline: detailedLessonOutline,
-    //   },
-    // });
+    const updatedTutorialWithQuestions = await updateTutorialQuestions(
+      tutorial.id,
+      questions
+    );
 
-    //TODO: remove this
+    // MARK: STEP 4
+    // save the tutorial to the database
+    // change the status of the tutorial to generated
+    // return the tutorial to the student
     res.status(200).json({
       message: "Tutorial generated successfully",
       data: {
-        tutorial,
-        detailedLessonOutline,
+        questions: updatedTutorialWithQuestions.questions,
+        detailedLessonOutline: detailedLessonOutline,
       },
     });
+
+    //TODO: remove this
+    // res.status(200).json({
+    //   message: "Tutorial generated successfully",
+    //   data: {
+    //     tutorial,
+    //     detailedLessonOutline,
+    //   },
+    // });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
 
@@ -167,17 +117,18 @@ export const generateTutorials = async (req: Request, res: Response) => {
   }
 };
 
-// export const getTutorials = async (req: Request, res: Response) => {
-//   try {
-//     const tutorials = await getAllTutorials();
+export const getTutorials = async (req: Request, res: Response) => {
+  try {
+    const { id: learner_id } = res.locals.user;
+    const tutorials = await getTutorialByLearnerId(learner_id);
 
-//     res.status(200).json({
-//       message: "Tutorials fetched successfully",
-//       data: tutorials,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Internal server error" });
+    res.status(200).json({
+      message: "Tutorials fetched successfully",
+      data: tutorials,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
 
-//     console.error(error);
-//   }
-// };
+    console.error(error);
+  }
+};

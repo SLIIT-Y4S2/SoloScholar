@@ -218,6 +218,49 @@ export const getAllTutorials = async (): Promise<
  * @public
  */
 
+export const getTutorialByLearnerId = async (
+  learnerId: string
+): Promise<
+  {
+    id: string;
+    createdAt: Date;
+    status: string;
+    questions: {
+      id: number;
+      question: string;
+      answer: string;
+      type: string;
+      question_number: number;
+      options: string[];
+    }[];
+  }[]
+> => {
+  const tutorials = await prisma.tutorial.findMany({
+    where: { learnerId },
+    include: {
+      questions: {
+        include: {
+          options: true,
+        },
+      },
+    },
+  });
+
+  return tutorials.map((tutorial) => ({
+    id: tutorial.id,
+    createdAt: tutorial.createdAt,
+    status: tutorial.status,
+    questions: tutorial.questions.map((q) => ({
+      id: q.id,
+      question: q.question,
+      answer: q.answer,
+      type: q.type,
+      question_number: q.question_number,
+      options: q.options.map((o) => o.text),
+    })),
+  }));
+};
+
 /**
  * Delete tutorial by id
  * @param id

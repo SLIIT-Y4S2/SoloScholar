@@ -58,8 +58,8 @@ Use the context provided below to create questions for the subtopic. Be clear an
 Students will not be able to see the above context when answering the questions, so make sure the questions are clear and concise.
 
 
-Learning outcomes: {learningOutcomes}
-Blooms Levels: {bloomsLevels}
+Learning outcomes: {lesson_learning_outcome}
+Blooms Levels: {cognitive_level}
 Learning Rate: {learningRate}
 Total number of questions needs to be created: {totalNumberOfQuestions}
 

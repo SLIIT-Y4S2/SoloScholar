@@ -76,6 +76,66 @@ export const createModule = async (module: {
   return createdModule;
 };
 
+/**
+ *  Get lessonOutline by module name and lesson name
+ * @param moduleName - module name
+ * @param lessonTitle - lesson title
+ * @returns lesson outline
+ */
+
+export const getLessonOutlineByModuleAndLessonName = async (
+  moduleName: string,
+  lessonTitle: string
+) => {
+  const module = await prisma.module.findFirst({
+    where: { name: moduleName },
+    include: {
+      lesson: {
+        where: { title: lessonTitle },
+        include: {
+          lesson_learning_outcome: {
+            include: {
+              learning_outcome: {
+                include: {
+                  learning_outcome_cognitive_level: {
+                    include: {
+                      cognitive_level: {
+                        select: {
+                          level: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          lesson_subtopic: true,
+        },
+      },
+    },
+  });
+
+  const lesson = module?.lesson[0];
+
+  if (!lesson) {
+    throw new Error("Lesson not found");
+  }
+
+  const lessonOutline = {
+    ...lesson,
+    lesson_subtopic: lesson.lesson_subtopic.map((subtopic) => subtopic.text),
+    lesson_learning_outcome: lesson.lesson_learning_outcome.map((outcome) => ({
+      outcome: outcome.learning_outcome.description,
+      cognitive_level:
+        outcome.learning_outcome.learning_outcome_cognitive_level.map(
+          (cognitiveLevel) => cognitiveLevel.cognitive_level.level
+        ),
+    })),
+  };
+  return lessonOutline;
+};
+
 export const deleteModule = async (id: number) => {
   const deletedModule = await prisma.$transaction(async (prisma) => {
     // 1. Find all learning outcome IDs related to this module

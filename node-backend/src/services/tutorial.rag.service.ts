@@ -38,7 +38,7 @@ async function documentRetrievalPipelineForDetailedOutline() {
  *
  **/
 
-async function synthesizeDetailedLessonOutline(
+export async function synthesizeDetailedLessonOutline(
   searchingKeywords: string,
   lessonOutline: string
 ): Promise<{ subtopic: string; description: string }[]> {
@@ -69,7 +69,9 @@ async function synthesizeDetailedLessonOutline(
  * @param lesson The lesson outline
  * @returns The searching keywords
  **/
-function extractSearchingKeywordsFromLessonOutline(lesson: LessonOutlineType) {
+export function extractSearchingKeywordsFromLessonOutline(
+  lesson: LessonOutlineType
+) {
   let keywords = [];
 
   keywords.push(lesson.title);
@@ -91,7 +93,7 @@ function extractSearchingKeywordsFromLessonOutline(lesson: LessonOutlineType) {
  * @returns The lesson outline as text
  **/
 
-function convertLessonOutlineToText(lesson: LessonOutlineType) {
+export function convertLessonOutlineToText(lesson: LessonOutlineType) {
   let text = `Lesson Title: ${lesson.title}\nsubtopic:\n`;
 
   lesson.lesson_subtopic.forEach((subtopic, index) => {
@@ -101,9 +103,7 @@ function convertLessonOutlineToText(lesson: LessonOutlineType) {
   text += `Learning Outcomes:\n`;
 
   lesson.lesson_learning_outcome.forEach((outcome, index) => {
-    text += `${index + 1}. ${
-      outcome.outcome
-    }\nBlooms Levels: ${outcome.cognitive_level.join(", ")}\n`;
+    text += `${index + 1}. ${outcome.outcome}\n`;
   });
 
   return text;
@@ -131,18 +131,20 @@ async function documentRetrievalPipelineForQuestionGeneration() {
 /**
  * Synthesize questions for a subtopic
  */
-async function synthesizeQuestionsForSubtopic(
+export async function synthesizeShortAnswerQuestionsForSubtopic(
   searchingKeywords: string,
   subtopic: string,
   description: string,
   lesson_learning_outcome: string[],
-  bloomsLevels: string[],
+  cognitive_level: string[],
   learningRate: string,
   totalNumberOfQuestions: number
 ): Promise<
   {
     question: string;
     answer: string;
+    type: string;
+    options: string[];
   }[]
 > {
   const questionGenerationPrompt = ChatPromptTemplate.fromTemplate(
@@ -155,7 +157,7 @@ async function synthesizeQuestionsForSubtopic(
       subtopic: (input) => input.subtopic,
       description: (input) => input.description,
       lesson_learning_outcome: (input) => input.lesson_learning_outcome,
-      bloomsLevels: (input) => input.bloomsLevels,
+      cognitive_level: (input) => input.cognitive_level,
       learningRate: (input) => input.learningRate,
       totalNumberOfQuestions: (input) => input.totalNumberOfQuestions,
     },
@@ -169,7 +171,7 @@ async function synthesizeQuestionsForSubtopic(
     subtopic,
     description,
     lesson_learning_outcome,
-    bloomsLevels,
+    cognitive_level,
     learningRate,
     totalNumberOfQuestions,
   });
@@ -178,15 +180,9 @@ async function synthesizeQuestionsForSubtopic(
     (question: { question: string; answer: string }) => ({
       ...question,
       type: "essay",
+      options: [],
     })
   );
 
   return essayQuestions;
 }
-
-export {
-  synthesizeDetailedLessonOutline,
-  extractSearchingKeywordsFromLessonOutline,
-  convertLessonOutlineToText,
-  synthesizeQuestionsForSubtopic,
-};
