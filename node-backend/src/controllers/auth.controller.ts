@@ -6,6 +6,7 @@ import {
 } from "../services/session.service";
 import { validatePassword } from "../services/user.service";
 import { signJwt } from "../utils/jwt.utils";
+import { logger } from "../utils/logger.utils";
 
 async function createUserSessionHandler(req: Request, res: Response) {
   // Validate the user's password
@@ -78,8 +79,7 @@ async function invalidateUserSessionHandler(req: Request, res: Response) {
       message: "Session invalidated",
     });
   } catch (error) {
-    console.log(error);
-
+    logger.error((error as Error).message);
     return res.status(400).send("Session invalidation failed");
   }
 }

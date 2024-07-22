@@ -1,3 +1,4 @@
+import { Decimal } from "@prisma/client/runtime/library";
 import prisma from "../../utils/prisma-client.util";
 
 /**
@@ -14,39 +15,35 @@ export const createTutorial = async (
   lessonId: number;
   learnerId: string;
 }> => {
-  // const lessonObject = await prisma.lesson.findFirst({
-  //   where: { title: lesson },
-  // });
-
-  // if (!lessonObject) {
-  //   throw new Error("Lesson not found");
-  // }
-
-  const createdTutorial = await prisma.tutorial.create({
+  const tutorial = await prisma.tutorial.create({
     data: {
-      learner: { connect: { id: learnerId } },
-      lesson: { connect: { id: lessonId } },
+      status: "generating",
       learning_material: {
         create: {
-          lesson: { connect: { id: lessonId } },
+          lesson: {
+            connect: {
+              id: lessonId,
+            },
+          },
+          learner: {
+            connect: {
+              id: learnerId,
+            },
+          },
+          learning_level,
+          completion_status: 0,
         },
       },
-      status: "generating",
-      learning_level,
     },
     include: {
-      questions: {
-        include: {
-          options: true,
-        },
-      },
+      learning_material: true,
     },
   });
 
   return {
-    id: createdTutorial.id,
-    lessonId: createdTutorial.lessonId,
-    learnerId: createdTutorial.learnerId,
+    id: tutorial.id,
+    lessonId: tutorial.learning_material.lesson_id,
+    learnerId: tutorial.learning_material.learner_id,
   };
 };
 
@@ -65,8 +62,14 @@ export const updateTutorialQuestions = async (
   }[]
 ): Promise<{
   id: string;
-  lessonId: number;
-  learnerId: string;
+  status: string;
+  learning_material: {
+    id: string;
+    lesson_id: number;
+    learner_id: string;
+    learning_level: string;
+    completion_status: Decimal;
+  };
   questions: {
     id: number;
     question: string;
@@ -78,13 +81,6 @@ export const updateTutorialQuestions = async (
 }> => {
   const tutorial = await prisma.tutorial.findFirst({
     where: { id },
-    include: {
-      questions: {
-        include: {
-          options: true,
-        },
-      },
-    },
   });
 
   if (!tutorial) {
@@ -112,13 +108,14 @@ export const updateTutorialQuestions = async (
           options: true,
         },
       },
+      learning_material: true,
     },
   });
 
   return {
     id: updatedTutorial.id,
-    lessonId: updatedTutorial.lessonId,
-    learnerId: updatedTutorial.learnerId,
+    learning_material: updatedTutorial.learning_material,
+    status: updatedTutorial.status,
     questions: updatedTutorial.questions.map((q) => ({
       id: q.id,
       question: q.question,
@@ -163,6 +160,7 @@ export const getTutorialById = async (
           options: true,
         },
       },
+      learning_material: true,
     },
   });
 
@@ -172,8 +170,8 @@ export const getTutorialById = async (
 
   return {
     id: tutorial.id,
-    lessonId: tutorial.lessonId,
-    learnerId: tutorial.learnerId,
+    lessonId: tutorial.learning_material.lesson_id,
+    learnerId: tutorial.learning_material.learner_id,
     questions: tutorial.questions.map((q) => ({
       id: q.id,
       question: q.question,
@@ -200,12 +198,16 @@ export const getAllTutorials = async (): Promise<
     learnerId: string;
   }[]
 > => {
-  const tutorials = await prisma.tutorial.findMany();
+  const tutorials = await prisma.tutorial.findMany({
+    include: {
+      learning_material: true,
+    },
+  });
 
   return tutorials.map((tutorial) => ({
     id: tutorial.id,
-    lessonId: tutorial.lessonId,
-    learnerId: tutorial.learnerId,
+    lessonId: tutorial.learning_material.lesson_id,
+    learnerId: tutorial.learning_material.learner_id,
   }));
 };
 
@@ -223,7 +225,7 @@ export const getTutorialByLearnerId = async (
 ): Promise<
   {
     id: string;
-    createdAt: Date;
+    create_at: Date;
     status: string;
     questions: {
       id: number;
@@ -236,8 +238,13 @@ export const getTutorialByLearnerId = async (
   }[]
 > => {
   const tutorials = await prisma.tutorial.findMany({
-    where: { learnerId },
+    where: {
+      learning_material: {
+        learner_id: learnerId,
+      },
+    },
     include: {
+      learning_material: true,
       questions: {
         include: {
           options: true,
@@ -248,7 +255,7 @@ export const getTutorialByLearnerId = async (
 
   return tutorials.map((tutorial) => ({
     id: tutorial.id,
-    createdAt: tutorial.createdAt,
+    create_at: tutorial.learning_material.create_at,
     status: tutorial.status,
     questions: tutorial.questions.map((q) => ({
       id: q.id,
@@ -268,100 +275,17 @@ export const getTutorialByLearnerId = async (
  */
 export const deleteTutorial = async (id: string): Promise<void> => {
   await prisma.$transaction([
+    prisma.learning_material.delete({
+      where: { id },
+    }),
     prisma.tutorial_question_option.deleteMany({
-      where: { tutorial_question: { tutorialId: id } },
+      where: { tutorial_question: { tutorial_id: id } },
     }),
     prisma.tutorial_question.deleteMany({
-      where: { tutorialId: id },
+      where: { tutorial_id: id },
     }),
     prisma.tutorial.delete({
       where: { id },
     }),
   ]);
 };
-
-// export const testPrisma = async () => {
-//   // just a test learner creation
-//   const learner = await prisma.learner.create({
-//     data: {
-//       first_name: "John",
-//       last_name: "Doe",
-//       email: "john.doe@example.com",
-//       password: "password123",
-//     },
-//   });
-
-//   const module = await prisma.module.create({
-//     data: {
-//       name: "Module 1",
-//       description: "This is module 1",
-//     },
-//   });
-//   const lesson = await prisma.lesson.create({
-//     data: {
-//       title: "Lesson 1",
-//       description: "This is lesson 1",
-//       module: {
-//         connect: {
-//           id: module.id,
-//         },
-//       },
-//     },
-//   });
-
-//   const learningMaterial = await prisma.learning_material.create({
-//     data: {
-//       lesson: {
-//         connect: {
-//           id: lesson.id,
-//         },
-//       },
-//     },
-//   });
-
-//   // const turoawait prisma.tutorial_question.create({
-//   //   data: {
-//   //     answer: "answer",
-//   //     question: "question",
-//   //   },
-//   // });
-
-//   // just a test tutorial creation
-//   // await prisma.tutorial.create({
-//   //   data: {
-//   //     questions: {
-//   //       create: [
-//   //         {
-//   //           question: "question 1",
-//   //           answer: "answer 1",
-//   //           type: "MCQ",
-//   //           question_number: 1,
-//   //         },
-//   //         {
-//   //           question: "question 2",
-//   //           answer: "answer 2",
-//   //         },
-//   //       ],
-//   //     },
-//   //     learner: {
-//   //       connect: {
-//   //         id: learner.id,
-//   //       },
-//   //     },
-//   //     lesson: {
-//   //       connect: {
-//   //         id: lesson.id,
-//   //       },
-//   //     },
-//   //     learning_material: {
-//   //       create: {
-//   //         lesson: {
-//   //           connect: {
-//   //             id: lesson.id,
-//   //           },
-//   //         },
-//   //       },
-//   //     },
-//   //   },
-//   // });
-// };

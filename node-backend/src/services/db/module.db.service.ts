@@ -194,8 +194,10 @@ export const deleteModule = async (id: number) => {
     // 6. Delete tutorials
     await prisma.tutorial.deleteMany({
       where: {
-        lesson: {
-          module_id: id,
+        learning_material: {
+          lesson: {
+            module_id: id,
+          },
         },
       },
     });

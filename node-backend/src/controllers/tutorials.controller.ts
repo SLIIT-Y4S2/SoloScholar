@@ -101,15 +101,6 @@ export const generateTutorials = async (req: Request, res: Response) => {
         detailedLessonOutline: detailedLessonOutline,
       },
     });
-
-    //TODO: remove this
-    // res.status(200).json({
-    //   message: "Tutorial generated successfully",
-    //   data: {
-    //     tutorial,
-    //     detailedLessonOutline,
-    //   },
-    // });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
 

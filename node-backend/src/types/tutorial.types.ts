@@ -22,6 +22,6 @@ export interface Tutorial {
   learnerId: string;
   questions: TutorialQuestion[];
   status: TutorialStatus;
-  createdAt: Date;
+  create_at: Date;
   updatedAt: Date;
 }
