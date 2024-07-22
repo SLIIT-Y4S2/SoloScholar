@@ -4,12 +4,10 @@ import { Layout } from "antd";
 
 const MainLayout = (props: PropsWithChildren) => {
   return (
-    // <div className="font-roboto h-screen flex flex-col">
     <Layout className="h-full min-h-screen">
       <Header />
       {props.children}
     </Layout>
-    // </div>
   );
 };
 

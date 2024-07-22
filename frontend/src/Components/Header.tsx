@@ -35,7 +35,7 @@ const Header = () => {
         >
           <div className="">Modules</div>
         </Dropdown>
-        <ProfileIcon student_Id={userDetails?.student_Id || ""} />
+        <ProfileIcon student_id={userDetails?.student_id || ""} />
       </div>
     </div>
   );
@@ -56,11 +56,11 @@ const items: MenuProps["items"] = [
   },
 ];
 
-const ProfileIcon = ({ student_Id }: { student_Id: string }) => (
+const ProfileIcon = ({ student_id }: { student_id: string }) => (
   <Dropdown menu={{ items }}>
     <Space>
       <Avatar icon={<UserOutlined />} />
-      {student_Id}
+      {student_id}
     </Space>
   </Dropdown>
 );
