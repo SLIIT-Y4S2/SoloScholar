@@ -170,7 +170,7 @@
     },
     {
       "name": "learning_material",
-      "description": "This table contains information about learning materials associated with lessons.",
+      "description": "This table contains information about learning materials associated with lessons and learners.",
       "columns": [
         {
           "name": "id",
@@ -181,6 +181,21 @@
           "name": "lesson_id",
           "data_type": "INT",
           "description": "This is a foreign key column which references the 'id' column of the 'lesson' table. It does not contain any null values."
+        },
+        {
+          "name": "completion_status",
+          "data_type": "DECIMAL",
+          "description": "This column contains the completion percentage of a learning material by a learner. For example, if a learner completes 2 out of 5 questions in a tutorial, the completion percentage would be 40. It does not contain any null values."
+        },
+        {
+          "name": "learning_level",
+          "data_type": "VARCHAR(12)",
+          "description": "This is an enumeration type column which stores three values only related to learning level of learners: 'Beginner', 'Intermediate', 'Advanced'. It does not contain any null values."
+        },
+        {
+          "name": "learner_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'learner' table. It does not contain any null values."
         }
       ]
     },
@@ -300,9 +315,9 @@
       "description": "This table contains information about interactions of learners with learning materials.",
       "columns": [
         {
-          "name": "learner_id",
+          "name": "id",
           "data_type": "INT",
-          "description": "This is a foreign key column which references the 'id' column of the 'learner' table. It is also a key attribute and does not contain any null values."
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
         },
         {
           "name": "learning_material_id",
@@ -323,16 +338,6 @@
           "name": "attempts",
           "data_type": "INT",
           "description": "This column contains the number of attempts for a learning material by a learner. For example, this could be the number of a times a learner has accessed a lecture or attempted a tutorial. It does not contain any null values."
-        },
-        {
-          "name": "learning_level",
-          "data_type": "VARCHAR(12)",
-          "description": "This is an enumeration type column which stores three values only related to learning level of learners: 'Beginner', 'Intermediate', 'Advanced'. It does not contain any null values."
-        },
-        {
-          "name": "completion_status",
-          "data_type": "DECIMAL",
-          "description": "This column contains the completion percentage of a learning material by a learner. For example, if a learner completes 2 out of 5 questions in a tutorial, the completion percentage would be 40. It does not contain any null values."
         },
         {
           "name": "date",

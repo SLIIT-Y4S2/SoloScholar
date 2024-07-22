@@ -38,9 +38,9 @@ const CustomAnalyticalIndicatorPrimary = () => {
 
       <Content
         className="
-      pt-[69px] pr-[54px] pb-[69px] pl-[54px]
-      mt-[35px] mr-[80px] mb-[68px] ml-[45px]
-      min-h-[280px] bg-[#ffff] rounded-[15px]
+      pt-[43px] pr-[46px] pb-[39px] pl-[46px]
+      mt-[35px] mr-[80px] mb-[98px] ml-[45px]
+      bg-[#ffff] rounded-[15px]
       "
       >
         {isLoading ? (
@@ -85,8 +85,7 @@ E.g. I want to see how many beginner level students have scored more than averag
                 {visualizationChoice.visualization}
               </div>
             </div>
-            <br />
-            <div className="flex justify-end">
+            <div className="flex justify-end mt-[50px]">
               <Button
                 type="primary"
                 className="rounded-[2px]"

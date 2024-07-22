@@ -13,9 +13,9 @@ const TutorialsOverview = () => {
       />
       <Content
         className="
-      pt-[69px] pr-[54px] pb-[69px] pl-[54px]
-      mt-[35px] mr-[80px] mb-[68px] ml-[45px]
-      min-h-[280px] bg-[#ffff] rounded-[15px]
+      pt-[43px] pr-[46px] pb-[39px] pl-[46px]
+      mt-[35px] mr-[80px] mb-[98px] ml-[45px]
+      bg-[#ffff] rounded-[15px]
       "
       >
         <p>Tutorials Overview</p>

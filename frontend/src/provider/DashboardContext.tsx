@@ -1,6 +1,9 @@
 import { createContext, ReactNode, useState } from "react";
 import { useMemo } from "react";
 import getFormattedData from "../utils/data_visualization_formatter";
+import { DASHBOARD_API_URLS } from "../utils/api_routes";
+import { customMessage } from "../types/dashboard.types";
+
 interface DashboardProviderProps {
   children: ReactNode;
 }
@@ -11,14 +14,19 @@ export function DashboardProvider({
   children,
 }: Readonly<DashboardProviderProps>) {
   const [data, setData] = useState<{
+    analysisGoal: string;
     formattedData: any;
     visualizationChoice: string;
   } | null>(null);
+  const [customMessage, setCustomMessage] = useState<customMessage | null>(
+    null
+  );
 
   /**
    * Function to clear out the data stored in the context.
    */
   const clearData = () => {
+    setCustomMessage(null);
     setData(null);
   };
 
@@ -29,7 +37,7 @@ export function DashboardProvider({
    */
   const createIndicator = async (goal: string, visualizationChoice: string) => {
     try {
-      const response = await fetch("http://localhost:5000/api/v1/dashboard", {
+      const response = await fetch(DASHBOARD_API_URLS.CREATE_INDICATOR, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,25 +45,42 @@ export function DashboardProvider({
         body: JSON.stringify({ goal }),
       });
       const data = await response.json();
-      if (data.result) {
+      if (data.error) {
+        setCustomMessage({
+          type: "error",
+          content:
+            "Sorry, an unexpected error occurred. Please enter a valid analysis goal and try again.",
+        });
+      } else {
+        if (
+          data.result.length === 1 &&
+          Object.keys(data.result[0])[0] === "" &&
+          data.result[0][Object.keys(data.result[0])[0]] === null
+        ) {
+          setCustomMessage({
+            type: "info",
+            content:
+              "Sorry, there is insufficient data available to visualize this analysis goal. Provide more information or try again with a different analysis goal.",
+          });
+          return;
+        }
         setData({
+          analysisGoal: data.goal,
           formattedData: await getFormattedData(
             data.result,
             visualizationChoice
           ),
           visualizationChoice: visualizationChoice,
         });
-      } else {
-        console.log(data.error);
       }
     } catch (error: any) {
-      console.log(error);
+      setCustomMessage({ type: "error", content: error.message });
     }
   };
 
   const contextValue = useMemo(
-    () => ({ data, createIndicator, clearData }),
-    [data, createIndicator, clearData]
+    () => ({ data, customMessage, createIndicator, clearData }),
+    [data, customMessage, createIndicator, clearData]
   );
 
   return (

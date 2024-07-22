@@ -3,11 +3,7 @@ import { DashboardContext } from "../../../provider/DashboardContext";
 import { pieChartPreviewData } from "../../../utils/data_visualization_preview_data";
 import { useContext } from "react";
 
-interface CustomPieChartProps {
-  pieColor?: string;
-}
-
-const CustomPieChart = (props: CustomPieChartProps) => {
+const CustomPieChart = (props: { pieColor?: string }) => {
   const { pieColor } = props;
   const { data } = useContext(DashboardContext);
 
@@ -26,7 +22,7 @@ const CustomPieChart = (props: CustomPieChartProps) => {
           isAnimationActive={true}
           data={
             data && data.visualizationChoice === "Pie Chart"
-              ? data.formattedData
+              ? data.formattedData.values
               : pieChartPreviewData
           }
           outerRadius={100}
