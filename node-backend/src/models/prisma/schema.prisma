@@ -11,13 +11,13 @@ datasource db {
 
 model cognitive_level {
   id                               Int                                @id(map: "PK__cognitiv__3213E83F7C722A61") @default(autoincrement())
-  level                            String                             @db.VarChar(10)
+  level                            String                             @unique @db.VarChar(10)
   learning_outcome_cognitive_level learning_outcome_cognitive_level[]
 }
 
 model interaction {
   learner_id           String
-  learning_material_id Int
+  learning_material_id String
   interaction_type     String            @db.VarChar(30)
   interaction_response String            @db.VarChar(Max)
   attempts             Int
@@ -32,7 +32,7 @@ model interaction {
 }
 
 model labsheet {
-  id                Int                 @id(map: "PK__labsheet__3213E83F119533A4")
+  id                String              @id(map: "PK__labsheet__3213E83F119533A4")
   learning_material learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction, map: "FK__labsheet__id__70E8B0D0")
   labsheet_question labsheet_question[]
 }
@@ -41,7 +41,7 @@ model labsheet_question {
   id          Int      @id(map: "PK__labsheet__3213E83F918B4D3E") @default(autoincrement())
   question    String   @db.VarChar(200)
   answer      String   @db.VarChar(2000)
-  labsheet_id Int
+  labsheet_id String
   labsheet    labsheet @relation(fields: [labsheet_id], references: [id], onUpdate: NoAction, map: "FK__labsheet___labsh__73C51D7B")
 }
 
@@ -49,7 +49,7 @@ model learner {
   id          String        @id(map: "PK__learner__3213E83FEAF2AAB5") @default(uuid())
   first_name  String        @db.VarChar(30)
   last_name   String        @db.VarChar(30)
-  student_Id  String        @unique @db.VarChar(10)
+  student_id  String        @unique @db.VarChar(10)
   email       String        @unique(map: "UQ__learner__AB6E6164DAE2B60F") @db.VarChar(30)
   password    String        @unique(map: "UQ__learner__6E2DBEDE1EC71B29") @db.VarChar(60)
   interaction interaction[]
@@ -69,7 +69,7 @@ model session {
 }
 
 model learning_material {
-  id          Int           @id(map: "PK__learning__3213E83FD2E584EC") @default(autoincrement())
+  id          String        @id(map: "PK__learning__3213E83FD2E584EC") @default(uuid())
   lesson_id   Int
   interaction interaction[]
   labsheet    labsheet?
@@ -95,20 +95,29 @@ model learning_outcome_cognitive_level {
 }
 
 model lecture {
-  id                Int               @id(map: "PK__lecture__3213E83F22D2F5D0")
+  id                String            @id(map: "PK__lecture__3213E83F22D2F5D0")
   learning_material learning_material @relation(fields: [id], references: [id], onUpdate: NoAction, map: "FK__lecture__id__6576FE24")
   sub_lecture       sub_lecture[]
 }
 
 model lesson {
-  id                      Int                       @id(map: "PK__lesson__3213E83F1057052E") @default(autoincrement())
-  title                   String                    @db.VarChar(100)
-  description             String                    @db.VarChar(2000)
+  id          Int    @id(map: "PK__lesson__3213E83F1057052E") @default(autoincrement())
+  title       String @db.VarChar(100)
+  description String @db.VarChar(2000)
+
   module_id               Int
   learning_material       learning_material[]
   module                  module                    @relation(fields: [module_id], references: [id], onUpdate: NoAction, map: "FK__lesson__module_i__53584DE9")
   lesson_learning_outcome lesson_learning_outcome[]
   tutorial                tutorial[]
+  lesson_subtopic         lesson_subtopic[]
+}
+
+model lesson_subtopic {
+  id        Int    @id(map: "PK__lessonSu__3213E83F7A3A3A3D") @default(autoincrement())
+  text      String @db.VarChar(200)
+  lesson_id Int
+  lesson    lesson @relation(fields: [lesson_id], references: [id], onUpdate: NoAction, map: "FK__lessonSub__lesso__5AEE82B9")
 }
 
 model lesson_learning_outcome {
@@ -131,7 +140,7 @@ model sub_lecture {
   id         Int     @id(map: "PK__sub_lect__3213E83F731F48C3") @default(autoincrement())
   title      String  @db.VarChar(50)
   content    String? @db.VarChar(Max)
-  lecture_id Int
+  lecture_id String
   lecture    lecture @relation(fields: [lecture_id], references: [id], onUpdate: NoAction, map: "FK__sub_lectu__lectu__68536ACF")
 }
 
@@ -149,8 +158,7 @@ model tutorial {
   learning_level    String              @db.VarChar(12)
   status            String              @db.VarChar(10)
   //-
-  learning_material learning_material   @relation(fields: [learning_m_id], references: [id], onUpdate: NoAction, map: "FK__tutorial__id__6B2FD77A")
-  learning_m_id     Int                 @unique
+  learning_material learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction, map: "FK__tutorial__id__6B2FD77A")
   learner           learner             @relation(fields: [learnerId], references: [id])
   learnerId         String
   lesson            lesson              @relation(fields: [lessonId], references: [id])

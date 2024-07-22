@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getTutorials } from "../controllers/tutorials.controller";
+import { generateTutorials } from "../controllers/tutorials.controller";
 
 const tutorialsRouter = Router();
 
@@ -7,7 +7,7 @@ const tutorialsRouter = Router();
  * @route GET /api/v1/tutorial/
  */
 
-tutorialsRouter.get("/", getTutorials); 
+tutorialsRouter.get("/", generateTutorials);
 
 //TODO: 1. post route to generate tutorials
 //TODO: 2. get route to get all tutorials of that student

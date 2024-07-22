@@ -72,13 +72,13 @@ async function synthesizeDetailedLessonOutline(
 function extractSearchingKeywordsFromLessonOutline(lesson: LessonOutlineType) {
   let keywords = [];
 
-  keywords.push(lesson.lessonTitle);
+  keywords.push(lesson.title);
 
-  lesson.subtopics.forEach((subtopic) => {
+  lesson.lesson_subtopic.forEach((subtopic) => {
     keywords.push(subtopic);
   });
 
-  lesson.learningOutcomes.forEach((outcome) => {
+  lesson.lesson_learning_outcome.forEach((outcome) => {
     keywords.push(outcome.outcome);
   });
 
@@ -92,18 +92,18 @@ function extractSearchingKeywordsFromLessonOutline(lesson: LessonOutlineType) {
  **/
 
 function convertLessonOutlineToText(lesson: LessonOutlineType) {
-  let text = `Lesson Title: ${lesson.lessonTitle}\nSubtopics:\n`;
+  let text = `Lesson Title: ${lesson.title}\nsubtopic:\n`;
 
-  lesson.subtopics.forEach((subtopic, index) => {
+  lesson.lesson_subtopic.forEach((subtopic, index) => {
     text += `${index + 1}. ${subtopic}\n`;
   });
 
   text += `Learning Outcomes:\n`;
 
-  lesson.learningOutcomes.forEach((outcome, index) => {
+  lesson.lesson_learning_outcome.forEach((outcome, index) => {
     text += `${index + 1}. ${
       outcome.outcome
-    }\nBlooms Levels: ${outcome.bloomsLevels.join(", ")}\n`;
+    }\nBlooms Levels: ${outcome.cognitive_level.join(", ")}\n`;
   });
 
   return text;
@@ -135,7 +135,7 @@ async function synthesizeQuestionsForSubtopic(
   searchingKeywords: string,
   subtopic: string,
   description: string,
-  learningOutcomes: string[],
+  lesson_learning_outcome: string[],
   bloomsLevels: string[],
   learningRate: string,
   totalNumberOfQuestions: number
@@ -154,7 +154,7 @@ async function synthesizeQuestionsForSubtopic(
       context: documentRetrievalPipelineForQuestionGeneration,
       subtopic: (input) => input.subtopic,
       description: (input) => input.description,
-      learningOutcomes: (input) => input.learningOutcomes,
+      lesson_learning_outcome: (input) => input.lesson_learning_outcome,
       bloomsLevels: (input) => input.bloomsLevels,
       learningRate: (input) => input.learningRate,
       totalNumberOfQuestions: (input) => input.totalNumberOfQuestions,
@@ -168,7 +168,7 @@ async function synthesizeQuestionsForSubtopic(
     searchingKeywords,
     subtopic,
     description,
-    learningOutcomes,
+    lesson_learning_outcome,
     bloomsLevels,
     learningRate,
     totalNumberOfQuestions,

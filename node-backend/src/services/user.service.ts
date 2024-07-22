@@ -24,15 +24,15 @@ export async function createUser(input: LearnerType) {
 
 // For login
 export const validatePassword = async ({
-  student_Id,
+  student_id,
   password,
 }: {
-  student_Id: string;
+  student_id: string;
   password: string;
 }): Promise<Omit<LearnerType, "password"> | false> => {
   const user = await prisma.learner.findFirst({
     where: {
-      student_Id,
+      student_id,
     },
   });
 

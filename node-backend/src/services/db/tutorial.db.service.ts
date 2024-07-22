@@ -1,61 +1,35 @@
-import { config } from "dotenv";
 import prisma from "../../utils/prisma-client.util";
 
 /**
- * Create tutorial
+ * Create tutorial without questions
  *
  * @param
  */
 export const createTutorial = async (
-  lesson: string,
-  learnerId: number,
-  learning_level: string,
-  questions: {
-    question: string;
-    answer: string;
-    type: string;
-    options: string[];
-  }[]
+  lessonId: number,
+  learnerId: string,
+  learning_level: string
 ): Promise<{
   id: string;
   lessonId: number;
-  learnerId: number;
-  questions: {
-    id: number;
-    question: string;
-    answer: string;
-    type: string;
-    question_number: number;
-    options: string[];
-  }[];
+  learnerId: string;
 }> => {
-  const lessonObject = await prisma.lesson.findFirst({
-    where: { title: lesson },
-  });
+  // const lessonObject = await prisma.lesson.findFirst({
+  //   where: { title: lesson },
+  // });
 
-  if (!lessonObject) {
-    throw new Error("Lesson not found");
-  }
+  // if (!lessonObject) {
+  //   throw new Error("Lesson not found");
+  // }
 
   const createdTutorial = await prisma.tutorial.create({
     data: {
       learner: { connect: { id: learnerId } },
-      lesson: { connect: { id: lessonObject.id } },
+      lesson: { connect: { id: lessonId } },
       learning_material: {
         create: {
-          lesson: { connect: { id: lessonObject.id } },
+          lesson: { connect: { id: lessonId } },
         },
-      },
-      questions: {
-        create: questions.map((q, index) => ({
-          question: q.question,
-          answer: q.answer,
-          type: q.type,
-          question_number: index + 1,
-          options: {
-            create: q.options.map((text) => ({ text })),
-          },
-        })),
       },
       status: "generating",
       learning_level,
@@ -73,7 +47,79 @@ export const createTutorial = async (
     id: createdTutorial.id,
     lessonId: createdTutorial.lessonId,
     learnerId: createdTutorial.learnerId,
-    questions: createdTutorial.questions.map((q) => ({
+  };
+};
+
+/**
+ * Update tutorial
+ * @param id
+ * @param questions
+ */
+export const updateTutorialQuestions = async (
+  id: string,
+  questions: {
+    question: string;
+    answer: string;
+    type: string;
+    options: string[];
+  }[]
+): Promise<{
+  id: string;
+  lessonId: number;
+  learnerId: string;
+  questions: {
+    id: number;
+    question: string;
+    answer: string;
+    type: string;
+    question_number: number;
+    options: string[];
+  }[];
+}> => {
+  const tutorial = await prisma.tutorial.findFirst({
+    where: { id },
+    include: {
+      questions: {
+        include: {
+          options: true,
+        },
+      },
+    },
+  });
+
+  if (!tutorial) {
+    throw new Error("Tutorial not found");
+  }
+
+  const updatedTutorial = await prisma.tutorial.update({
+    where: { id },
+    data: {
+      questions: {
+        create: questions.map((q, index) => ({
+          question: q.question,
+          answer: q.answer,
+          type: q.type,
+          question_number: index + 1,
+          options: {
+            create: q.options.map((text) => ({ text })),
+          },
+        })),
+      },
+    },
+    include: {
+      questions: {
+        include: {
+          options: true,
+        },
+      },
+    },
+  });
+
+  return {
+    id: updatedTutorial.id,
+    lessonId: updatedTutorial.lessonId,
+    learnerId: updatedTutorial.learnerId,
+    questions: updatedTutorial.questions.map((q) => ({
       id: q.id,
       question: q.question,
       answer: q.answer,
@@ -99,7 +145,7 @@ export const getTutorialById = async (
 ): Promise<{
   id: string;
   lessonId: number;
-  learnerId: number;
+  learnerId: string;
   questions: {
     id: number;
     question: string;
@@ -151,7 +197,7 @@ export const getAllTutorials = async (): Promise<
   {
     id: string;
     lessonId: number;
-    learnerId: number;
+    learnerId: string;
   }[]
 > => {
   const tutorials = await prisma.tutorial.findMany();
