@@ -3,11 +3,17 @@ import {
   convertLessonOutlineToText,
   extractSearchingKeywordsFromLessonOutline,
   synthesizeDetailedLessonOutline,
-  synthesizeQuestionsForSubtopic,
+  synthesizeShortAnswerQuestionsForSubtopic,
 } from "../services/tutorial.rag.service";
 import { MODULE_OUTLINE_LESSON_ARRAY } from "../dummyData/lessonOutline";
+import {
+  createTutorial,
+  updateTutorialQuestions,
+  getTutorialByLearnerId,
+} from "../services/db/tutorial.db.service";
+import { getLessonOutlineByModuleAndLessonName } from "../services/db/module.db.service";
 
-const generateTutorials = async (req: Request, res: Response) => {
+export const generateTutorials = async (req: Request, res: Response) => {
   try {
     //MARK: pre-requisite
     // we need check if the student has already generated the tutorial for the lesson for the given learning rate
@@ -16,26 +22,27 @@ const generateTutorials = async (req: Request, res: Response) => {
     // MARK: STEP 1
     // get the lesson outline from the database
 
-    const { moduleName, lessonTitle, learningRate } = req.body;
+    const { moduleName, lessonTitle, learningLevel } = req.body;
+    const { id: learner_id } = res.locals.user;
 
-    if (!moduleName || !lessonTitle || !learningRate) {
+    if (!moduleName || !lessonTitle || !learningLevel) {
       return res.status(400).json({
         message: "Invalid request body",
       });
     }
-
-    const lessonOutline = MODULE_OUTLINE_LESSON_ARRAY.find(
-      (lesson) => lesson.lessonTitle === lessonTitle
+    const lessonOutline = await getLessonOutlineByModuleAndLessonName(
+      moduleName,
+      lessonTitle
+    );
+    // create a tutorial for the student
+    const tutorial = await createTutorial(
+      lessonOutline.id,
+      learner_id,
+      learningLevel
     );
 
-    if (!lessonOutline) {
-      return res.status(404).json({
-        message: "Lesson not found",
-      });
-    }
-
     // MARK: STEP 2
-    // we need to make the detailed lesson plan for the tutorial
+    // make the detailed lesson plan for the tutorial
     const searchingKeywords =
       extractSearchingKeywordsFromLessonOutline(lessonOutline);
     const lessonOutlineAsAText: string =
@@ -50,34 +57,38 @@ const generateTutorials = async (req: Request, res: Response) => {
     // loop through the detailed lesson plan and create questions for each subtopic
     const totalNumberOfQuestions = 15; // TEMPORARY
     const totalNumberOfQuestionsPerSubtopics = Math.floor(
-      totalNumberOfQuestions / lessonOutline.subtopics.length
+      totalNumberOfQuestions / lessonOutline.lesson_subtopic.length
     );
 
-    const learningOutcomes = lessonOutline.learningOutcomes.map(
+    const learningOutcomes = lessonOutline.lesson_learning_outcome.map(
       (outcome) => outcome.outcome
     );
 
-    const combinedBloomLevels = lessonOutline.learningOutcomes.reduce(
-      (acc, outcome) => {
-        return acc.concat(outcome.bloomsLevels);
-      },
-      [] as string[]
-    );
+    const combined_cognitive_level =
+      lessonOutline.lesson_learning_outcome.reduce((acc, outcome) => {
+        return acc.concat(outcome.cognitive_level);
+      }, [] as string[]);
 
     const questions = await Promise.all(
       detailedLessonOutline.map(async (subtopic) => {
-        const subtopicQuestions = await synthesizeQuestionsForSubtopic(
-          `${subtopic.subtopic} ${subtopic.description}`,
-          subtopic.subtopic,
-          subtopic.description,
-          learningOutcomes,
-          combinedBloomLevels,
-          learningRate, // "Beginner", "Intermediate", "Advanced"
-          totalNumberOfQuestionsPerSubtopics
-        );
+        const subtopicQuestions =
+          await synthesizeShortAnswerQuestionsForSubtopic(
+            `${subtopic.subtopic} ${subtopic.description}`,
+            subtopic.subtopic,
+            subtopic.description,
+            learningOutcomes,
+            combined_cognitive_level,
+            learningLevel, // "Beginner", "Intermediate", "Advanced"
+            totalNumberOfQuestionsPerSubtopics
+          );
         return subtopicQuestions;
       })
     ).then((result) => result.flat());
+
+    const updatedTutorialWithQuestions = await updateTutorialQuestions(
+      tutorial.id,
+      questions
+    );
 
     // MARK: STEP 4
     // save the tutorial to the database
@@ -86,7 +97,7 @@ const generateTutorials = async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Tutorial generated successfully",
       data: {
-        questions: questions,
+        questions: updatedTutorialWithQuestions.questions,
         detailedLessonOutline: detailedLessonOutline,
       },
     });
@@ -97,4 +108,18 @@ const generateTutorials = async (req: Request, res: Response) => {
   }
 };
 
-export { generateTutorials as getTutorials };
+export const getTutorials = async (req: Request, res: Response) => {
+  try {
+    const { id: learner_id } = res.locals.user;
+    const tutorials = await getTutorialByLearnerId(learner_id);
+
+    res.status(200).json({
+      message: "Tutorials fetched successfully",
+      data: tutorials,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+
+    console.error(error);
+  }
+};

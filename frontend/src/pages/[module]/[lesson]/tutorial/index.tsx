@@ -3,6 +3,7 @@ import { Content } from "antd/es/layout/layout";
 import { useEffect, useState } from "react";
 import { Breadcrumb } from "antd";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { ItemType } from "antd/es/breadcrumb/Breadcrumb";
 
 const Tutorial = () => {
   const { module, lesson } = useParams();
@@ -15,18 +16,21 @@ const Tutorial = () => {
   // TODO: fetch past tutorials
   const [pastTutorials, setPastTutorials] = useState([
     {
+      key: 1,
       difficulty: "Beginner",
       date: "2021-10-10 17:00",
       status: "Completed", // generating, completed, in progress
       score: 80,
     },
     {
+      key: 2,
       difficulty: "Intermediate",
       date: "2021-10-10 17:00",
       status: "Completed",
       score: 90,
     },
     {
+      key: 3,
       difficulty: "Advanced",
       date: "2021-10-10 17:00",
       status: "Completed",
@@ -125,26 +129,30 @@ export const DynamicBreadcrumbComponent = () => {
   const location = useLocation();
   const pathSnippets = location.pathname.split("/").filter((i) => i);
 
-  const breadcrumbItems = pathSnippets.map((_, index) => {
-    const url = `/${pathSnippets.slice(0, index + 1).join("/")}`;
+  const items = pathSnippets.map((_, index) => {
+    const path = `/${pathSnippets.slice(0, index + 1).join("/")}`;
     const title =
       pathSnippets[index].charAt(0).toUpperCase() +
       pathSnippets[index].slice(1).replace(/-/g, " ");
-
-    return (
-      <Breadcrumb.Item key={url}>
-        <Link to={url}>{title}</Link>
-      </Breadcrumb.Item>
-    );
+    return { path, title };
   });
 
+  function itemRender(route: ItemType, _: unknown, routes: ItemType[]) {
+    const isLast = route?.path === routes[items.length - 1]?.path;
+
+    return isLast ? (
+      <span>{route.title}</span>
+    ) : (
+      <Link to={route.path ?? "/"}>{route.title}</Link>
+    );
+  }
+
   return (
-    <Breadcrumb style={{ margin: "16px 0" }}>
-      <Breadcrumb.Item>
-        <Link to="/">Modules</Link>
-      </Breadcrumb.Item>
-      {breadcrumbItems}
-    </Breadcrumb>
+    <Breadcrumb
+      style={{ margin: "16px 0" }}
+      itemRender={itemRender}
+      items={items}
+    />
   );
 };
 

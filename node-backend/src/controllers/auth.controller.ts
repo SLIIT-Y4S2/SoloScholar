@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import {
   createSession,
-  findSessions,
-  updateSession,
+  // findSessions,
+  invalidateSession,
 } from "../services/session.service";
 import { validatePassword } from "../services/user.service";
 import { signJwt } from "../utils/jwt.utils";
+import { logger } from "../utils/logger.utils";
 
 async function createUserSessionHandler(req: Request, res: Response) {
   // Validate the user's password
@@ -17,11 +18,14 @@ async function createUserSessionHandler(req: Request, res: Response) {
     }
 
     // create a session
-    const session = await createSession(user._id, req.get("user-agent") || "");
+    const session = await createSession(
+      user.id,
+      req.get("user-agent") || "no-user-agent"
+    );
 
     // create token
     const jwtToken = signJwt(
-      { ...user, session: session._id },
+      { ...user, session: session.id },
       { expiresIn: "30d" }
     );
 
@@ -38,15 +42,16 @@ async function createUserSessionHandler(req: Request, res: Response) {
   } catch (error) {
     return res.status(400).json({
       message: "Something went wrong",
-      error: error.message,
+      error: (error as Error).message,
     });
   }
 }
 
+// find all sessions of a user
 // async function getUserSessionsHandler(req: Request, res: Response) {
 //   const userId = res.locals.user._id;
 
-//   const sessions = await findSessions({ user: userId, valid: true });
+//   const sessions = await findSessions( userId });
 
 //   return res.send(sessions);
 // }
@@ -64,9 +69,9 @@ async function createUserSessionHandler(req: Request, res: Response) {
 
 async function invalidateUserSessionHandler(req: Request, res: Response) {
   try {
-    // const sessionId = res.locals.user.session;
+    const sessionId = res.locals.user.session;
 
-    // await updateSession({ _id: sessionId }, { valid: false });
+    await invalidateSession(sessionId);
 
     res.clearCookie("jwt");
 
@@ -74,8 +79,7 @@ async function invalidateUserSessionHandler(req: Request, res: Response) {
       message: "Session invalidated",
     });
   } catch (error) {
-    console.log(error);
-
+    logger.error((error as Error).message);
     return res.status(400).send("Session invalidation failed");
   }
 }

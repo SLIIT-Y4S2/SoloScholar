@@ -6,6 +6,6 @@ const ragRouter = Router();
 /**
  * @route GET /api/v1/rag/
  */
-ragRouter.get('/', getOutput);
+ragRouter.get("/", getOutput);
 
 export default ragRouter;

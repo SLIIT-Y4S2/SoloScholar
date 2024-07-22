@@ -1,5 +1,5 @@
 import { Content } from "antd/es/layout/layout";
-import { useTutorialContext } from "../../../../provider/TutorialContext";
+import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import { Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
 
@@ -44,7 +44,7 @@ const QuestionCardForTutorialComponent = () => {
           }
         />
       ) : (
-        options.map((option) => (
+        options.map((option, index) => (
           <div
             key={option}
             onClick={() => setStudentsAnswerForTheCurrentQuestion(option)}
@@ -54,16 +54,37 @@ const QuestionCardForTutorialComponent = () => {
                 : ""
             }`}
           >
-            {option}
+            {String.fromCharCode(97 + index)}. {option}
           </div>
         ))
       )}
-      <Button onClick={() => submitAnswer(questionNumber, questionNumber - 1)}>
-        Previous
-      </Button>
-      <Button onClick={() => submitAnswer(questionNumber, questionNumber + 1)}>
-        Next
-      </Button>
+      <div className="flex justify-between flex-row-reverse">
+        {currentQuestionNumber !== questions.length && (
+          <Button
+            type="primary"
+            onClick={() => submitAnswer(questionNumber, questionNumber + 1)}
+          >
+            Next
+          </Button>
+        )}
+
+        {currentQuestionNumber === questions.length && (
+          <Button
+            type="primary"
+            onClick={() => submitAnswer(questionNumber, null)}
+          >
+            Finish
+          </Button>
+        )}
+
+        {currentQuestionNumber !== 1 && (
+          <Button
+            onClick={() => submitAnswer(questionNumber, questionNumber - 1)}
+          >
+            Previous
+          </Button>
+        )}
+      </div>
     </Content>
   );
 };

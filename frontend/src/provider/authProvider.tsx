@@ -23,10 +23,8 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (userDetails) {
-      // axios.defaults.headers.common["Authorization"] = "Bearer " + userDetails;
       localStorage.setItem("userDetails", JSON.stringify(userDetails));
     } else {
-      // delete axios.defaults.headers.common["Authorization"];
       localStorage.removeItem("userDetails");
     }
   }, [userDetails]);

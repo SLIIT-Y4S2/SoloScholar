@@ -14,16 +14,34 @@ export interface TutorialQuestion {
   question: string;
   options: string[];
   type: "short-answer" | "mcq";
+  answer: string;
   studentAnswer: string | null;
+  feedbackType?: "skip" | "basic" | "detailed";
+  isStudentAnswerCorrect?: boolean;
 }
+type TutorialStatus =
+  | "generating"
+  | "generated"
+  | "submitted"
+  | "feedback-generating"
+  | "feedback-generated"
+  | "ended";
 
 interface TutorialContextType {
   questions: TutorialQuestion[];
+  status?: TutorialStatus;
   currentQuestionNumber: number;
   isLoading: boolean;
   studentsAnswerForTheCurrentQuestion: string | null;
+
   setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
-  submitAnswer: (currentQuestion: number, nextQuestionNumber: number) => void;
+  submitAnswer: (current: number, next: number | null) => void;
+  requestFeedback: (
+    questionFeedback: {
+      questionNumber: number;
+      feedbackType: string;
+    }[]
+  ) => void;
 }
 
 const TutorialProviderContext = createContext<TutorialContextType | null>(null);
@@ -39,6 +57,7 @@ export function useTutorialContext() {
 }
 
 export function TutorialProvider({ children }: TutorialProviderProps) {
+  const [status, setStatus] = useState<TutorialStatus | undefined>();
   const [currentQuestionNumber, setCurrentQuestionNumber] = useState<number>(1);
   const [questions, setQuestions] = useState<TutorialQuestion[]>([]);
   const [
@@ -58,9 +77,10 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     setIsLoading(true);
     // fetch the questions from the backend
     setTimeout(() => {
+      setStatus("generated");
       setQuestions(
         dummyQuestions.map((question, index) => {
-          const type: "mcq" | "short-answer" =
+          const type =
             question.type === "mcq" || question.type === "short-answer"
               ? question.type
               : "short-answer";
@@ -70,6 +90,8 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
             options: question.options ?? [],
             type,
             studentAnswer: null,
+            answer: question.answer,
+            isStudentAnswerCorrect: true,
           };
         })
       );
@@ -78,24 +100,45 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     }, 1000);
   }, []);
 
-  const submitAnswer = async (
-    currentQuestion: number,
-    nextQuestionNumber: number
-  ) => {
-    if (nextQuestionNumber < 1 || nextQuestionNumber > questions.length) return;
+  const submitAnswer = async (current: number, next: number | null) => {
+    if (next === null) {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Finish the tutorial
+      updateQuestionAnswer(current);
+      setCurrentQuestionNumber(1);
+      setStatus("submitted");
+      return;
+    }
+
+    if (next < 1 || next > questions.length) return;
+
     if (
       studentsAnswerForTheCurrentQuestion !== displayedQuestion?.studentAnswer
     ) {
-      //TODO submit the answer to the backend with next question number as current question
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      displayedQuestion.studentAnswer = studentsAnswerForTheCurrentQuestion;
-
-      // TODO: If submitting the answer to the backend is successful, then only change the question
-      setCurrentQuestionNumber(nextQuestionNumber);
-    } else {
-      // change the question to next or given number
-      setCurrentQuestionNumber(nextQuestionNumber);
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Submit answer to backend
+      updateQuestionAnswer(current);
     }
+
+    setCurrentQuestionNumber(next); // TODO: Change question only if submission is successful
+  };
+
+  const updateQuestionAnswer = (questionNumber: number) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((q) =>
+        q.questionNumber === questionNumber
+          ? { ...q, studentAnswer: studentsAnswerForTheCurrentQuestion }
+          : q
+      )
+    );
+  };
+
+  const requestFeedback = async (
+    questionFeedback: { questionNumber: number; feedbackType: string }[]
+  ) => {
+    setStatus("feedback-generating");
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Request feedback from backend
+    console.log(questionFeedback);
+
+    setStatus("feedback-generated");
   };
 
   return (
@@ -107,6 +150,8 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         studentsAnswerForTheCurrentQuestion,
         setStudentsAnswerForTheCurrentQuestion,
         submitAnswer,
+        status,
+        requestFeedback,
       }}
     >
       {children}
