@@ -1,0 +1,355 @@
+{
+  "table_info": [
+    {
+      "name": "learner",
+      "description": "This table contains general information about learners.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "first_name",
+          "data_type": "VARCHAR(30)",
+          "description": "This column contains the first name of a learner. It does not contain any null values."
+        },
+        {
+          "name": "last_name",
+          "data_type": "VARCHAR(30)",
+          "description": "This column contains the last name of a learner. It does not contain any null values."
+        },
+        {
+          "name": "email",
+          "data_type": "VARCHAR(30)",
+          "description": "This column contains the email address of a learner. It is a unique field and does not contain any null values."
+        },
+        {
+          "name": "password",
+          "data_type": "VARCHAR(20)",
+          "description": "This column contains the password of a learner. It is a unique field and does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "system_log",
+      "description": "This table contains information of system logging activity of learners such as logins and signups.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "action",
+          "data_type": "VARCHAR(30)",
+          "description": "This is an enumeration type column which stores three values only related to actions performed by learners: 'Signup', 'Login', 'ContentAccessed'. It does not contain any null values."
+        },
+        {
+          "name": "timestamp",
+          "data_type": "DATETIME",
+          "description": "This column stores DATETIME type data and is a default column where for every new record, GETUTCDATE() function is called to insert a value for this column. It does not contain any null values."
+        },
+        {
+          "name": "learner_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'learner' table. It does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "module",
+      "description": "This table contains general information about modules.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "name",
+          "data_type": "VARCHAR(20)",
+          "description": "This column contains the name of a module. It does not contain any null values."
+        },
+        {
+          "name": "description",
+          "data_type": "VARCHAR(1000)",
+          "description": "This column contains the description of a module. It does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "lesson",
+      "description": "This table contains general information about lessons of modules.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "title",
+          "data_type": "VARCHAR(100)",
+          "description": "This column contains the title of a lesson. It does not contain any null values."
+        },
+        {
+          "name": "description",
+          "data_type": "VARCHAR(2000)",
+          "description": "This column contains the description of a lesson. It does not contain any null values."
+        },
+        {
+          "name": "module_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'module' table. It does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "learning_outcome",
+      "description": "This table contains general information about learning outcomes.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "description",
+          "data_type": "VARCHAR(250)",
+          "description": "This column contains the description of a learning outcome. It does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "lesson_learning_outcome",
+      "description": "This table contains information about the relationship between lessons and learning outcomes.",
+      "columns": [
+        {
+          "name": "lesson_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'lesson' table. It is also a key attribute and does not contain any null values."
+        },
+        {
+          "name": "learning_outcome_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'learning_outcome' table. It is also a key attribute and does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "cognitive_level",
+      "description": "This table contains different Blooms Taxonomy cognitive levels.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "level",
+          "data_type": "VARCHAR(10)",
+          "description": "This is an enumeration type column which stores seven values only related to cognitive levels: Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'. It does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "learning_outcome_cognitive_level",
+      "description": "This table contains information about the relationship between learning outcomes and cognitive levels.",
+      "columns": [
+        {
+          "name": "learning_outcome_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'learning_outcome' table. It is also a key attribute and does not contain any null values."
+        },
+        {
+          "name": "cognitive_level_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'cognitive_level' table. It is also a key attribute and does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "learning_material",
+      "description": "This table contains information about learning materials associated with lessons and learners.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "lesson_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'lesson' table. It does not contain any null values."
+        },
+        {
+          "name": "completion_status",
+          "data_type": "DECIMAL",
+          "description": "This column contains the completion percentage of a learning material by a learner. For example, if a learner completes 2 out of 5 questions in a tutorial, the completion percentage would be 40. It does not contain any null values."
+        },
+        {
+          "name": "learning_level",
+          "data_type": "VARCHAR(12)",
+          "description": "This is an enumeration type column which stores three values only related to learning level of learners: 'Beginner', 'Intermediate', 'Advanced'. It does not contain any null values."
+        },
+        {
+          "name": "learner_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'learner' table. It does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "lecture",
+      "description": "This table contains information about lectures, which is a type of learning material.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'learning_material' table. It is also a key attribute and does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "sub_lecture",
+      "description": "This table contains information about sub-lectures of lectures.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "title",
+          "data_type": "VARCHAR(50)",
+          "description": "This column contains the title of a sub-lecture. It does not contain any null values."
+        },
+        {
+          "name": "content",
+          "data_type": "VARCHAR(MAX)",
+          "description": "This column contains the content of a sub-lecture. It may contain null values."
+        },
+        {
+          "name": "lecture_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'lecture' table. It does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "tutorial",
+      "description": "This table contains information about tutorials, which is a type of learning material.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'learning_material' table. It is also a key attribute and does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "tutorial_question",
+      "description": "This table contains information about questions and associated answers of tutorials.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "question",
+          "data_type": "VARCHAR(300)",
+          "description": "This column contains the question of a tutorial. It does not contain any null values."
+        },
+        {
+          "name": "answer",
+          "data_type": "VARCHAR(2000)",
+          "description": "This column contains the associated answer for a question of a tutorial. It does not contain any null values."
+        },
+        {
+          "name": "tutorial_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'tutorial' table. It does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "labsheet",
+      "description": "his table contains information about labsheets, which is a type of learning material.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'learning_material' table. It is also a key attribute and does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "labsheet_question",
+      "description": "This table contains information about questions and associated answers of labsheets.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "question",
+          "data_type": "VARCHAR(200)",
+          "description": "This column contains the question of a labsheet. It does not contain any null values."
+        },
+        {
+          "name": "answer",
+          "data_type": "VARCHAR(2000)",
+          "description": "This column contains the associated answer for a question of a labsheet. It does not contain any null values."
+        },
+        {
+          "name": "labsheet_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'labsheet' table. It does not contain any null values."
+        }
+      ]
+    },
+    {
+      "name": "interaction",
+      "description": "This table contains information about interactions of learners with learning materials.",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "INT",
+          "description": "This is the primary key column which auto-increments its value by 1 for each new record. It does not contain any null values."
+        },
+        {
+          "name": "learning_material_id",
+          "data_type": "INT",
+          "description": "This is a foreign key column which references the 'id' column of the 'learning_material' table. It is also a key attribute and does not contain any null values."
+        },
+        {
+          "name": "interaction_type",
+          "data_type": "VARCHAR(30)",
+          "description": "This is a enumeration type column which stores three values only related to interaction types between learners and the system: 'QuestionAsked', 'Hinted', 'Guided'. It does not contain any null values."
+        },
+        {
+          "name": "interaction_response",
+          "data_type": "VARCHAR(MAX)",
+          "description": "This column contains the response based on the interaction. For example, this response could be an answer given by the learner or a hint provided by the system. It does not contain any null values."
+        },
+        {
+          "name": "attempts",
+          "data_type": "INT",
+          "description": "This column contains the number of attempts for a learning material by a learner. For example, this could be the number of a times a learner has accessed a lecture or attempted a tutorial. It does not contain any null values."
+        },
+        {
+          "name": "date",
+          "data_type": "DATE",
+          "description": "This column stores the date of an interaction and is a default column where for every new record, GETDATE() function is called to insert a value for this column. It does not contain any null values."
+        },
+        {
+          "name": "time_spent",
+          "data_type": "TIME",
+          "description": "This column stores the time duration for an interaction. It does not contain any null values."
+        }
+      ]
+    }
+  ]
+}

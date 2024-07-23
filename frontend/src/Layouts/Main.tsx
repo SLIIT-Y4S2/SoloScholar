@@ -1,12 +1,13 @@
 import { PropsWithChildren } from "react";
 import Header from "../Components/Header";
+import { Layout } from "antd";
+
 const MainLayout = (props: PropsWithChildren) => {
   return (
-    <div>
+    <Layout className="h-full min-h-screen">
       <Header />
-
       {props.children}
-    </div>
+    </Layout>
   );
 };
 

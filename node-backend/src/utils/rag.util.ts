@@ -67,8 +67,5 @@ async function convertDocsToString(documents: Document[]) {
         .join("\n");
 };
 
-
-
-
 export { convertDocsToString, enc, splitPDFintoChunks, uploadChunkstoVectorDB };
 

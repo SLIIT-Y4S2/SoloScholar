@@ -1,6 +1,7 @@
 import { get } from "lodash";
 import { Request, Response, NextFunction } from "express";
 import { verifyJwt } from "../utils/jwt.utils";
+import { findSession } from "../services/session.service";
 
 const requireUser = async (req: Request, res: Response, next: NextFunction) => {
   // const accessToken = get(req, "headers.authorization", "").replace(
@@ -24,7 +25,15 @@ const requireUser = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(403).send("Invalid token");
   }
 
+  const session = await findSession(get(decoded, "session") || "");
+
+  if (!session || !session.valid) {
+    res.clearCookie("jwt");
+    return res.status(403).send("Invalid session");
+  }
+
   res.locals.user = decoded;
+
   return next();
 };
 

@@ -10,4 +10,6 @@ const OPENAI_API_KEY: string = process.env.OPENAI_API_KEY!;
 
 const JWT_SECRET: string = process.env.JWT_SECRET!;
 
+// process.env.LANGCHAIN_VERBOSE = "true";
+
 export { PORT, MONGO_URI, JWT_SECRET, OPENAI_API_KEY };

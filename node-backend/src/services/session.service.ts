@@ -1,46 +1,78 @@
-import { get } from "lodash";
-import { FilterQuery, UpdateQuery } from "mongoose";
-import SessionModel, { SessionDocument } from "../models/session.model";
+import { get, includes } from "lodash";
 import { verifyJwt, signJwt } from "../utils/jwt.utils";
-import { findUser } from "./user.service";
+import prisma from "../utils/prisma-client.util";
+import { SessionType } from "../types/auth.types";
 
 export async function createSession(userId: string, userAgent: string) {
-  const session = await SessionModel.create({ user: userId, userAgent });
-  return session.toJSON();
+  const session = await prisma.session.create({
+    data: {
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      userAgent,
+    },
+  });
+  return session;
 }
 
-export async function findSessions(query: FilterQuery<SessionDocument>) {
-  return SessionModel.find(query).populate("user").lean();
+export async function findSessions(userId: string) {
+  return prisma.session.findFirst({
+    where: {
+      user: {
+        id: userId,
+      },
+    },
+    include: {
+      user: true,
+    },
+  });
 }
 
-export async function updateSession(
-  query: FilterQuery<SessionDocument>,
-  update: UpdateQuery<SessionDocument>
-) {
-  return SessionModel.updateOne(query, update);
+export async function findSession(id: string) {
+  return prisma.session.findFirst({
+    where: {
+      id,
+    },
+  });
 }
 
-export async function reIssueAccessToken({
-  refreshToken,
-}: {
-  refreshToken: string;
-}) {
-  const { decoded } = verifyJwt(refreshToken);
-
-  if (!decoded || !get(decoded, "session")) return false;
-
-  const session = await SessionModel.findById(get(decoded, "session"));
-
-  if (!session || !session.valid) return false;
-
-  const user = await findUser({ _id: session.user });
-
-  if (!user) return false;
-
-  const accessToken = signJwt(
-    { ...user, session: session._id },
-    { expiresIn: "1y" } // 15 minutes
-  );
-
-  return accessToken;
+export async function invalidateSession(
+  sessionId: string
+): Promise<SessionType | null> {
+  const session = await prisma.session.update({
+    where: {
+      id: sessionId,
+    },
+    data: {
+      valid: false,
+    },
+  });
+  return session;
 }
+
+// export async function reIssueAccessToken({
+//   refreshToken,
+// }: {
+//   refreshToken: string;
+// }) {
+//   const { decoded } = verifyJwt(refreshToken);
+
+//   if (!decoded || !get(decoded, "session")) return false;
+
+//   const session = await SessionModel.findById(get(decoded, "session"));
+
+//   if (!session || !session.valid) return false;
+
+//   const user = await findUser(session.user);
+
+//   if (!user) return false;
+
+//   const accessToken = signJwt(
+//     { ...user, session: session._id },
+//     { expiresIn: "1y" } // 15 minutes
+//   );
+
+//   return accessToken;
+// }

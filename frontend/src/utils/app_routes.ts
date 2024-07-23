@@ -3,4 +3,8 @@ export const APP_ROUTES = {
   MODULES: "/modules",
   PROFILE: "/profile",
   LOGOUT: "/logout",
+  //TODO: TEMPORARY
+  ds: "database-systems",
+  tute: "database-systems/lesson-name/tutorial",
+  lab: "database-systems/xml/lab",
 };

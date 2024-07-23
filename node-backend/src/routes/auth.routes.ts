@@ -1,6 +1,7 @@
 import { Router } from "express";
 import authController from "../controllers/auth.controller";
 import userController from "../controllers/user.controller";
+import requireUser from "../middlewares/requireUser.middleware";
 const authRouter = Router();
 
 authRouter.post(
@@ -17,12 +18,9 @@ authRouter.post(
   userController.createUserHandler
 );
 
-// authRouter.get("/api/sessions", requireUser, authController.getUserSessionsHandler);
-
-// authRouter.delete(
-//   "/api/sessions",
-//   requireUser,
-//   authController.deleteSessionHandler
-// );
-authRouter.post("/logout", authController.invalidateUserSessionHandler);
+authRouter.post(
+  "/logout",
+  requireUser,
+  authController.invalidateUserSessionHandler
+);
 export default authRouter;

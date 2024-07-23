@@ -1,14 +1,22 @@
-import { FilterQuery } from "mongoose";
+import bcrypt from "bcrypt";
 import { omit } from "lodash";
-import UserModel, { UserDocument, UserInput } from "../models/user.model";
+import { Prisma } from "@prisma/client";
+import prisma from "../utils/prisma-client.util";
+import { LearnerType } from "../types/auth.types";
 
-export async function createUser(input: UserInput) {
+export async function createUser(input: LearnerType) {
   try {
-    // M
-    const user = await UserModel.create(input);
-    // Sql
+    const salt = await bcrypt.genSalt(10);
 
-    return omit(user.toJSON(), "password");
+    const hash = bcrypt.hashSync(input.password, salt);
+
+    input.password = hash;
+
+    const user = await prisma.learner.create({
+      data: input,
+    });
+
+    return omit(user, "password");
   } catch (e: any) {
     throw new Error(e);
   }
@@ -16,25 +24,35 @@ export async function createUser(input: UserInput) {
 
 // For login
 export const validatePassword = async ({
-  studentId,
+  student_id,
   password,
 }: {
-  studentId: string;
+  student_id: string;
   password: string;
-}): Promise<Omit<UserDocument, "password"> | false> => {
-  const user = await UserModel.findOne({ studentId });
+}): Promise<Omit<LearnerType, "password"> | false> => {
+  const user = await prisma.learner.findFirst({
+    where: {
+      student_id,
+    },
+  });
 
   if (!user) {
     return false;
   }
 
-  const isValid = await user.comparePassword(password);
+  const isValid = await bcrypt
+    .compare(password, user.password)
+    .catch((e) => false);
 
   if (!isValid) return false;
 
-  return omit(user.toJSON(), "password");
+  return omit(user, "password");
 };
 
-export async function findUser(query: FilterQuery<UserDocument>) {
-  return UserModel.findOne(query).lean();
+export async function findUser(userId: string) {
+  return prisma.learner.findFirst({
+    where: {
+      id: userId,
+    },
+  });
 }

@@ -14,8 +14,28 @@ const Header = () => {
       </Link>
       <div className="flex justify-center items-center gap-4">
         <Link to={APP_ROUTES.HOME}>Home</Link>
-        <Link to={APP_ROUTES.MODULES}>Modules</Link>
-        <ProfileIcon studentId={userDetails?.studentId || ""} />
+        {/* <Link to={APP_ROUTES.MODULES}>Modules</Link> */}
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: "modules",
+                label: <Link to={APP_ROUTES.ds}>Database Systems</Link>,
+              },
+              {
+                key: "tutorial",
+                label: <Link to={APP_ROUTES.tute}>Tute (TEMP....)</Link>,
+              },
+              {
+                key: "lab",
+                label: <Link to={APP_ROUTES.lab}>Lab </Link>,
+              },
+            ],
+          }}
+        >
+          <div className="">Modules</div>
+        </Dropdown>
+        <ProfileIcon student_id={userDetails?.student_id || ""} />
       </div>
     </div>
   );
@@ -36,11 +56,11 @@ const items: MenuProps["items"] = [
   },
 ];
 
-const ProfileIcon = ({ studentId }: { studentId: string }) => (
+const ProfileIcon = ({ student_id }: { student_id: string }) => (
   <Dropdown menu={{ items }}>
     <Space>
       <Avatar icon={<UserOutlined />} />
-      {studentId}
+      {student_id}
     </Space>
   </Dropdown>
 );

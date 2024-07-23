@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("AZURE_SQL_URL")
+}
+
+model cognitive_level {
+  id                               Int                                @id(map: "PK__cognitiv__3213E83FB84A7551") @default(autoincrement())
+  level                            String                             @unique @db.VarChar(10)
+  learning_outcome_cognitive_level learning_outcome_cognitive_level[]
+}
+
+model interaction {
+  id                   Int               @id(map: "PK__interact__3213E83F2138D564") @default(autoincrement())
+  interaction_type     String            @db.VarChar(30)
+  interaction_response String            @db.VarChar(Max)
+  attempts             Int
+  date                 DateTime          @default(now(), map: "DF__interactio__date__2FA4FD58") @db.Date
+  time_spent           DateTime          @db.Time
+  learning_material_id String
+  learning_material    learning_material @relation(fields: [learning_material_id], references: [id], onUpdate: NoAction, map: "FK__interacti__learn__7795AE5F")
+}
+
+model labsheet {
+  id                String              @id(map: "PK__labsheet__3213E83F4FEA615E")
+  learning_material learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction, map: "FK__labsheet__id__70E8B0D0")
+  labsheet_question labsheet_question[]
+}
+
+model labsheet_question {
+  id          Int      @id(map: "PK__labsheet__3213E83FBA8EBBBD") @default(autoincrement())
+  question    String   @db.VarChar(200)
+  answer      String   @db.VarChar(2000)
+  labsheet_id String
+  labsheet    labsheet @relation(fields: [labsheet_id], references: [id], onUpdate: NoAction, map: "FK__labsheet___labsh__73C51D7B")
+}
+
+model learner {
+  id                String              @id(map: "PK__learner__3213E83F1775CC1B") @default(uuid())
+  first_name        String              @db.VarChar(30)
+  last_name         String              @db.VarChar(30)
+  student_id        String              @unique @db.VarChar(10)
+  email             String              @unique(map: "UQ__learner__AB6E61642B169F63") @db.VarChar(30)
+  password          String              @unique(map: "UQ__learner__6E2DBEDEA1A3CC82") @db.VarChar(60)
+  learning_material learning_material[]
+  system_log        system_log[]
+  session           session[]
+}
+
+model session {
+  id         String   @id @default(uuid())
+  userId     String
+  user       learner  @relation(fields: [userId], references: [id])
+  valid      Boolean  @default(true)
+  userAgent  String
+  create_at  DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model learning_material {
+  id                String        @id(map: "PK__learning__3213E83F355EBE97") @default(uuid())
+  learning_level    String        @db.VarChar(12)
+  completion_status Decimal       @db.Decimal(18, 0)
+  lesson_id         Int
+  interaction       interaction[]
+  labsheet          labsheet?
+  learner_id        String
+  learner           learner       @relation(fields: [learner_id], references: [id], onUpdate: NoAction, map: "FK__learning___learn__19B5BC39")
+  lesson            lesson        @relation(fields: [lesson_id], references: [id], onUpdate: NoAction, map: "FK__learning___lesso__629A9179")
+  lecture           lecture?
+  tutorial          tutorial?
+  create_at         DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+}
+
+model learning_outcome {
+  id                               Int                                @id(map: "PK__learning__3213E83F4B0F53B0") @default(autoincrement())
+  description                      String                             @db.VarChar(250)
+  learning_outcome_cognitive_level learning_outcome_cognitive_level[]
+  lesson_learning_outcome          lesson_learning_outcome[]
+}
+
+model learning_outcome_cognitive_level {
+  learning_outcome_id Int
+  cognitive_level_id  Int
+  cognitive_level     cognitive_level  @relation(fields: [cognitive_level_id], references: [id], onUpdate: NoAction, map: "FK__learning___cogni__5FBE24CE")
+  learning_outcome    learning_outcome @relation(fields: [learning_outcome_id], references: [id], onUpdate: NoAction, map: "FK__learning___learn__5ECA0095")
+
+  @@id([learning_outcome_id, cognitive_level_id], map: "PK__learning__3A282377CEF79F7D")
+}
+
+model lecture {
+  id                String            @id(map: "PK__lecture__3213E83FE95A3C47")
+  learning_material learning_material @relation(fields: [id], references: [id], onUpdate: NoAction, map: "FK__lecture__id__6576FE24")
+  sub_lecture       sub_lecture[]
+}
+
+model lesson {
+  id                      Int                       @id(map: "PK__lesson__3213E83F40E8B688") @default(autoincrement())
+  title                   String                    @db.VarChar(100)
+  description             String                    @db.VarChar(2000)
+  module_id               Int
+  learning_material       learning_material[]
+  module                  module                    @relation(fields: [module_id], references: [id], onUpdate: NoAction, map: "FK__lesson__module_i__53584DE9")
+  lesson_learning_outcome lesson_learning_outcome[]
+  lesson_subtopic         lesson_subtopic[]
+}
+
+model lesson_subtopic {
+  id        Int    @id(map: "PK__lessonSu__3213E83F7A3A3A3D") @default(autoincrement())
+  text      String @db.VarChar(200)
+  lesson_id Int
+  lesson    lesson @relation(fields: [lesson_id], references: [id], onUpdate: NoAction, map: "FK__lessonSub__lesso__5AEE82B9")
+}
+
+model lesson_learning_outcome {
+  lesson_id           Int
+  learning_outcome_id Int
+  learning_outcome    learning_outcome @relation(fields: [learning_outcome_id], references: [id], onUpdate: NoAction, map: "FK__lesson_le__learn__5911273F")
+  lesson              lesson           @relation(fields: [lesson_id], references: [id], onUpdate: NoAction, map: "FK__lesson_le__lesso__581D0306")
+
+  @@id([lesson_id, learning_outcome_id], map: "PK__lesson_l__64F1A83C8EA14172")
+}
+
+model module {
+  id          Int      @id(map: "PK__module__3213E83FB408F6F3") @default(autoincrement())
+  name        String   @db.VarChar(20)
+  description String   @db.VarChar(1000)
+  lesson      lesson[]
+}
+
+model sub_lecture {
+  id         Int     @id(map: "PK__sub_lect__3213E83FC94CE025") @default(autoincrement())
+  title      String  @db.VarChar(50)
+  content    String? @db.VarChar(Max)
+  lecture_id String
+  lecture    lecture @relation(fields: [lecture_id], references: [id], onUpdate: NoAction, map: "FK__sub_lectu__lectu__68536ACF")
+}
+
+model system_log {
+  id         Int      @id(map: "PK__system_l__3213E83F58EF4299") @default(autoincrement())
+  action     String   @db.VarChar(30)
+  timestamp  DateTime @default(dbgenerated("getutcdate()"), map: "DF__system_lo__times__03C67B1A") @db.DateTime
+  learner_id String
+  learner    learner  @relation(fields: [learner_id], references: [id], onUpdate: NoAction, map: "FK__system_lo__learn__4E9398CC")
+}
+
+model tutorial {
+  id                String              @id(map: "PK__tutorial__3213E83FEE741218")
+  status            String              @db.VarChar(20)
+  learning_material learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction, map: "FK__tutorial__id__6B2FD77A")
+  questions         tutorial_question[]
+}
+
+model tutorial_question {
+  id                        Int                        @id(map: "PK__tutorial__3213E83FE2994B81") @default(autoincrement())
+  question                  String                     @db.VarChar(300)
+  answer                    String                     @db.VarChar(2000)
+  tutorial_id               String
+  question_number           Int
+  type                      String                     @db.VarChar(20)
+  student_answer            String?                    @db.VarChar(2000)
+  feedback_type             String?                    @db.VarChar(10)
+  is_student_answer_correct Boolean?
+  tutorial                  tutorial                   @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction, map: "FK__tutorial___tutor__261B931E")
+  options                   tutorial_question_option[]
+}
+
+model tutorial_question_option {
+  id   Int    @id @default(autoincrement())
+  text String @db.VarChar(300)
+
+  tutorialQuestionId Int
+  tutorial_question  tutorial_question @relation(fields: [tutorialQuestionId], references: [id])
+}

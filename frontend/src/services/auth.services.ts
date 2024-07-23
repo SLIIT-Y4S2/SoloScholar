@@ -1,12 +1,12 @@
 import axios from "axios";
 import { API_URLS } from "../utils/api_routes";
 
-export const login = async (studentId: string, password: string) => {
+export const login = async (student_id: string, password: string) => {
   // Send a request to the server to login
   const response = await axios.post(
     API_URLS.LOGIN,
     {
-      studentId,
+      student_id,
       password,
     },
     {
