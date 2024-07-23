@@ -5,25 +5,51 @@ import {
   useEffect,
   useState,
 } from "react";
-import dummyQuestions from "../dummyData/tutorialQuestions.json";
+import {
+  getTutorialByIndex,
+  submitAnswerByQuestionId,
+} from "../services/tutorial.service";
+import { useParams } from "react-router-dom";
+import { AxiosError } from "axios";
 interface TutorialProviderProps {
   children: ReactNode;
 }
 export interface TutorialQuestion {
-  questionNumber: number;
+  id: number;
+  question_number: number;
   question: string;
   options: string[];
-  type: "short-answer" | "mcq";
-  studentAnswer: string | null;
+  type: "essay" | "mcq";
+  answer: string;
+  student_answer: string | null;
+  feedbackType?: "skip" | "basic" | "detailed";
+  isStudentAnswerCorrect?: boolean;
 }
+type TutorialStatus =
+  | "generating"
+  | "generated"
+  | "in-progress"
+  | "submitted"
+  | "feedback-generating"
+  | "feedback-generated"
+  | "ended";
 
 interface TutorialContextType {
   questions: TutorialQuestion[];
-  currentQuestionNumber: number;
+  status?: TutorialStatus;
+  current_question: number;
   isLoading: boolean;
+  error: string | null;
   studentsAnswerForTheCurrentQuestion: string | null;
+
   setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
-  submitAnswer: (currentQuestion: number, nextQuestionNumber: number) => void;
+  submitAnswer: (current: number, next: number | null) => void;
+  requestFeedback: (
+    questionFeedback: {
+      questionNumber: number;
+      feedbackType: string;
+    }[]
+  ) => void;
 }
 
 const TutorialProviderContext = createContext<TutorialContextType | null>(null);
@@ -39,63 +65,111 @@ export function useTutorialContext() {
 }
 
 export function TutorialProvider({ children }: TutorialProviderProps) {
-  const [currentQuestionNumber, setCurrentQuestionNumber] = useState<number>(1);
+  const { tutorialId } = useParams();
+
+  const [status, setStatus] = useState<TutorialStatus | undefined>();
+  const [current_question, set_current_question] = useState<number>(1);
   const [questions, setQuestions] = useState<TutorialQuestion[]>([]);
   const [
     studentsAnswerForTheCurrentQuestion,
     setStudentsAnswerForTheCurrentQuestion,
   ] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const displayedQuestion = questions[currentQuestionNumber - 1];
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const displayedQuestion = questions[current_question - 1];
 
   useEffect(() => {
-    if (currentQuestionNumber === 0) return;
-    setStudentsAnswerForTheCurrentQuestion(displayedQuestion?.studentAnswer);
-  }, [displayedQuestion?.studentAnswer, currentQuestionNumber, questions]);
+    if (current_question === 0) return;
+    setStudentsAnswerForTheCurrentQuestion(displayedQuestion?.student_answer);
+  }, [displayedQuestion?.student_answer, current_question, questions]);
 
   useEffect(() => {
     setIsLoading(true);
     // fetch the questions from the backend
-    setTimeout(() => {
-      setQuestions(
-        dummyQuestions.map((question, index) => {
-          const type: "mcq" | "short-answer" =
-            question.type === "mcq" || question.type === "short-answer"
-              ? question.type
-              : "short-answer";
-          return {
-            questionNumber: index + 1,
-            question: question.question,
-            options: question.options ?? [],
-            type,
-            studentAnswer: null,
-          };
-        })
-      );
-      setCurrentQuestionNumber(1);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+    if (!tutorialId) return;
+    const fetchQuestions = async () => {
+      try {
+        const tutorial = await getTutorialByIndex(tutorialId);
+        setQuestions(tutorial.questions);
+        setStatus(tutorial.status);
+        set_current_question(tutorial.current_question);
+        setIsLoading(false);
+      } catch (error) {
+        if ((error as AxiosError).response?.status === 404) {
+          setError("Tutorial not found");
+        }
+        if ((error as AxiosError).response?.status === 403) {
+          setError("You are not authorized to view this tutorial");
+        }
+        if ((error as AxiosError).response?.status === 500) {
+          setError("Server error");
+        }
 
-  const submitAnswer = async (
-    currentQuestion: number,
-    nextQuestionNumber: number
-  ) => {
-    if (nextQuestionNumber < 1 || nextQuestionNumber > questions.length) return;
-    if (
-      studentsAnswerForTheCurrentQuestion !== displayedQuestion?.studentAnswer
-    ) {
-      //TODO submit the answer to the backend with next question number as current question
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      displayedQuestion.studentAnswer = studentsAnswerForTheCurrentQuestion;
+        setIsLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, [tutorialId]);
 
-      // TODO: If submitting the answer to the backend is successful, then only change the question
-      setCurrentQuestionNumber(nextQuestionNumber);
-    } else {
-      // change the question to next or given number
-      setCurrentQuestionNumber(nextQuestionNumber);
+  if (tutorialId === undefined) {
+    return <div>Invalid tutorial ID</div>;
+  }
+
+  const submitAnswer = async (current: number, next: number | null) => {
+    if (next === null) {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Finish the tutorial
+      updateQuestionAnswer(current);
+      set_current_question(1);
+      setStatus("submitted");
+      return;
     }
+
+    if (next < 1 || next > questions.length) return;
+
+    if (
+      studentsAnswerForTheCurrentQuestion !== displayedQuestion?.student_answer
+    ) {
+      try {
+        // await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Submit answer to backend
+        const result = await submitAnswerByQuestionId(
+          tutorialId,
+          questions[current - 1].id,
+          studentsAnswerForTheCurrentQuestion,
+          next
+        );
+        console.log(result);
+        updateQuestionAnswer(current);
+      } catch (error) {
+        console.error(error);
+        return;
+      }
+    }
+
+    set_current_question(next);
+
+    // TODO: Change question only if submission is successful
+  };
+
+  const updateQuestionAnswer = (questionNumber: number) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((q) =>
+        q.question_number === questionNumber
+          ? { ...q, student_answer: studentsAnswerForTheCurrentQuestion }
+          : q
+      )
+    );
+  };
+
+  const requestFeedback = async (
+    questionFeedback: { questionNumber: number; feedbackType: string }[]
+  ) => {
+    setStatus("feedback-generating");
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Request feedback from backend
+    console.log(questionFeedback);
+
+    setStatus("feedback-generated");
   };
 
   return (
@@ -103,10 +177,13 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
       value={{
         questions,
         isLoading,
-        currentQuestionNumber,
+        current_question,
         studentsAnswerForTheCurrentQuestion,
         setStudentsAnswerForTheCurrentQuestion,
         submitAnswer,
+        status,
+        requestFeedback,
+        error,
       }}
     >
       {children}

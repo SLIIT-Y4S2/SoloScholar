@@ -30,13 +30,12 @@ const Header = () => {
                 key: "lab",
                 label: <Link to={APP_ROUTES.lab}>Lab </Link>,
               },
-
             ],
           }}
         >
           <div className="">Modules</div>
         </Dropdown>
-        <ProfileIcon studentId={userDetails?.studentId || ""} />
+        <ProfileIcon student_id={userDetails?.student_id || ""} />
       </div>
     </div>
   );
@@ -57,11 +56,11 @@ const items: MenuProps["items"] = [
   },
 ];
 
-const ProfileIcon = ({ studentId }: { studentId: string }) => (
+const ProfileIcon = ({ student_id }: { student_id: string }) => (
   <Dropdown menu={{ items }}>
     <Space>
       <Avatar icon={<UserOutlined />} />
-      {studentId}
+      {student_id}
     </Space>
   </Dropdown>
 );

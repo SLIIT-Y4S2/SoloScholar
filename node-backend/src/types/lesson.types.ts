@@ -1,16 +1,15 @@
 export interface LessonOutlineType {
-    lessonTitle: string;
-    subtopics: string[];
-    learningOutcomes: LearningOutcomeType[];
-  }
-  
-  export interface LearningOutcomeType {
-    outcome: string;
-    bloomsLevels: string[];
-  }
-  
-  export interface DetailedLessonOutlineType {
-    subtopic: string;
-    Description: string;
-  }
-  
+  title: string;
+  lesson_subtopic: string[];
+  lesson_learning_outcome: LearningOutcomeType[];
+}
+
+export interface LearningOutcomeType {
+  outcome: string;
+  cognitive_level: string[];
+}
+
+export interface DetailedLessonOutlineType {
+  subtopic: string;
+  Description: string;
+}

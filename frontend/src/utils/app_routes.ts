@@ -5,6 +5,6 @@ export const APP_ROUTES = {
   LOGOUT: "/logout",
   //TODO: TEMPORARY
   ds: "database-systems",
-  tute: "database-systems/lesson-name/tutorial",
+  tute: "database-systems/transactions-and-concurrency-control/tutorial",
   lab: "database-systems/xml/lab",
 };

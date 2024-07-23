@@ -1,5 +1,5 @@
 import { Content } from "antd/es/layout/layout";
-import { useTutorialContext } from "../../../../provider/TutorialContext";
+import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import { Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
 
@@ -9,14 +9,14 @@ const QuestionCardForTutorialComponent = () => {
   const {
     submitAnswer,
     questions,
-    currentQuestionNumber,
+    current_question,
     studentsAnswerForTheCurrentQuestion,
     setStudentsAnswerForTheCurrentQuestion,
     isLoading,
   } = useTutorialContext();
 
-  const { question, options, questionNumber, type } =
-    questions[currentQuestionNumber - 1];
+  const { question, options, question_number, type } =
+    questions[current_question - 1];
 
   if (isLoading || questions.length === 0) {
     return <>Loading...</>;
@@ -34,17 +34,21 @@ const QuestionCardForTutorialComponent = () => {
       className="flex flex-col gap-4"
     >
       <h1>
-        {questionNumber}. {question}
+        {question_number}. {question}
       </h1>
-      {type === "short-answer" ? (
+      {type === "essay" ? (
         <TextArea
           value={studentsAnswerForTheCurrentQuestion || ""}
           onChange={(e) =>
             setStudentsAnswerForTheCurrentQuestion(e.target.value)
           }
+          autoSize={{
+            minRows: 10,
+            maxRows: 15,
+          }}
         />
       ) : (
-        options.map((option) => (
+        options.map((option, index) => (
           <div
             key={option}
             onClick={() => setStudentsAnswerForTheCurrentQuestion(option)}
@@ -54,16 +58,37 @@ const QuestionCardForTutorialComponent = () => {
                 : ""
             }`}
           >
-            {option}
+            {String.fromCharCode(97 + index)}. {option}
           </div>
         ))
       )}
-      <Button onClick={() => submitAnswer(questionNumber, questionNumber - 1)}>
-        Previous
-      </Button>
-      <Button onClick={() => submitAnswer(questionNumber, questionNumber + 1)}>
-        Next
-      </Button>
+      <div className="flex justify-between flex-row-reverse">
+        {current_question !== questions.length && (
+          <Button
+            type="primary"
+            onClick={() => submitAnswer(question_number, question_number + 1)}
+          >
+            Next
+          </Button>
+        )}
+
+        {current_question === questions.length && (
+          <Button
+            type="primary"
+            onClick={() => submitAnswer(question_number, null)}
+          >
+            Finish
+          </Button>
+        )}
+
+        {current_question !== 1 && (
+          <Button
+            onClick={() => submitAnswer(question_number, question_number - 1)}
+          >
+            Previous
+          </Button>
+        )}
+      </div>
     </Content>
   );
 };

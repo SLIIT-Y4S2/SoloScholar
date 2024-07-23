@@ -38,7 +38,7 @@ async function documentRetrievalPipelineForDetailedOutline() {
  *
  **/
 
-async function synthesizeDetailedLessonOutline(
+export async function synthesizeDetailedLessonOutline(
   searchingKeywords: string,
   lessonOutline: string
 ): Promise<{ subtopic: string; description: string }[]> {
@@ -69,16 +69,18 @@ async function synthesizeDetailedLessonOutline(
  * @param lesson The lesson outline
  * @returns The searching keywords
  **/
-function extractSearchingKeywordsFromLessonOutline(lesson: LessonOutlineType) {
+export function extractSearchingKeywordsFromLessonOutline(
+  lesson: LessonOutlineType
+) {
   let keywords = [];
 
-  keywords.push(lesson.lessonTitle);
+  keywords.push(lesson.title);
 
-  lesson.subtopics.forEach((subtopic) => {
+  lesson.lesson_subtopic.forEach((subtopic) => {
     keywords.push(subtopic);
   });
 
-  lesson.learningOutcomes.forEach((outcome) => {
+  lesson.lesson_learning_outcome.forEach((outcome) => {
     keywords.push(outcome.outcome);
   });
 
@@ -91,19 +93,17 @@ function extractSearchingKeywordsFromLessonOutline(lesson: LessonOutlineType) {
  * @returns The lesson outline as text
  **/
 
-function convertLessonOutlineToText(lesson: LessonOutlineType) {
-  let text = `Lesson Title: ${lesson.lessonTitle}\nSubtopics:\n`;
+export function convertLessonOutlineToText(lesson: LessonOutlineType) {
+  let text = `Lesson Title: ${lesson.title}\nsubtopic:\n`;
 
-  lesson.subtopics.forEach((subtopic, index) => {
+  lesson.lesson_subtopic.forEach((subtopic, index) => {
     text += `${index + 1}. ${subtopic}\n`;
   });
 
   text += `Learning Outcomes:\n`;
 
-  lesson.learningOutcomes.forEach((outcome, index) => {
-    text += `${index + 1}. ${
-      outcome.outcome
-    }\nBlooms Levels: ${outcome.bloomsLevels.join(", ")}\n`;
+  lesson.lesson_learning_outcome.forEach((outcome, index) => {
+    text += `${index + 1}. ${outcome.outcome}\n`;
   });
 
   return text;
@@ -131,18 +131,20 @@ async function documentRetrievalPipelineForQuestionGeneration() {
 /**
  * Synthesize questions for a subtopic
  */
-async function synthesizeQuestionsForSubtopic(
+export async function synthesizeShortAnswerQuestionsForSubtopic(
   searchingKeywords: string,
   subtopic: string,
   description: string,
-  learningOutcomes: string[],
-  bloomsLevels: string[],
+  lesson_learning_outcome: string[],
+  cognitive_level: string[],
   learningRate: string,
   totalNumberOfQuestions: number
 ): Promise<
   {
     question: string;
     answer: string;
+    type: string;
+    options: string[];
   }[]
 > {
   const questionGenerationPrompt = ChatPromptTemplate.fromTemplate(
@@ -154,8 +156,8 @@ async function synthesizeQuestionsForSubtopic(
       context: documentRetrievalPipelineForQuestionGeneration,
       subtopic: (input) => input.subtopic,
       description: (input) => input.description,
-      learningOutcomes: (input) => input.learningOutcomes,
-      bloomsLevels: (input) => input.bloomsLevels,
+      lesson_learning_outcome: (input) => input.lesson_learning_outcome,
+      cognitive_level: (input) => input.cognitive_level,
       learningRate: (input) => input.learningRate,
       totalNumberOfQuestions: (input) => input.totalNumberOfQuestions,
     },
@@ -168,8 +170,8 @@ async function synthesizeQuestionsForSubtopic(
     searchingKeywords,
     subtopic,
     description,
-    learningOutcomes,
-    bloomsLevels,
+    lesson_learning_outcome,
+    cognitive_level,
     learningRate,
     totalNumberOfQuestions,
   });
@@ -178,15 +180,9 @@ async function synthesizeQuestionsForSubtopic(
     (question: { question: string; answer: string }) => ({
       ...question,
       type: "essay",
+      options: [],
     })
   );
 
   return essayQuestions;
 }
-
-export {
-  synthesizeDetailedLessonOutline,
-  extractSearchingKeywordsFromLessonOutline,
-  convertLessonOutlineToText,
-  synthesizeQuestionsForSubtopic,
-};

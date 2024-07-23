@@ -1,12 +1,12 @@
-import axios from "axios";
 import { API_URLS } from "../utils/api_routes";
+import axiosInstance from "../utils/axiosInstance";
 
-export const login = async (studentId: string, password: string) => {
+export const login = async (student_id: string, password: string) => {
   // Send a request to the server to login
-  const response = await axios.post(
+  const response = await axiosInstance.post(
     API_URLS.LOGIN,
     {
-      studentId,
+      student_id,
       password,
     },
     {
@@ -19,7 +19,7 @@ export const login = async (studentId: string, password: string) => {
 
 export const logout = async () => {
   // Send a request to the server to invalidate the token
-  await axios.post(
+  await axiosInstance.post(
     API_URLS.LOGOUT,
     {},
     {
