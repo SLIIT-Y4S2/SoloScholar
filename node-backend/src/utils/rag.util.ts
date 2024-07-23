@@ -1,16 +1,8 @@
 import { Document } from "@langchain/core/documents";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { encoding_for_model } from "tiktoken";
 import { VECTORDIMENSIONS } from "../constants/pinecone.constants";
 import { uploadDocumentToPinecone } from "./pinecone.util";
-
-function enc(text: string) {
-    const encoding = encoding_for_model("text-davinci-003");
-    const encodedText = encoding.encode(text);
-
-    return encodedText;
-}
 
 /**
  * 
@@ -67,5 +59,5 @@ async function convertDocsToString(documents: Document[]) {
         .join("\n");
 };
 
-export { convertDocsToString, enc, splitPDFintoChunks, uploadChunkstoVectorDB };
+export { convertDocsToString, splitPDFintoChunks, uploadChunkstoVectorDB };
 

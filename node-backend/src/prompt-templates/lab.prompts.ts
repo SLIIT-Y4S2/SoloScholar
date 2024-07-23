@@ -1,8 +1,3 @@
-
-/**
- * This prompt act as a Setter, who is responsible for write the assessment covering the learning outcomes associated with the given lab.
- */
-
 const PracticalLabOutlinePrompt = `
 You are an experienced lecturer at a University. As the lecturer you are responsible for writing an outline for a practical lab activity for the Database Systems module.
 
@@ -26,8 +21,8 @@ Be verbose and provide as much detail as possible.
 <LearningOutcomes>
     {learningOutcomes}
 </LearningOutcomes>
-
-You must provide the output in following JSON format (Replace the placeholders with the actual values). You must not provide the output in markdown format or any other format.:
+You must not provide the output in markdown format or any other format.
+You must provide the output in following JSON format (Replace the placeholders with the actual values).
 {formatInstructions}
 `;
 
