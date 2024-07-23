@@ -1,46 +1,90 @@
-import { Button, Layout, Progress, Select, Table } from "antd";
+import { Button, Form, Layout, Progress, Select, Table } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { useEffect, useState } from "react";
 import { Breadcrumb } from "antd";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ItemType } from "antd/es/breadcrumb/Breadcrumb";
+import axiosInstance from "../../../../utils/axiosInstance";
+import { API_URLS } from "../../../../utils/api_routes";
+import { AxiosError, AxiosResponse } from "axios";
 
 const Tutorial = () => {
   const { module, lesson } = useParams();
   const navigate = useNavigate();
 
-  const [difficulty, setDifficulty] = useState();
-
   const [generatingNewTutorial, setGeneratingNewTutorial] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | undefined>();
 
   // TODO: fetch past tutorials
-  const [pastTutorials, setPastTutorials] = useState([
+  const [pastTutorials, setPastTutorials] = useState<
     {
-      key: 1,
-      difficulty: "Beginner",
-      date: "2021-10-10 17:00",
-      status: "Completed", // generating, completed, in progress
-      score: 80,
-    },
-    {
-      key: 2,
-      difficulty: "Intermediate",
-      date: "2021-10-10 17:00",
-      status: "Completed",
-      score: 90,
-    },
-    {
-      key: 3,
-      difficulty: "Advanced",
-      date: "2021-10-10 17:00",
-      status: "Completed",
-      score: 100,
-    },
-  ]);
+      id: string;
+      create_at: string;
+      status: string;
+      learning_level: string;
+    }[]
+  >();
+
+  useEffect(() => {
+    if (!module || !lesson) {
+      return;
+    }
+    axiosInstance
+      .get(API_URLS.TUTORIAL, {
+        params: {
+          moduleName: module.replace(/-/g, " "),
+          lessonTitle: lesson.replace(/-/g, " "),
+        },
+      })
+      .then((response: AxiosResponse) => {
+        setPastTutorials(response.data.data);
+        setLoading(false);
+      })
+      .catch((error: AxiosError) => {
+        console.log("Error fetching past tutorials:");
+        const data = error.response?.data;
+        if (data && typeof data === "object" && "message" in data) {
+          // message.error(data.message);
+          setError(data.message as string);
+        }
+        setLoading(false);
+      });
+  }, [lesson, module]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   if (generatingNewTutorial) {
-    return <Loading />;
+    return <TutorialGenerating />;
   }
+
+  const generateTutorial = async ({
+    learningLevel,
+  }: {
+    learningLevel: string;
+  }) => {
+    try {
+      if (!module || !lesson) {
+        return;
+      }
+      setGeneratingNewTutorial(true);
+      const response = await axiosInstance.post(API_URLS.TUTORIAL, {
+        moduleName: module.replace(/-/g, " "),
+        lessonTitle: lesson.replace(/-/g, " "),
+        learningLevel,
+      });
+      const tutorialId = response.data.data.id;
+      navigate(`./${tutorialId}`);
+    } catch (error) {
+      console.log("Error generating tutorial:", error);
+    }
+  };
 
   return (
     <Layout style={{ padding: "0 24px 24px" }}>
@@ -69,33 +113,30 @@ const Tutorial = () => {
           venenatis nulla eu donec nisl. Habitasse sem arcu rhoncus gravida
           viverra nibh. Feugiat ut n ibh vitae accumsan id congue viverra.
         </p>
-        <div className="flex items-center gap-2">
-          <p>Select Learning Level</p>
-          <Select
-            value={difficulty}
-            onChange={setDifficulty}
-            placeholder="Select"
-          >
-            <Select.Option value="beginner">Beginner</Select.Option>
-            <Select.Option value="intermediate">Intermediate</Select.Option>
-            <Select.Option value="advanced">Advanced</Select.Option>
-          </Select>
-        </div>
-        <div className="flex justify-end">
-          <Button
-            type="primary"
-            onClick={() => {
-              setGeneratingNewTutorial(true);
-
-              setTimeout(() => {
-                setGeneratingNewTutorial(false);
-                navigate(`./123`);
-              }, 2000);
-            }}
-          >
-            Generate Tutorial
-          </Button>
-        </div>
+        <Form layout="vertical" onFinish={generateTutorial}>
+          <div className="flex flex-row items-center gap-2">
+            <div className="mb-6">Select Learning Level</div>
+            <Form.Item
+              name="learningLevel"
+              rules={[
+                { required: true, message: "Please select a learning level" },
+              ]}
+              className="flex flex-col mb-6"
+              style={{ minWidth: "130px" }}
+            >
+              <Select placeholder="Select">
+                <Select.Option value="beginner">Beginner</Select.Option>
+                <Select.Option value="intermediate">Intermediate</Select.Option>
+                <Select.Option value="advanced">Advanced</Select.Option>
+              </Select>
+            </Form.Item>
+          </div>
+          <div className="flex justify-end">
+            <Button type="primary" htmlType="submit">
+              Generate Tutorial
+            </Button>
+          </div>
+        </Form>
 
         <div className="flex flex-col gap-4">
           <h2 className="text-xl font-bold">Generated Tutorials</h2>
@@ -103,17 +144,32 @@ const Tutorial = () => {
             dataSource={pastTutorials}
             pagination={false}
             className="max-w-4xl "
+            rowKey="id"
           >
-            <Table.Column title="Difficulty" dataIndex="difficulty" />
-            <Table.Column title="Created" dataIndex="date" />
-            <Table.Column title="Score" dataIndex="score" />
+            <Table.Column
+              title="Created"
+              dataIndex="create_at"
+              render={(text) => {
+                const date = new Date(text);
+                const formattedDate = `${
+                  date.getMonth() + 1
+                }/${date.getDate()}/${date.getFullYear() % 1000}`;
+                const formattedTime = `${date.getHours()}:${String(
+                  date.getMinutes()
+                ).padStart(2, "0")}`;
+                return `${formattedDate} ${formattedTime}`;
+              }}
+            />
+            <Table.Column title="Learning Level" dataIndex="learning_level" />
+            {/* <Table.Column title="Score" dataIndex="score" /> */}
             <Table.Column title="Status" dataIndex="status" />
             <Table.Column
               title="Action"
-              render={() => (
-                <Button type="primary" onClick={() => {}}>
-                  View
-                </Button>
+              dataIndex="id"
+              render={(id: string) => (
+                <Link to={`./${id}`}>
+                  <Button type="primary">View</Button>
+                </Link>
               )}
             />
           </Table>
@@ -129,14 +185,16 @@ export const DynamicBreadcrumbComponent = () => {
   const location = useLocation();
   const pathSnippets = location.pathname.split("/").filter((i) => i);
 
-  const items = pathSnippets.map((_, index) => {
-    const path = `/${pathSnippets.slice(0, index + 1).join("/")}`;
-    const title =
-      pathSnippets[index].charAt(0).toUpperCase() +
-      pathSnippets[index].slice(1).replace(/-/g, " ");
-    return { path, title };
-  });
-
+  const items = [
+    { path: "/", title: "Modules" },
+    ...pathSnippets.map((_, index) => {
+      const path = `/${pathSnippets.slice(0, index + 1).join("/")}`;
+      const title =
+        pathSnippets[index].charAt(0).toUpperCase() +
+        pathSnippets[index].slice(1).replace(/-/g, " ");
+      return { path, title };
+    }),
+  ];
   function itemRender(route: ItemType, _: unknown, routes: ItemType[]) {
     const isLast = route?.path === routes[items.length - 1]?.path;
 
@@ -156,7 +214,7 @@ export const DynamicBreadcrumbComponent = () => {
   );
 };
 
-const Loading = () => {
+const TutorialGenerating = () => {
   const [percent, setPercent] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => {

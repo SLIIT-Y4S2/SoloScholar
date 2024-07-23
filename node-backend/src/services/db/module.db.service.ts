@@ -136,6 +136,53 @@ export const getLessonOutlineByModuleAndLessonName = async (
   return lessonOutline;
 };
 
+/**
+ * Get module by name
+ * @param moduleName
+ * @returns module
+ * @async
+ * @function
+ * @public
+ */
+export const getModuleByName = async (moduleName: string) => {
+  const module = await prisma.module.findFirst({
+    where: { name: moduleName },
+  });
+
+  return module;
+};
+
+/**
+ *  Get lesson by module id and title
+ * @param moduleId - module id
+ * @param lessonTitle - lesson title
+ * @returns lesson
+ * @async
+ * @function
+ * @public
+ */
+export const getLessonByModuleIdAndTitle = async (
+  moduleId: number,
+  lessonTitle: string
+) => {
+  const lesson = await prisma.lesson.findFirst({
+    where: {
+      module_id: moduleId,
+      title: lessonTitle,
+    },
+  });
+
+  return lesson;
+};
+/**
+ * delete module
+ * @param id
+ * @returns
+ * @async
+ * @function
+ * @public
+ */
+
 export const deleteModule = async (id: number) => {
   const deletedModule = await prisma.$transaction(async (prisma) => {
     // 1. Find all learning outcome IDs related to this module

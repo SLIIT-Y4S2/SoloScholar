@@ -6,11 +6,11 @@ import CheckCircleTwoTone from "@ant-design/icons/CheckCircleTwoTone";
 import CloseCircleOutlined from "@ant-design/icons/CloseCircleOutlined";
 const QuestionCardForTutorialFeedback = ({
   question: {
-    questionNumber,
+    question_number,
     question,
     type,
     options,
-    studentAnswer,
+    student_answer,
     answer,
     isStudentAnswerCorrect,
   },
@@ -20,11 +20,11 @@ const QuestionCardForTutorialFeedback = ({
   return (
     <div className="flex flex-col gap-4 w-full">
       <h1>
-        {questionNumber}. {question}
+        {question_number}. {question}
       </h1>
 
-      {type === "short-answer" ? (
-        <TextArea value={studentAnswer || ""} disabled />
+      {type === "essay" ? (
+        <TextArea value={student_answer || ""} disabled />
       ) : (
         options.map((option, index) => (
           <div
@@ -32,7 +32,7 @@ const QuestionCardForTutorialFeedback = ({
             className={`p-2 border rounded-lg ${
               option === answer
                 ? "bg-green-500"
-                : option === studentAnswer
+                : option === student_answer
                 ? "bg-red-200"
                 : ""
             }`}
@@ -42,7 +42,7 @@ const QuestionCardForTutorialFeedback = ({
         ))
       )}
       <p>
-        {studentAnswer == null ? (
+        {student_answer == null ? (
           <span className="text-gray-500">Not answered</span>
         ) : isStudentAnswerCorrect ? (
           <span className="text-green-500">

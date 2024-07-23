@@ -1,3 +1,5 @@
+import { TutorialQuestion } from "./../../types/tutorial.types";
+import { logger } from "./../../utils/logger.utils";
 import { Decimal } from "@prisma/client/runtime/library";
 import prisma from "../../utils/prisma-client.util";
 
@@ -90,6 +92,7 @@ export const updateTutorialQuestions = async (
   const updatedTutorial = await prisma.tutorial.update({
     where: { id },
     data: {
+      status: "generated",
       questions: {
         create: questions.map((q, index) => ({
           question: q.question,
@@ -143,6 +146,8 @@ export const getTutorialById = async (
   id: string;
   lessonId: number;
   learnerId: string;
+  current_question: number;
+  status: string;
   questions: {
     id: number;
     question: string;
@@ -155,12 +160,12 @@ export const getTutorialById = async (
   const tutorial = await prisma.tutorial.findFirst({
     where: { id },
     include: {
+      learning_material: true,
       questions: {
         include: {
           options: true,
         },
       },
-      learning_material: true,
     },
   });
 
@@ -172,79 +177,59 @@ export const getTutorialById = async (
     id: tutorial.id,
     lessonId: tutorial.learning_material.lesson_id,
     learnerId: tutorial.learning_material.learner_id,
+    current_question: tutorial.current_question,
+    status: tutorial.status,
     questions: tutorial.questions.map((q) => ({
-      id: q.id,
-      question: q.question,
-      answer: q.answer,
-      type: q.type,
-      question_number: q.question_number,
+      ...q,
       options: q.options.map((o) => o.text),
     })),
   };
 };
 
 /**
- * Get all tutorials
- * @returns
- * @async
- * @function
- * @public
- */
-
-export const getAllTutorials = async (): Promise<
-  {
-    id: string;
-    lessonId: number;
-    learnerId: string;
-  }[]
-> => {
-  const tutorials = await prisma.tutorial.findMany({
-    include: {
-      learning_material: true,
-    },
-  });
-
-  return tutorials.map((tutorial) => ({
-    id: tutorial.id,
-    lessonId: tutorial.learning_material.lesson_id,
-    learnerId: tutorial.learning_material.learner_id,
-  }));
-};
-
-/**
- * Get tutorials by learner id
+ * Get tutorials by learner id, module name, and lesson title
  * @param learnerId
+ * @param moduleName
+ * @param lessonTitle
  * @returns
  * @async
  * @function
  * @public
  */
-
 export const getTutorialByLearnerId = async (
-  learnerId: string
+  learnerId: string,
+  moduleId: number,
+  lessonId: number
 ): Promise<
   {
     id: string;
     create_at: Date;
     status: string;
-    questions: {
-      id: number;
-      question: string;
-      answer: string;
-      type: string;
-      question_number: number;
-      options: string[];
-    }[];
+    learning_level: string;
   }[]
 > => {
   const tutorials = await prisma.tutorial.findMany({
     where: {
       learning_material: {
         learner_id: learnerId,
+        lesson: {
+          id: lessonId,
+          module: {
+            id: moduleId,
+          },
+        },
       },
     },
     include: {
-      learning_material: true,
+      learning_material: {
+        include: {
+          lesson: {
+            include: {
+              module: true,
+            },
+          },
+        },
+      },
       questions: {
         include: {
           options: true,
@@ -257,14 +242,7 @@ export const getTutorialByLearnerId = async (
     id: tutorial.id,
     create_at: tutorial.learning_material.create_at,
     status: tutorial.status,
-    questions: tutorial.questions.map((q) => ({
-      id: q.id,
-      question: q.question,
-      answer: q.answer,
-      type: q.type,
-      question_number: q.question_number,
-      options: q.options.map((o) => o.text),
-    })),
+    learning_level: tutorial.learning_material.learning_level,
   }));
 };
 
@@ -288,4 +266,74 @@ export const deleteTutorial = async (id: string): Promise<void> => {
       where: { id },
     }),
   ]);
+};
+
+/**
+ * Save the tutorial answer
+ * update the status of the tutorial to in-progress
+ * return the updated tutorial question and the current question number
+ * @param tutorialId
+ * @param questionId
+ * @param answer
+ * @returns
+ */
+
+export const saveTutorialAnswer = async (
+  tutorialId: string,
+  questionId: number,
+  answer: string,
+  nextQuestionNumber: number
+): Promise<{
+  id: number;
+  question: string;
+  student_answer: string;
+  type: string;
+  question_number: number;
+  options: string[];
+  current_question: number;
+}> => {
+  const tutorial = await prisma.tutorial.update({
+    where: {
+      id: tutorialId,
+    },
+    data: {
+      current_question: nextQuestionNumber,
+      status: "in-progress",
+    },
+  });
+
+  if (!tutorial) {
+    throw new Error("Tutorial not found");
+  }
+
+  const tutorialQuestion = await prisma.tutorial_question.update({
+    where: {
+      id: questionId,
+    },
+    data: {
+      student_answer: {
+        set: answer,
+      },
+    },
+    include: {
+      options: true,
+    },
+  });
+  if (!tutorialQuestion) {
+    throw new Error("Tutorial question not found");
+  }
+
+  if (!tutorialQuestion.student_answer) {
+    throw new Error("Student answer not found");
+  }
+
+  return {
+    id: tutorialQuestion.id,
+    question: tutorialQuestion.question,
+    student_answer: tutorialQuestion.student_answer,
+    type: tutorialQuestion.type,
+    question_number: tutorialQuestion.question_number,
+    options: tutorialQuestion.options.map((o) => o.text),
+    current_question: tutorial.current_question,
+  };
 };

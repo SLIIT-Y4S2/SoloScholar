@@ -1,15 +1,13 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
+import axiosInstance from "../utils/axiosInstance";
 
 const Home = () => {
   // TODO: remove this
   const [responseData, setResponseData] = useState<any>(null);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/v1/protected", {
-        withCredentials: true,
-      })
+    axiosInstance
+      .get("/protected")
       .then((response) => {
         setResponseData(response.data);
       })
