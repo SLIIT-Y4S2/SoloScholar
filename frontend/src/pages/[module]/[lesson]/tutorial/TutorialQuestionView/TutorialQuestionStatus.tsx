@@ -4,11 +4,11 @@ import { useTutorialContext } from "../../../../../provider/TutorialContext";
 const TutorialQuestionStatus = ({
   noOfQuestions,
   answeredQuestions,
-  currentQuestion,
+  current_question,
 }: {
   noOfQuestions: number;
   answeredQuestions: number[];
-  currentQuestion: number;
+  current_question: number;
 }) => {
   const { submitAnswer } = useTutorialContext();
   return (
@@ -21,9 +21,9 @@ const TutorialQuestionStatus = ({
               ? "bg-blue-500"
               : "bg-gray-400"
           } rounded-full w-8 h-8 flex justify-center items-center text-white font-bold cursor-pointer ${
-            currentQuestion === index + 1 ? "border-2 border-gray-800" : ""
+            current_question === index + 1 ? "border-2 border-gray-800" : ""
           }`}
-          onClick={() => submitAnswer(currentQuestion, index + 1)}
+          onClick={() => submitAnswer(current_question, index + 1)}
         >
           {index + 1}
         </div>

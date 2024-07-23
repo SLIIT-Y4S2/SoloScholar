@@ -11,16 +11,22 @@ import TutorialQuestionView from "./TutorialQuestionView";
 //TODO: If tutorial complete forward to feedback page
 
 const TutorialView = () => {
-  const { questions, isLoading, status } = useTutorialContext();
+  const { isLoading, status, error } = useTutorialContext();
 
-  if (isLoading || questions.length === 0) {
+  if (isLoading) {
     return <>Loading...</>;
+  }
+
+  if (error) {
+    return <>{error}</>;
   }
 
   return (
     <Layout style={{ padding: "0 24px 24px" }}>
       <DynamicBreadcrumbComponent />
-      {status === "generated" && <TutorialQuestionView />}
+      {(status === "generated" || status === "in-progress") && (
+        <TutorialQuestionView />
+      )}
       {status === "submitted" && <RequestFeedback />}
       {status === "feedback-generated" && <Feedback />}
     </Layout>

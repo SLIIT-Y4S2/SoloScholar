@@ -1,12 +1,12 @@
 export interface TutorialQuestion {
-  questionNumber: number;
+  question_number: number;
   question: string;
   options: string[];
   type: "short-answer" | "mcq";
   answer: string;
-  studentAnswer: string | null;
+  student_answer: string | null;
   feedbackType?: "skip" | "basic" | "detailed";
-  isStudentAnswerCorrect?: boolean;
+  is_student_answer_correct?: boolean;
 }
 type TutorialStatus =
   | "generating"

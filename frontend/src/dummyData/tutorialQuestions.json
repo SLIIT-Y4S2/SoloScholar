@@ -157,51 +157,51 @@
   {
     "question": "Define the ACID property of 'atomicity' and explain how it ensures the integrity of database transactions.",
     "answer": "Atomicity ensures that all operations within a transaction are treated as a single unit, which either completely succeeds or completely fails. This property ensures the integrity of database transactions by preventing partial updates to the database, which can lead to data inconsistencies.",
-    "type": "short-answer"
+    "type": "essay"
   },
   {
     "question": "Describe how the 'isolation' property of ACID affects the execution of concurrent transactions in a database system.",
     "answer": "The isolation property ensures that transactions executed concurrently appear to each other as if they are being executed in a serial order. This prevents transactions from interfering with each other, ensuring that each transaction's changes are invisible to other transactions until they are committed, thus maintaining data consistency.",
-    "type": "short-answer"
+    "type": "essay"
   },
   {
     "question": "Evaluate the potential impact on system performance when enforcing strict isolation levels in transaction processing and suggest how systems might handle this.",
     "answer": "Strict isolation levels can significantly impact system performance due to the overhead of managing access controls and ensuring that transactions do not interfere with each other. Systems might handle this by implementing less stringent isolation levels, like Read Committed or Snapshot Isolation, which allow for better performance while still maintaining a reasonable level of data consistency.",
-    "type": "short-answer"
+    "type": "essay"
   },
   {
     "question": "Explain the concept of serializability in database systems and why it is crucial for maintaining data consistency during concurrent transactions.",
     "answer": "Serializability in database systems refers to the property that a schedule of operations from concurrent transactions is equivalent to one that could have resulted from serial execution of those transactions. It is crucial for maintaining data consistency as it ensures that the execution of transactions concurrently will result in the same state as if they had been executed one after the other, thus preserving the correctness of the database despite concurrent access.",
-    "type": "short-answer"
+    "type": "essay"
   },
   {
     "question": "Describe the difference between conflict serializability and view serializability, and provide an example scenario where one might be preferred over the other.",
     "answer": "Conflict serializability is a stricter form of serializability that requires the order of conflicting operations (like writes to the same data item) to be the same as in some serial execution. View serializability, on the other hand, only requires that each transaction must read the same values and produce the same output as it would in a serial execution, regardless of the order of conflicting operations. Conflict serializability is generally preferred for its ease of verification through precedence graphs, but view serializability might be used when the exact order of operations is less critical but the final state of the database must still be consistent.",
-    "type": "short-answer"
+    "type": "essay"
   },
   {
     "question": "Evaluate the use of locking protocols versus timestamp ordering in managing concurrency in a database system, considering factors like system performance and the potential for deadlocks.",
     "answer": "Locking protocols manage concurrency by preventing other transactions from accessing data that a transaction is currently modifying, but they can lead to deadlocks where two transactions wait indefinitely for each other to release locks. Timestamp ordering avoids deadlocks by assigning a timestamp to each transaction and ensuring that transactions proceed in timestamp order, which can improve system performance by reducing wait times. However, timestamp ordering might lead to increased aborts if transactions are frequently out of order. The choice between the two depends on the specific requirements and characteristics of the database system, such as the expected transaction load and the importance of minimizing delays.",
-    "type": "short-answer"
+    "type": "essay"
   },
   {
     "question": "Explain the difference between the wait-die and wound-wait schemes in managing deadlocks.",
     "answer": "In the wait-die scheme, an older transaction is allowed to wait if it requests a lock held by a younger transaction, but a younger transaction requesting a lock held by an older transaction will be aborted and restarted. In contrast, the wound-wait scheme allows a younger transaction to wait for an older transaction, but an older transaction will preempt and abort a younger transaction holding a requested lock. Both schemes aim to prevent deadlock by ensuring that transactions only wait for those that are either younger or older, respectively, thus avoiding cycles in the wait-for graph.",
-    "type": "short-answer"
+    "type": "essay"
   },
   {
     "question": "Describe how the cautious waiting algorithm helps in preventing deadlocks and compare its effectiveness to the no waiting algorithm.",
     "answer": "The cautious waiting algorithm prevents deadlocks by allowing a transaction to wait only if the transaction holding the desired lock is not blocked by another transaction. If the lock holder is blocked, the requesting transaction is aborted to avoid potential deadlocks. This method ensures that no transaction waits for another that is already waiting, thus preventing cycles in the wait-for graph. Compared to the no waiting algorithm, where transactions are immediately aborted if they cannot obtain a lock, cautious waiting reduces unnecessary aborts and restarts by allowing some waiting, but only under safe conditions.",
-    "type": "short-answer"
+    "type": "essay"
   },
   {
     "question": "Evaluate the practicality of using timeouts as a deadlock handling mechanism in a high-transaction database environment.",
     "answer": "Using timeouts as a deadlock handling mechanism involves aborting transactions that exceed a predefined waiting time, assuming they might be deadlocked. This method is simple and has low overhead, making it attractive for environments where quick resolution is needed. However, in high-transaction environments, it can lead to frequent unnecessary aborts, especially if the timeout is not optimally configured. Transactions might be aborted even if they are not actually deadlocked, potentially leading to increased overhead from repeated transaction restarts and reduced system throughput.",
-    "type": "short-answer"
+    "type": "essay"
   },
   {
     "question": "Explain the phantom phenomenon in the context of database transactions and how it can affect data consistency.",
     "answer": "The phantom phenomenon occurs when a transaction reads a set of rows that satisfy a search condition, and a subsequent transaction inserts a new row that also satisfies the original search condition. This can lead to inconsistencies as the first transaction does not see the new row, potentially causing unexpected results in data consistency.",
-    "type": "short-answer"
+    "type": "essay"
   }
 ]
