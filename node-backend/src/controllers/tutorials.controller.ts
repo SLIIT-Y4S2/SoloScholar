@@ -1,17 +1,23 @@
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import {
   convertLessonOutlineToText,
   extractSearchingKeywordsFromLessonOutline,
   synthesizeDetailedLessonOutline,
   synthesizeShortAnswerQuestionsForSubtopic,
 } from "../services/tutorial.rag.service";
-import { MODULE_OUTLINE_LESSON_ARRAY } from "../dummyData/lessonOutline";
 import {
   createTutorial,
   updateTutorialQuestions,
   getTutorialByLearnerId,
+  getTutorialById,
+  saveTutorialAnswer,
 } from "../services/db/tutorial.db.service";
-import { getLessonOutlineByModuleAndLessonName } from "../services/db/module.db.service";
+import {
+  getLessonOutlineByModuleAndLessonName,
+  getModuleByName,
+  getLessonByModuleIdAndTitle,
+} from "../services/db/module.db.service";
+import { logger } from "../utils/logger.utils";
 
 export const generateTutorials = async (req: Request, res: Response) => {
   try {
@@ -97,29 +103,121 @@ export const generateTutorials = async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Tutorial generated successfully",
       data: {
-        questions: updatedTutorialWithQuestions.questions,
-        detailedLessonOutline: detailedLessonOutline,
+        id: updatedTutorialWithQuestions.id,
+        status: updatedTutorialWithQuestions.status,
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
-
-    console.error(error);
+    const message = (error as Error).message;
+    res.status(500).json({ message });
+    logger.error({ message });
   }
 };
 
 export const getTutorials = async (req: Request, res: Response) => {
   try {
     const { id: learner_id } = res.locals.user;
-    const tutorials = await getTutorialByLearnerId(learner_id);
+    const { moduleName, lessonTitle } = req.query;
+
+    if (
+      !moduleName ||
+      !lessonTitle ||
+      typeof moduleName !== "string" ||
+      typeof lessonTitle !== "string"
+    ) {
+      return res.status(400).json({
+        message: "Invalid request body",
+      });
+    }
+
+    const module = await getModuleByName(moduleName);
+
+    if (!module) {
+      return res.status(404).json({
+        message: "Module not found",
+      });
+    }
+
+    const lesson = await getLessonByModuleIdAndTitle(module.id, lessonTitle);
+
+    if (!lesson) {
+      return res.status(404).json({
+        message: "Lesson not found",
+      });
+    }
+
+    const tutorials = await getTutorialByLearnerId(
+      learner_id,
+      module.id,
+      lesson.id
+    );
 
     res.status(200).json({
       message: "Tutorials fetched successfully",
       data: tutorials,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    const message = (error as Error).message;
+    res.status(500).json({ message });
+    logger.error({ message });
+  }
+};
 
-    console.error(error);
+export const getTutorialByIdHandler = async (req: Request, res: Response) => {
+  try {
+    const { id: learner_id } = res.locals.user; // verify if the learner is the owner of the tutorial
+    const { tutorialId } = req.params;
+
+    if (!tutorialId) {
+      return res.status(400).json({
+        message: "Invalid request body",
+      });
+    }
+
+    const tutorial = await getTutorialById(tutorialId);
+
+    res.status(200).json({
+      message: "Tutorial fetched successfully",
+      data: tutorial,
+    });
+  } catch (error) {
+    const message = (error as Error).message;
+    res.status(500).json({ message });
+    logger.error({ message });
+  }
+};
+
+export const saveTutorialAnswerHandler = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { id: learner_id } = res.locals.user; // verify if the learner is the owner of the tutorial
+    const { tutorialId } = req.params;
+    const { questionId, answer, next } = req.body;
+
+    console.log(req.body);
+
+    if (!tutorialId || !questionId || !answer || !next) {
+      return res.status(400).json({
+        message: "Invalid request body",
+      });
+    }
+
+    const result = await saveTutorialAnswer(
+      tutorialId,
+      questionId,
+      answer,
+      next
+    );
+
+    res.status(200).json({
+      message: "Tutorial answer saved successfully",
+      data: result,
+    });
+  } catch (error) {
+    const message = (error as Error).message;
+    res.status(500).json({ message });
+    logger.error({ message });
   }
 };

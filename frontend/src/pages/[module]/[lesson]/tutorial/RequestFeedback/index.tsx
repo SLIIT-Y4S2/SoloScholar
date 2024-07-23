@@ -45,8 +45,8 @@ const RequestFeedback = () => {
           console.log(values);
           requestFeedback(
             questions.map((question) => ({
-              questionNumber: question.questionNumber,
-              feedbackType: values[question.questionNumber],
+              questionNumber: question.question_number,
+              feedbackType: values[question.question_number],
             }))
           );
         }}
@@ -54,7 +54,7 @@ const RequestFeedback = () => {
       >
         {questions.map((question) => (
           <div
-            key={question.questionNumber}
+            key={question.question_number}
             className="flex justify-between 
         items-center gap-4 p-4 border rounded-lg bg-white shadow-md
         "
@@ -63,7 +63,7 @@ const RequestFeedback = () => {
             <div className="flex flex-col">
               Explanation
               <Form.Item
-                name={`${question.questionNumber}`}
+                name={`${question.question_number}`}
                 initialValue={
                   question.isStudentAnswerCorrect ? "skip" : "basic"
                 }

@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
   generateTutorials,
   getTutorials,
+  getTutorialByIdHandler,
+  saveTutorialAnswerHandler,
 } from "../controllers/tutorials.controller";
 
 const tutorialsRouter = Router();
@@ -21,3 +23,15 @@ tutorialsRouter.post("/", generateTutorials);
 tutorialsRouter.get("/", getTutorials);
 
 export default tutorialsRouter;
+
+/**
+ * @route GET /api/v1/tutorial/:tutorialId
+ */
+
+tutorialsRouter.get("/:tutorialId", getTutorialByIdHandler);
+
+/**
+ * @route POST /api/v1/tutorial/:tutorialId/answer
+ */
+
+tutorialsRouter.post("/:tutorialId/answer", saveTutorialAnswerHandler);
