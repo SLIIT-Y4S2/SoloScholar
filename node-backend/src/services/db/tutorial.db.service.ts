@@ -253,9 +253,6 @@ export const getTutorialByLearnerId = async (
  */
 export const deleteTutorial = async (id: string): Promise<void> => {
   await prisma.$transaction([
-    prisma.learning_material.delete({
-      where: { id },
-    }),
     prisma.tutorial_question_option.deleteMany({
       where: { tutorial_question: { tutorial_id: id } },
     }),
@@ -263,6 +260,9 @@ export const deleteTutorial = async (id: string): Promise<void> => {
       where: { tutorial_id: id },
     }),
     prisma.tutorial.delete({
+      where: { id },
+    }),
+    prisma.learning_material.delete({
       where: { id },
     }),
   ]);
@@ -282,15 +282,12 @@ export const saveTutorialAnswer = async (
   tutorialId: string,
   questionId: number,
   answer: string,
-  nextQuestionNumber: number
+  nextQuestionNumber: number,
+  isSubmission: boolean = false
 ): Promise<{
   id: number;
-  question: string;
-  student_answer: string;
-  type: string;
-  question_number: number;
-  options: string[];
   current_question: number;
+  status: string;
 }> => {
   const tutorial = await prisma.tutorial.update({
     where: {
@@ -298,7 +295,7 @@ export const saveTutorialAnswer = async (
     },
     data: {
       current_question: nextQuestionNumber,
-      status: "in-progress",
+      status: isSubmission ? "submitted" : "in-progress",
     },
   });
 
@@ -315,9 +312,6 @@ export const saveTutorialAnswer = async (
         set: answer,
       },
     },
-    include: {
-      options: true,
-    },
   });
   if (!tutorialQuestion) {
     throw new Error("Tutorial question not found");
@@ -329,11 +323,7 @@ export const saveTutorialAnswer = async (
 
   return {
     id: tutorialQuestion.id,
-    question: tutorialQuestion.question,
-    student_answer: tutorialQuestion.student_answer,
-    type: tutorialQuestion.type,
-    question_number: tutorialQuestion.question_number,
-    options: tutorialQuestion.options.map((o) => o.text),
     current_question: tutorial.current_question,
+    status: tutorial.status,
   };
 };

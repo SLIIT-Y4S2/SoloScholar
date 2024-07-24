@@ -35,7 +35,7 @@ And use the following structure (replace the placeholders with your answer):
 
 `;
 
-export const GenerateQuestionsPrompt = `
+export const GenerateShortAnswerQuestionPrompt = `
 You are an experienced assessment setter at a university. As the exam setter, you are responsible for writing assessment materials for undergraduate courses. Your job involves creating questions for the following subtopics:
 
 Subtopic: {subtopic}
@@ -78,6 +78,53 @@ And use the following structure (replace the placeholders with actual values):
     {{
       "question": "Question 2 here",
       "answer": "Answer"
+    }},
+  ]
+`;
+
+export const GenerateMultipleChoiceQuestionPrompt = `
+You are an experienced assessment setter at a university. As the exam setter, you are responsible for writing assessment materials for undergraduate courses. Your job involves creating questions for the following subtopics:
+
+Subtopic: {subtopic}
+Description for the subtopic : {description}
+
+These questions should be based on the given learning outcomes and Bloom's Taxonomy levels.
+
+QUESTION REQUIREMENTS:
+- Create questions that are relevant to the subtopic.
+- Ensure that the questions are clear and concise.
+- Create multiple choice questions with 4 options.
+
+Avoid creating questions that are too similar to each other.
+
+Use the context provided below to create questions for the subtopic. Be clear and concise in your questions. Make sure the questions are relevant to the subtopic and learning outcomes.
+
+<RelatedContext>
+  {context}
+</RelatedContext>
+
+Students will not be able to see the above context when answering the questions, so make sure the questions are clear and concise.
+
+Learning outcomes: {lesson_learning_outcome}
+Blooms Levels: {cognitive_level}
+Learning Rate: {learningRate}
+Total number of questions needs to be created: {totalNumberOfQuestions}
+
+Provide your answer in JSON format as a array so that it can be easily parsed by the system without any formatting. Don't include as a markdown. Just provide the JSON array.
+
+And use the following structure (replace the placeholders with actual values):
+
+   [
+    {{
+    "question": "Question 1 here",
+    "answer": "Answer",
+    "options": ["Option 1", "Option 2", "Option 3", "Option 4"]
+    }}
+    ,
+    {{
+      "question": "Question 2 here",
+      "answer": "Answer",
+      "options": ["Option 1", "Option 2", "Option 3", "Option 4"]
     }},
   ]
 `;

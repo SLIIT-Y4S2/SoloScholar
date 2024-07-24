@@ -3,7 +3,7 @@ import {
   convertLessonOutlineToText,
   extractSearchingKeywordsFromLessonOutline,
   synthesizeDetailedLessonOutline,
-  synthesizeShortAnswerQuestionsForSubtopic,
+  synthesizeQuestionsForSubtopic,
 } from "../services/tutorial.rag.service";
 import {
   createTutorial,
@@ -75,21 +75,44 @@ export const generateTutorials = async (req: Request, res: Response) => {
         return acc.concat(outcome.cognitive_level);
       }, [] as string[]);
 
-    const questions = await Promise.all(
-      detailedLessonOutline.map(async (subtopic) => {
-        const subtopicQuestions =
-          await synthesizeShortAnswerQuestionsForSubtopic(
-            `${subtopic.subtopic} ${subtopic.description}`,
-            subtopic.subtopic,
-            subtopic.description,
-            learningOutcomes,
-            combined_cognitive_level,
-            learningLevel, // "Beginner", "Intermediate", "Advanced"
-            totalNumberOfQuestionsPerSubtopics
-          );
-        return subtopicQuestions;
-      })
-    ).then((result) => result.flat());
+    const generateQuestionsForSubtopic = async (subtopic: {
+      subtopic: string;
+      description: string;
+    }) => {
+      const [mcqQuestions, essayQuestions] = await Promise.all([
+        synthesizeQuestionsForSubtopic(
+          `${subtopic.subtopic} ${subtopic.description}`,
+          subtopic.subtopic,
+          subtopic.description,
+          learningOutcomes,
+          combined_cognitive_level,
+          learningLevel,
+          totalNumberOfQuestionsPerSubtopics,
+          "mcq"
+        ),
+        synthesizeQuestionsForSubtopic(
+          `${subtopic.subtopic} ${subtopic.description}`,
+          subtopic.subtopic,
+          subtopic.description,
+          learningOutcomes,
+          combined_cognitive_level,
+          learningLevel,
+          totalNumberOfQuestionsPerSubtopics,
+          "essay"
+        ),
+      ]);
+
+      return { mcqQuestions, essayQuestions };
+    };
+
+    const results = await Promise.all(
+      detailedLessonOutline.map(generateQuestionsForSubtopic)
+    );
+
+    const mcqQuestions = results.flatMap((result) => result.mcqQuestions);
+    const essayQuestions = results.flatMap((result) => result.essayQuestions);
+
+    const questions = [...mcqQuestions, ...essayQuestions];
 
     const updatedTutorialWithQuestions = await updateTutorialQuestions(
       tutorial.id,
@@ -196,8 +219,6 @@ export const saveTutorialAnswerHandler = async (
     const { tutorialId } = req.params;
     const { questionId, answer, next } = req.body;
 
-    console.log(req.body);
-
     if (!tutorialId || !questionId || !answer || !next) {
       return res.status(400).json({
         message: "Invalid request body",
@@ -213,6 +234,39 @@ export const saveTutorialAnswerHandler = async (
 
     res.status(200).json({
       message: "Tutorial answer saved successfully",
+      data: result,
+    });
+  } catch (error) {
+    const message = (error as Error).message;
+    res.status(500).json({ message });
+    logger.error({ message });
+  }
+};
+
+export const submitTutorialHandler = async (req: Request, res: Response) => {
+  try {
+    const { id: learner_id } = res.locals.user; // verify if the learner is the owner of the tutorial
+    const { tutorialId } = req.params;
+    const { questionId, answer } = req.body;
+
+    if (!tutorialId) {
+      return res.status(400).json({
+        message: "Invalid request body",
+      });
+    }
+
+    const result = await saveTutorialAnswer(
+      tutorialId,
+      questionId,
+      answer,
+      1,
+      true
+    );
+
+    //TODO: generate the text based feedback for the answers and mark the answers
+
+    res.status(200).json({
+      message: "Tutorial submitted successfully",
       data: result,
     });
   } catch (error) {

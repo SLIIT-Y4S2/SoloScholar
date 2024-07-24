@@ -4,7 +4,8 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { getChatModel, getEmbeddings } from "../utils/openai.util";
 import {
   DetailedLessonOutlinePrompt,
-  GenerateQuestionsPrompt,
+  GenerateMultipleChoiceQuestionPrompt,
+  GenerateShortAnswerQuestionPrompt,
 } from "../prompt-templates/tutorial.template";
 import { LessonOutlineType } from "../types/lesson.types";
 import { PineconeStore } from "@langchain/pinecone";
@@ -130,15 +131,25 @@ async function documentRetrievalPipelineForQuestionGeneration() {
 
 /**
  * Synthesize questions for a subtopic
+ * @param searchingKeywords The searching keywords
+ * @param subtopic The subtopic
+ * @param description The description
+ * @param lesson_learning_outcome The learning outcomes
+ * @param cognitive_level The cognitive level
+ * @param learningRate The learning rate
+ * @param totalNumberOfQuestions The total number of questions
+ * @param questionType The type of questions to generate ('short_answer' or 'multiple_choice')
+ * @returns The generated questions
  */
-export async function synthesizeShortAnswerQuestionsForSubtopic(
+export async function synthesizeQuestionsForSubtopic(
   searchingKeywords: string,
   subtopic: string,
   description: string,
   lesson_learning_outcome: string[],
   cognitive_level: string[],
   learningRate: string,
-  totalNumberOfQuestions: number
+  totalNumberOfQuestions: number,
+  questionType: "essay" | "mcq"
 ): Promise<
   {
     question: string;
@@ -147,9 +158,12 @@ export async function synthesizeShortAnswerQuestionsForSubtopic(
     options: string[];
   }[]
 > {
-  const questionGenerationPrompt = ChatPromptTemplate.fromTemplate(
-    GenerateQuestionsPrompt
-  );
+  const prompt =
+    questionType === "essay"
+      ? GenerateShortAnswerQuestionPrompt
+      : GenerateMultipleChoiceQuestionPrompt;
+
+  const questionGenerationPrompt = ChatPromptTemplate.fromTemplate(prompt);
 
   const retrievalChain = RunnableSequence.from([
     {
@@ -166,7 +180,7 @@ export async function synthesizeShortAnswerQuestionsForSubtopic(
     new StringOutputParser(),
   ]);
 
-  const essayQuestionResponse = await retrievalChain.invoke({
+  const questionResponse = await retrievalChain.invoke({
     searchingKeywords,
     subtopic,
     description,
@@ -176,13 +190,13 @@ export async function synthesizeShortAnswerQuestionsForSubtopic(
     totalNumberOfQuestions,
   });
 
-  const essayQuestions = JSON.parse(essayQuestionResponse).map(
-    (question: { question: string; answer: string }) => ({
+  const questions = JSON.parse(questionResponse).map(
+    (question: { question: string; answer: string; options?: string[] }) => ({
       ...question,
-      type: "essay",
-      options: [],
+      type: questionType,
+      options: question.options || [],
     })
   );
 
-  return essayQuestions;
+  return questions;
 }
