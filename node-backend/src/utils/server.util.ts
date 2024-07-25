@@ -12,6 +12,7 @@ import tutorialsRouter from "../routes/tutorials.routes";
 import labRouter from "../routes/lab.routes";
 import dashboardRouter from "../routes/dashboard.routes";
 import moduleRouter from "../routes/module.routes";
+import lectureRouter from "../routes/lecture.routes";
 
 const server = express();
 
@@ -39,6 +40,7 @@ server.use(express.json());
 server.use("/api/v1/ref-docs", documentRouter);
 server.use("/api/v1/auth", authRouter);
 server.use("/api/v1/rag", ragRouter);
+server.use("/api/v1/lecture", lectureRouter);
 server.use("/api/v1/tutorial", requireUser, tutorialsRouter);
 server.use("/api/v1/labs", labRouter);
 server.use("/api/v1/dashboard", dashboardRouter);
