@@ -1,10 +1,5 @@
 import e, { Request, Response } from "express";
-import {
-  convertLessonOutlineToText,
-  extractSearchingKeywordsFromLessonOutline,
-  synthesizeDetailedLessonOutline,
-  synthesizeQuestionsForSubtopic,
-} from "../services/tutorial.rag.service";
+import { synthesizeQuestionsForSubtopic } from "../services/tutorial.rag.service";
 import {
   createTutorial,
   updateTutorialQuestions,
@@ -21,7 +16,7 @@ import { logger } from "../utils/logger.utils";
 
 export const generateTutorials = async (req: Request, res: Response) => {
   try {
-    //MARK: pre-requisite
+    // MARK: pre-requisite
     // we need check if the student has already generated the tutorial for the lesson for the given learning rate
     // if the tutorial has already been generated return the tutorial to the student
 
@@ -47,42 +42,34 @@ export const generateTutorials = async (req: Request, res: Response) => {
       learningLevel
     );
 
-    // MARK: STEP 2
-    // make the detailed lesson plan for the tutorial
-    const searchingKeywords =
-      extractSearchingKeywordsFromLessonOutline(lessonOutline);
-    const lessonOutlineAsAText: string =
-      convertLessonOutlineToText(lessonOutline);
-
-    const detailedLessonOutline = await synthesizeDetailedLessonOutline(
-      searchingKeywords,
-      lessonOutlineAsAText
-    );
+    // MARK: TODO - check if the tutorial has already been generated for the student
+    // make only 3 attempts to generate the tutorial for the student
+    // make sure the tutorial questions do not repeat for the same student
 
     // MARK: STEP 3
     // loop through the detailed lesson plan and create questions for each subtopic
-    const totalNumberOfQuestions = 15; // TEMPORARY
+    const totalNumberOfQuestions = 30; // TEMPORARY
     const totalNumberOfQuestionsPerSubtopics = Math.floor(
-      totalNumberOfQuestions / lessonOutline.lesson_subtopic.length
+      totalNumberOfQuestions / 2 / lessonOutline.lesson_subtopics.length
     );
 
-    const learningOutcomes = lessonOutline.lesson_learning_outcome.map(
+    const learningOutcomes = lessonOutline.lesson_learning_outcomes.map(
       (outcome) => outcome.outcome
     );
 
     const combined_cognitive_level =
-      lessonOutline.lesson_learning_outcome.reduce((acc, outcome) => {
-        return acc.concat(outcome.cognitive_level);
+      lessonOutline.lesson_learning_outcomes.reduce((acc, outcome) => {
+        return acc.concat(outcome.cognitive_levels);
       }, [] as string[]);
 
     const generateQuestionsForSubtopic = async (subtopic: {
-      subtopic: string;
+      topic: string;
       description: string;
     }) => {
       const [mcqQuestions, essayQuestions] = await Promise.all([
         synthesizeQuestionsForSubtopic(
-          `${subtopic.subtopic} ${subtopic.description}`,
-          subtopic.subtopic,
+          `${subtopic.topic} ${subtopic.description}`,
+          subtopic.topic,
           subtopic.description,
           learningOutcomes,
           combined_cognitive_level,
@@ -91,8 +78,8 @@ export const generateTutorials = async (req: Request, res: Response) => {
           "mcq"
         ),
         synthesizeQuestionsForSubtopic(
-          `${subtopic.subtopic} ${subtopic.description}`,
-          subtopic.subtopic,
+          `${subtopic.topic} ${subtopic.description}`,
+          subtopic.topic,
           subtopic.description,
           learningOutcomes,
           combined_cognitive_level,
@@ -106,7 +93,7 @@ export const generateTutorials = async (req: Request, res: Response) => {
     };
 
     const results = await Promise.all(
-      detailedLessonOutline.map(generateQuestionsForSubtopic)
+      lessonOutline.lesson_subtopics.map(generateQuestionsForSubtopic)
     );
 
     const mcqQuestions = results.flatMap((result) => result.mcqQuestions);

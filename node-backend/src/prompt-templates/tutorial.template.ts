@@ -2,7 +2,7 @@
 
 // First we need to expand the lesson plant to include all the context for the subtopics
 
-export const DetailedLessonOutlinePrompt = `
+const DetailedLessonOutlinePrompt = `
 You are a experienced lecturer at a University. 
 Create a detailed lesson outline for the following subtopics. Using the context provided below, create a lesson outline for each subtopic. Be verbose. Provide as much detail as possible.
 
