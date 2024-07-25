@@ -78,9 +78,11 @@ model learning_material {
 
 model learning_outcome {
   id                               Int                                @id @default(autoincrement())
-  description                      String                             @db.VarChar(250)
+  description                      String                             @unique @db.VarChar(250)
   learning_outcome_cognitive_level learning_outcome_cognitive_level[]
   lesson_learning_outcome          lesson_learning_outcome[]
+
+  @@index([description], name: "description")
 }
 
 model learning_outcome_cognitive_level {
@@ -99,21 +101,22 @@ model lecture {
 }
 
 model lesson {
-  id                      Int                       @id @default(autoincrement())
-  title                   String                    @db.VarChar(100)
-  description             String                    @db.VarChar(2000)
-  module_id               Int
-  learning_material       learning_material[]
-  module                  module                    @relation(fields: [module_id], references: [id], onUpdate: NoAction)
-  lesson_learning_outcome lesson_learning_outcome[]
-  lesson_subtopic         lesson_subtopic[]
+  id                       Int                       @id @default(autoincrement())
+  title                    String                    @db.VarChar(100)
+  description              String                    @db.VarChar(2000)
+  module_id                Int
+  learning_materials       learning_material[]
+  module                   module                    @relation(fields: [module_id], references: [id], onUpdate: NoAction)
+  lesson_learning_outcomes lesson_learning_outcome[]
+  lesson_subtopics         lesson_subtopic[]
 }
 
 model lesson_subtopic {
-  id        Int    @id() @default(autoincrement())
-  text      String @db.VarChar(200)
-  lesson_id Int
-  lesson    lesson @relation(fields: [lesson_id], references: [id], onUpdate: NoAction)
+  id          Int    @id() @default(autoincrement())
+  topic       String @db.VarChar(200)
+  description String @db.VarChar(Max)
+  lesson_id   Int
+  lesson      lesson @relation(fields: [lesson_id], references: [id], onUpdate: NoAction)
 }
 
 model lesson_learning_outcome {
@@ -129,7 +132,7 @@ model module {
   id          Int      @id @default(autoincrement())
   name        String   @db.VarChar(20)
   description String   @db.VarChar(1000)
-  lesson      lesson[]
+  lessons     lesson[]
 }
 
 model sub_lecture {

@@ -4,6 +4,7 @@ import {
   getTutorials,
   getTutorialByIdHandler,
   saveTutorialAnswerHandler,
+  submitTutorialHandler,
 } from "../controllers/tutorials.controller";
 
 const tutorialsRouter = Router();
@@ -35,3 +36,9 @@ tutorialsRouter.get("/:tutorialId", getTutorialByIdHandler);
  */
 
 tutorialsRouter.post("/:tutorialId/answer", saveTutorialAnswerHandler);
+
+/**
+ * @route POST /api/v1/tutorial/:tutorialId/submission
+ */
+
+tutorialsRouter.post("/:tutorialId/submission", submitTutorialHandler);

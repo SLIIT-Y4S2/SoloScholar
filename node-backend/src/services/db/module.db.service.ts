@@ -1,49 +1,61 @@
+import { CognitiveLevel, Lesson, Module } from "../../types/module.types";
 import prisma from "../../utils/prisma-client.util";
 
 /**
  * Create module
  * @param module
  */
-export const createModule = async (module: {
-  name: string;
-  description: string;
-  lessons: {
-    title: string;
-    description: string;
-    learning_outcomes: {
-      cognitive_level: string[];
-      outcome: string;
-    }[];
-    subtopics: string[];
-  }[];
-}) => {
+export const createModule = async (module: Module) => {
+  // Step 1: Create or connect learning outcomes
+  const uniqueOutcomes = [
+    ...new Set(
+      module.lessons.flatMap((lesson) =>
+        lesson.lesson_learning_outcomes.map((outcome) => outcome.outcome)
+      )
+    ),
+  ];
+
+  const learningOutcomes = await Promise.all(
+    uniqueOutcomes.map(async (outcomeDescription) => {
+      return await prisma.learning_outcome.upsert({
+        where: { description: outcomeDescription },
+        update: {},
+        create: {
+          description: outcomeDescription,
+          learning_outcome_cognitive_level: {
+            create: module.lessons
+              .flatMap((lesson) => lesson.lesson_learning_outcomes)
+              .find((outcome) => outcome.outcome === outcomeDescription)!
+              .cognitive_levels.map((level) => ({
+                cognitive_level: {
+                  connect: { level: level },
+                },
+              })),
+          },
+        },
+      });
+    })
+  );
+
   const createdModule = await prisma.module.create({
     data: {
       name: module.name,
       description: module.description,
-      lesson: {
+      lessons: {
         create: module.lessons.map((lesson) => ({
           title: lesson.title,
           description: lesson.description,
-          lesson_subtopic: {
-            create: lesson.subtopics.map((subtopic) => ({
-              text: subtopic,
+          lesson_subtopics: {
+            create: lesson.lesson_subtopics.map((subtopic) => ({
+              topic: subtopic.topic,
+              description: subtopic.description,
             })),
           },
-          lesson_learning_outcome: {
-            create: lesson.learning_outcomes.map((outcome) => ({
+          lesson_learning_outcomes: {
+            create: lesson.lesson_learning_outcomes.map((outcome) => ({
               learning_outcome: {
-                create: {
+                connect: {
                   description: outcome.outcome,
-                  learning_outcome_cognitive_level: {
-                    create: outcome.cognitive_level.map((level) => ({
-                      cognitive_level: {
-                        connect: {
-                          level: level,
-                        },
-                      },
-                    })),
-                  },
                 },
               },
             })),
@@ -52,10 +64,10 @@ export const createModule = async (module: {
       },
     },
     include: {
-      lesson: {
+      lessons: {
         include: {
-          lesson_subtopic: true,
-          lesson_learning_outcome: {
+          lesson_subtopics: true,
+          lesson_learning_outcomes: {
             include: {
               learning_outcome: {
                 include: {
@@ -75,7 +87,6 @@ export const createModule = async (module: {
 
   return createdModule;
 };
-
 /**
  *  Get lessonOutline by module name and lesson name
  * @param moduleName - module name
@@ -86,14 +97,14 @@ export const createModule = async (module: {
 export const getLessonOutlineByModuleAndLessonName = async (
   moduleName: string,
   lessonTitle: string
-) => {
+): Promise<Lesson> => {
   const module = await prisma.module.findFirst({
     where: { name: moduleName },
     include: {
-      lesson: {
+      lessons: {
         where: { title: lessonTitle },
         include: {
-          lesson_learning_outcome: {
+          lesson_learning_outcomes: {
             include: {
               learning_outcome: {
                 include: {
@@ -110,30 +121,28 @@ export const getLessonOutlineByModuleAndLessonName = async (
               },
             },
           },
-          lesson_subtopic: true,
+          lesson_subtopics: true,
         },
       },
     },
   });
 
-  const lesson = module?.lesson[0];
+  const lesson = module?.lessons[0];
 
   if (!lesson) {
     throw new Error("Lesson not found");
   }
 
-  const lessonOutline = {
+  return {
     ...lesson,
-    lesson_subtopic: lesson.lesson_subtopic.map((subtopic) => subtopic.text),
-    lesson_learning_outcome: lesson.lesson_learning_outcome.map((outcome) => ({
-      outcome: outcome.learning_outcome.description,
-      cognitive_level:
-        outcome.learning_outcome.learning_outcome_cognitive_level.map(
-          (cognitiveLevel) => cognitiveLevel.cognitive_level.level
+    lesson_learning_outcomes: lesson.lesson_learning_outcomes.map((lo) => ({
+      outcome: lo.learning_outcome.description,
+      cognitive_levels:
+        lo.learning_outcome.learning_outcome_cognitive_level.map(
+          (col) => col.cognitive_level.level as CognitiveLevel
         ),
     })),
   };
-  return lessonOutline;
 };
 
 /**
@@ -269,7 +278,7 @@ export const deleteModule = async (id: number) => {
     const deletedModule = await prisma.module.delete({
       where: { id },
       include: {
-        lesson: true,
+        lessons: true,
       },
     });
 
@@ -278,3 +287,5 @@ export const deleteModule = async (id: number) => {
 
   return deletedModule;
 };
+
+// deleteModule(3);
