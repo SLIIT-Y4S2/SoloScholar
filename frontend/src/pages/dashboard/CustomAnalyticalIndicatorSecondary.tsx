@@ -58,14 +58,16 @@ const CustomAnalyticalIndicatorSecondary = (props: {
                 value={analysisGoal}
               />
             </div>
-            {
-              visualizationChoices.find(
-                (choice) => choice.value === visualizationChoice
-              )?.visualization
-            }
+            <div>
+              {
+                visualizationChoices.find(
+                  (choice) => choice.value === visualizationChoice
+                )?.visualization
+              }
+            </div>
           </div>
         )}
-        <div className="flex justify-end gap-[8px]">
+        <div className="flex justify-end gap-[8px] mt-[50px]">
           {customMessage ? (
             <Button className="rounded-[2px]" onClick={clearData}>
               Retry
@@ -78,7 +80,7 @@ const CustomAnalyticalIndicatorSecondary = (props: {
               <Button
                 type="primary"
                 className="rounded-[2px]"
-                onClick={
+                onClick={() =>
                   indicatorName === ""
                     ? messageApi.open({
                         type: "error",

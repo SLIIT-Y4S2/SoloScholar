@@ -82,7 +82,9 @@ E.g. I want to see how many beginner level students have scored more than averag
                 <Text className="font-medium text-[16px] w-[66px]">
                   Preview
                 </Text>
-                {visualizationChoice.visualization}
+                <div className="w-full">
+                  {visualizationChoice.visualization}
+                </div>
               </div>
             </div>
             <div className="flex justify-end mt-[50px]">
