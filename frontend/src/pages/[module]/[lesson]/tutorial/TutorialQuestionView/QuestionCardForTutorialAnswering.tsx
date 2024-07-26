@@ -3,7 +3,7 @@ import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import { Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
 
-const QuestionCardForTutorialComponent = () => {
+const QuestionCardForTutorialAnswering = () => {
   // const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   const {
@@ -93,4 +93,4 @@ const QuestionCardForTutorialComponent = () => {
   );
 };
 
-export default QuestionCardForTutorialComponent;
+export default QuestionCardForTutorialAnswering;

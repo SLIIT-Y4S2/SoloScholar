@@ -3,111 +3,13 @@ import { RunnableSequence } from "@langchain/core/runnables";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { getChatModel, getEmbeddings } from "../utils/openai.util";
 import {
-  DetailedLessonOutlinePrompt,
-  GenerateQuestionsPrompt,
+  GenerateMultipleChoiceQuestionPrompt,
+  GenerateShortAnswerQuestionPrompt,
 } from "../prompt-templates/tutorial.template";
 import { LessonOutlineType } from "../types/lesson.types";
 import { PineconeStore } from "@langchain/pinecone";
 import { getPineconeIndex } from "../utils/pinecone.util";
 import { convertDocsToString } from "../utils/rag.util";
-
-// MARK: Detailed Lesson Outline
-
-async function documentRetrievalPipelineForDetailedOutline() {
-  const pineconeIndex = await getPineconeIndex();
-  const embeddingModel = getEmbeddings();
-  // Get the PineconeStore object
-  const pineconeStore = await PineconeStore.fromExistingIndex(embeddingModel, {
-    pineconeIndex,
-  });
-  const retriever = pineconeStore.asRetriever();
-  // Create a runnable sequence
-  const runnableSequence = RunnableSequence.from([
-    (input) => input.searchingKeywords,
-    retriever,
-    convertDocsToString,
-  ]);
-  return runnableSequence;
-}
-
-/**
- * Synthesize a detailed lesson outline from a lesson outline and searching keywords
- * @param searchingKeywords The searching keywords
- * @param lessonOutline The lesson outline
- * @returns The detailed lesson outline
- *
- **/
-
-export async function synthesizeDetailedLessonOutline(
-  searchingKeywords: string,
-  lessonOutline: string
-): Promise<{ subtopic: string; description: string }[]> {
-  const answerGenerationPrompt = ChatPromptTemplate.fromTemplate(
-    DetailedLessonOutlinePrompt
-  );
-
-  const retrievalChain = RunnableSequence.from([
-    {
-      context: documentRetrievalPipelineForDetailedOutline,
-      lessonOutline: (input) => input.lessonOutline,
-    },
-    answerGenerationPrompt,
-    getChatModel,
-    new StringOutputParser(),
-  ]);
-
-  const response = await retrievalChain.invoke({
-    searchingKeywords,
-    lessonOutline,
-  });
-
-  return JSON.parse(response);
-}
-
-/**
- * Extract searching keywords from a lesson outline
- * @param lesson The lesson outline
- * @returns The searching keywords
- **/
-export function extractSearchingKeywordsFromLessonOutline(
-  lesson: LessonOutlineType
-) {
-  let keywords = [];
-
-  keywords.push(lesson.title);
-
-  lesson.lesson_subtopic.forEach((subtopic) => {
-    keywords.push(subtopic);
-  });
-
-  lesson.lesson_learning_outcome.forEach((outcome) => {
-    keywords.push(outcome.outcome);
-  });
-
-  return keywords.toString();
-}
-
-/**
- * Convert a lesson outline to text
- * @param lesson The lesson outline
- * @returns The lesson outline as text
- **/
-
-export function convertLessonOutlineToText(lesson: LessonOutlineType) {
-  let text = `Lesson Title: ${lesson.title}\nsubtopic:\n`;
-
-  lesson.lesson_subtopic.forEach((subtopic, index) => {
-    text += `${index + 1}. ${subtopic}\n`;
-  });
-
-  text += `Learning Outcomes:\n`;
-
-  lesson.lesson_learning_outcome.forEach((outcome, index) => {
-    text += `${index + 1}. ${outcome.outcome}\n`;
-  });
-
-  return text;
-}
 
 // MARK: Question Generation
 
@@ -130,15 +32,25 @@ async function documentRetrievalPipelineForQuestionGeneration() {
 
 /**
  * Synthesize questions for a subtopic
+ * @param searchingKeywords The searching keywords
+ * @param subtopic The subtopic
+ * @param description The description
+ * @param lesson_learning_outcome The learning outcomes
+ * @param cognitive_level The cognitive level
+ * @param learningRate The learning rate
+ * @param totalNumberOfQuestions The total number of questions
+ * @param questionType The type of questions to generate ('short_answer' or 'multiple_choice')
+ * @returns The generated questions
  */
-export async function synthesizeShortAnswerQuestionsForSubtopic(
+export async function synthesizeQuestionsForSubtopic(
   searchingKeywords: string,
   subtopic: string,
   description: string,
   lesson_learning_outcome: string[],
   cognitive_level: string[],
   learningRate: string,
-  totalNumberOfQuestions: number
+  totalNumberOfQuestions: number,
+  questionType: "essay" | "mcq"
 ): Promise<
   {
     question: string;
@@ -147,9 +59,12 @@ export async function synthesizeShortAnswerQuestionsForSubtopic(
     options: string[];
   }[]
 > {
-  const questionGenerationPrompt = ChatPromptTemplate.fromTemplate(
-    GenerateQuestionsPrompt
-  );
+  const prompt =
+    questionType === "essay"
+      ? GenerateShortAnswerQuestionPrompt
+      : GenerateMultipleChoiceQuestionPrompt;
+
+  const questionGenerationPrompt = ChatPromptTemplate.fromTemplate(prompt);
 
   const retrievalChain = RunnableSequence.from([
     {
@@ -166,7 +81,7 @@ export async function synthesizeShortAnswerQuestionsForSubtopic(
     new StringOutputParser(),
   ]);
 
-  const essayQuestionResponse = await retrievalChain.invoke({
+  const questionResponse = await retrievalChain.invoke({
     searchingKeywords,
     subtopic,
     description,
@@ -176,13 +91,13 @@ export async function synthesizeShortAnswerQuestionsForSubtopic(
     totalNumberOfQuestions,
   });
 
-  const essayQuestions = JSON.parse(essayQuestionResponse).map(
-    (question: { question: string; answer: string }) => ({
+  const questions = JSON.parse(questionResponse).map(
+    (question: { question: string; answer: string; options?: string[] }) => ({
       ...question,
-      type: "essay",
-      options: [],
+      type: questionType,
+      options: question.options || [],
     })
   );
 
-  return essayQuestions;
+  return questions;
 }
