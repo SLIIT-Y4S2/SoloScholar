@@ -3,12 +3,17 @@ import { dashboardUtil } from "../utils/dashboard.util";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { logger } from "../utils/logger.utils";
 
-async function createIndicator(goal: string): Promise<[]> {
+async function createIndicator(
+  goal: string
+): Promise<{ sqlQuery: string; sqlQueryData: [] }> {
   const sqlQuery: {
     [x: string]: string;
   } = await getSqlQuery(goal);
 
-  return await getSqlQueryData(sqlQuery.query);
+  return {
+    sqlQuery: sqlQuery.query,
+    sqlQueryData: await getSqlQueryData(sqlQuery.query),
+  };
 }
 
 async function getSqlQuery(goal: string): Promise<{
