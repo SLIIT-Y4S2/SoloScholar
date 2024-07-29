@@ -1,11 +1,15 @@
-import e, { Request, Response } from "express";
-import { synthesizeQuestionsForSubtopic } from "../services/tutorial.rag.service";
+import { Request, Response } from "express";
+import {
+  synthesizeQuestionsForSubtopic,
+  markStudentAnswerCorrectOrIncorrect,
+} from "../services/tutorial.rag.service";
 import {
   createTutorial,
   updateTutorialQuestions,
   getTutorialByLearnerId,
   getTutorialById,
   saveTutorialAnswer,
+  updateTutorialQuestionResult,
 } from "../services/db/tutorial.db.service";
 import {
   getLessonOutlineByModuleAndLessonName,
@@ -13,6 +17,8 @@ import {
   getLessonByModuleIdAndTitle,
 } from "../services/db/module.db.service";
 import { logger } from "../utils/logger.utils";
+import { groupBy } from "lodash";
+import prisma from "../utils/prisma-client.util";
 
 export const generateTutorials = async (req: Request, res: Response) => {
   try {
@@ -63,12 +69,14 @@ export const generateTutorials = async (req: Request, res: Response) => {
       }, [] as string[]);
 
     const generateQuestionsForSubtopic = async (subtopic: {
+      id: number;
       topic: string;
       description: string;
     }) => {
       const [mcqQuestions, essayQuestions] = await Promise.all([
         synthesizeQuestionsForSubtopic(
           `${subtopic.topic} ${subtopic.description}`,
+          subtopic.id,
           subtopic.topic,
           subtopic.description,
           learningOutcomes,
@@ -79,6 +87,7 @@ export const generateTutorials = async (req: Request, res: Response) => {
         ),
         synthesizeQuestionsForSubtopic(
           `${subtopic.topic} ${subtopic.description}`,
+          subtopic.id,
           subtopic.topic,
           subtopic.description,
           learningOutcomes,
@@ -175,7 +184,7 @@ export const getTutorials = async (req: Request, res: Response) => {
 
 export const getTutorialByIdHandler = async (req: Request, res: Response) => {
   try {
-    const { id: learner_id } = res.locals.user; // verify if the learner is the owner of the tutorial
+    const { id: learner_id } = res.locals.user; //TODO: verify if the learner is the owner of the tutorial
     const { tutorialId } = req.params;
 
     if (!tutorialId) {
@@ -186,9 +195,18 @@ export const getTutorialByIdHandler = async (req: Request, res: Response) => {
 
     const tutorial = await getTutorialById(tutorialId);
 
+    const noAnswers =
+      tutorial.status === "generated" || tutorial.status === "in-progress";
+
     res.status(200).json({
       message: "Tutorial fetched successfully",
-      data: tutorial,
+      data: {
+        ...tutorial,
+        questions: tutorial.questions.map((q) => ({
+          ...q,
+          answer: noAnswers ? null : q.answer,
+        })),
+      },
     });
   } catch (error) {
     const message = (error as Error).message;
@@ -206,7 +224,7 @@ export const saveTutorialAnswerHandler = async (
     const { tutorialId } = req.params;
     const { questionId, answer, next } = req.body;
 
-    if (!tutorialId || !questionId || !answer || !next) {
+    if (!tutorialId || !questionId || !next) {
       return res.status(400).json({
         message: "Invalid request body",
       });
@@ -241,8 +259,7 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
         message: "Invalid request body",
       });
     }
-
-    const result = await saveTutorialAnswer(
+    const submitted = await saveTutorialAnswer(
       tutorialId,
       questionId,
       answer,
@@ -250,11 +267,87 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
       true
     );
 
-    //TODO: generate the text based feedback for the answers and mark the answers
+    if (submitted.status !== "submitted") {
+      return res.status(400).json({
+        message: "Tutorial not submitted",
+      });
+    }
+
+    //MARK: Questions getting marked correct or incorrect
+
+    // get all the questions for the tutorial
+    const tutorial = await getTutorialById(tutorialId);
+
+    // filter out the question with defined student answers
+    const answeredQuestions = tutorial.questions.filter(
+      (question) => question.student_answer
+    );
+
+    // filter out the essay type questions
+    const mcqQuestions = answeredQuestions.filter(
+      (question) => question.type === "mcq"
+    );
+
+    // if mcq type questions, check if the student is correct by comparing the student answer with the correct answer
+    await Promise.all(
+      mcqQuestions.map((question) => {
+        updateTutorialQuestionResult(
+          question.id,
+          question.student_answer === question.answer
+        );
+      })
+    );
+
+    // check if the student is correct through llm for essay type questions
+    const essayQuestions = answeredQuestions.filter(
+      (question) => question.type === "essay"
+    );
+
+    const groupedEssayQuestions = groupBy(essayQuestions, "subtopic_id");
+
+    await Promise.all(
+      Object.entries(groupedEssayQuestions).map(
+        async ([subtopic_id, questions]) => {
+          const subtopic = await prisma.lesson_subtopic.findFirst({
+            where: { id: parseInt(subtopic_id) },
+            include: {
+              lesson: {
+                include: {
+                  module: true,
+                },
+              },
+            },
+          });
+
+          if (!subtopic) {
+            throw new Error("Subtopic not found");
+          }
+
+          const result = await markStudentAnswerCorrectOrIncorrect(
+            subtopic.lesson.title,
+            subtopic.topic,
+            subtopic.description,
+            questions.map((question) => ({
+              question: question.question,
+              studentAnswer: question.student_answer!,
+              correctAnswer: question.answer,
+            }))
+          );
+
+          await Promise.all(
+            questions.map((question, index) =>
+              updateTutorialQuestionResult(question.id, result[index])
+            )
+          );
+        }
+      )
+    );
+
+    const updateTutorial = await getTutorialById(tutorialId);
 
     res.status(200).json({
       message: "Tutorial submitted successfully",
-      data: result,
+      data: updateTutorial,
     });
   } catch (error) {
     const message = (error as Error).message;

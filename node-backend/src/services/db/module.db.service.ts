@@ -97,7 +97,7 @@ export const createModule = async (module: Module) => {
 export const getLessonOutlineByModuleAndLessonName = async (
   moduleName: string,
   lessonTitle: string
-): Promise<Lesson> => {
+) => {
   const module = await prisma.module.findFirst({
     where: { name: moduleName },
     include: {

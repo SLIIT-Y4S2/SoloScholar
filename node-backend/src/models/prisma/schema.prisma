@@ -112,11 +112,12 @@ model lesson {
 }
 
 model lesson_subtopic {
-  id          Int    @id() @default(autoincrement())
-  topic       String @db.VarChar(200)
-  description String @db.VarChar(Max)
-  lesson_id   Int
-  lesson      lesson @relation(fields: [lesson_id], references: [id], onUpdate: NoAction)
+  id                Int                 @id() @default(autoincrement())
+  topic             String              @db.VarChar(200)
+  description       String              @db.VarChar(Max)
+  lesson_id         Int
+  lesson            lesson              @relation(fields: [lesson_id], references: [id], onUpdate: NoAction)
+  tutorial_question tutorial_question[]
 }
 
 model lesson_learning_outcome {
@@ -171,6 +172,8 @@ model tutorial_question {
   is_student_answer_correct Boolean?
   tutorial                  tutorial                   @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction)
   options                   tutorial_question_option[]
+  subtopic_id               Int
+  subtopic                  lesson_subtopic            @relation(fields: [subtopic_id], references: [id], onUpdate: NoAction)
 }
 
 model tutorial_question_option {

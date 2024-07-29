@@ -24,12 +24,13 @@ export interface TutorialQuestion {
   answer: string;
   student_answer: string | null;
   feedbackType?: "skip" | "basic" | "detailed";
-  isStudentAnswerCorrect?: boolean;
+  is_student_answer_correct?: boolean;
 }
 type TutorialStatus =
   | "generating"
   | "generated"
   | "in-progress"
+  | "submitting"
   | "submitted"
   | "feedback-generating"
   | "feedback-generated"
@@ -104,8 +105,11 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         if ((error as AxiosError).response?.status === 403) {
           setError("You are not authorized to view this tutorial");
         }
-        if ((error as AxiosError).response?.status === 500) {
-          setError("Server error");
+        if ((error as AxiosError).response?.data) {
+          const data = (error as AxiosError).response?.data as {
+            message: string;
+          };
+          setError(data.message);
         }
 
         setIsLoading(false);
@@ -121,14 +125,18 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   const submitAnswer = async (current: number, next: number | null) => {
     const currentQuestionId = questions[current - 1].id;
     if (next === null) {
-      const result = await submitTutorial(
+      // If next is null, it means the user is submitting the tutorial
+      setStatus("submitting");
+      const tutorial = await submitTutorial(
         tutorialId,
         currentQuestionId,
         studentsAnswerForTheCurrentQuestion
       );
-      updateQuestionAnswer(current);
-      set_current_question(result.current_question);
-      setStatus(result.status);
+      setQuestions(tutorial.questions);
+      set_current_question(1);
+      setStatus(tutorial.status);
+      setStudentsAnswerForTheCurrentQuestion(null);
+
       return;
     }
 

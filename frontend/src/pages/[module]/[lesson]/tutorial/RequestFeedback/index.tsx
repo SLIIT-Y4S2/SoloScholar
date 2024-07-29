@@ -1,5 +1,4 @@
 import { Content } from "antd/es/layout/layout";
-import React from "react";
 import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import QuestionCardForTutorialFeedback from "./QuestionCardForTutorialFeedback";
 import { Button, Form, Radio } from "antd";
@@ -65,7 +64,7 @@ const RequestFeedback = () => {
               <Form.Item
                 name={`${question.question_number}`}
                 initialValue={
-                  question.isStudentAnswerCorrect ? "skip" : "basic"
+                  question.is_student_answer_correct ? "skip" : "basic"
                 }
               >
                 <Radio.Group
@@ -75,7 +74,7 @@ const RequestFeedback = () => {
                 >
                   <Radio
                     value={"skip"}
-                    disabled={!question.isStudentAnswerCorrect}
+                    disabled={!question.is_student_answer_correct}
                   >
                     Skip
                   </Radio>

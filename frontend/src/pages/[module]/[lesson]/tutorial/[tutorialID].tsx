@@ -24,6 +24,9 @@ const TutorialView = () => {
   return (
     <Layout style={{ padding: "0 24px 24px" }}>
       <DynamicBreadcrumbComponent />
+      {(status === "generating" ||
+        status === "submitting" ||
+        status === "feedback-generating") && <div>Generating...</div>}
       {(status === "generated" || status === "in-progress") && (
         <TutorialQuestionView />
       )}

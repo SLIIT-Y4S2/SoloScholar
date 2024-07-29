@@ -32,7 +32,6 @@ export const createModuleHandler = async (req: Request, res: Response) => {
         extractSearchingKeywordsFromLessonOutline(lesson);
       const lessonOutlineAsAText: string = convertLessonOutlineToText(lesson);
 
-      console.log("lessonOutlineAsAText", lessonOutlineAsAText);
       const detailedLessonOutline = await synthesizeDetailedLessonOutline(
         searchingKeywords,
         lessonOutlineAsAText
