@@ -1,16 +1,12 @@
 import { z } from "zod";
 
-// Define the output parser for the detailed lab outline using Zod schema
-export const zodSchemaForDetailedLabOutline = z.object(
-    {
-        subTopics: z.array(
-            z.object({
-                title: z.string().describe("The title of the subtopic"),
-                description: z.string().describe("The description of the subtopic"),
-            })
-        )
-    }
-);
+// // Define the output parser for the detailed lab outline using Zod schema
+// export const zodSchemaForDetailedLabOutline = z.array(
+//     z.object({
+//         topic: z.string().describe("The title of the subtopic"),
+//         description: z.string().describe("The description of the subtopic"),
+//     })
+// );
 
 // Define the output parser for the real-world scenario prompt using Zod
 export const zodSchemaForRealWorldScenario = z.string().describe("The real-world scenario for the lab activity");
@@ -30,7 +26,6 @@ const exampleRowSchema = z.record(z.string(), z.union([z.string(), z.number(), z
 
 // Schema for tables
 const zodSchemaForTables = z.object(
-
     {
         tableName: z.string().describe("The name of the table"),
         columns: z.array(columnSchema).describe("The columns of the table"),
@@ -70,7 +65,7 @@ export const zodSchemaForSupportingMaterial = z.object(
     {
         tables: z.array(zodSchemaForTables.optional().nullable()).describe("An optional list of tables if SQL is used"),
         jsonDocument: zodSchemaForJsonDocuments.optional().nullable().describe("An optional JSON document schema  if NoSQL is used"),
-        relationalSchema: relationalSchemaSchema.optional().nullable().describe("An optional relational schema if SQL is used"),
+        relationalSchema: relationalSchemaSchema.optional().nullable().describe("An optional relational schema if SQL is used. You must provide a relational schema if you provide tables"),
     }
 );
 

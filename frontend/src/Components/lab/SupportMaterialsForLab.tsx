@@ -1,7 +1,10 @@
 import { useLabContext } from "../../provider/LabContext";
 
 export function SupportMaterialsForLab() {
-    const { realWorldScenario, supportMaterials } = useLabContext();
+    const { realWorldScenario, supportMaterials, isLoading } = useLabContext();
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
     return (
         <div className="bg-white flex flex-col mx-auto p-8 w-full max-w-[1200px] max-h-[800] h-max rounded-2xl gap-4">
             <h2 className="text-2xl font-bold">Scenario</h2>
@@ -21,7 +24,7 @@ export function SupportMaterialsForLab() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {supportMaterials.relationalSchema[tableName].map((column) => {
+                                        {supportMaterials.relationalSchema && supportMaterials.relationalSchema[tableName].map((column) => {
                                             return (
                                                 <tr key={column.name} className="border-2">
                                                     <td className="border-2 border-black px-4 py-2">{column.name}</td>

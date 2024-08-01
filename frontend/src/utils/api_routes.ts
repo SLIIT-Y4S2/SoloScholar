@@ -7,8 +7,9 @@ export const API_URLS = {
 };
 
 export const LAB_API_URLS = {
-  ANSWER_EVALUATE: `${BASE_API_URL}/lab/evaluate-answer`,
-  GET_LAB_SHEET: `${BASE_API_URL}/lab/get-lab-sheet`, //TODO: Add query params
+  ANSWER_EVALUATE: `/labs/evaluate-answer`,
+  GENERATE_LAB_SHEET: `/labs/generate`,
+  GET_LAB_SHEET: `/labs`,
 };
 
 export const DASHBOARD_API_URLS = {

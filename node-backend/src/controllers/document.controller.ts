@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { MongooseError } from "mongoose";
 import { getDocumentById, getDocumentNames, handlePdfDocumentUpload } from "../services/document.service";
-import { ingestionPipeline } from "../services/rag.service";
+import { ingestionPipeline } from "../utils/rag.util"; 
 
 /**
  * @route POST /api/v1/docs

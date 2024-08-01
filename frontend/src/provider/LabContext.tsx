@@ -3,13 +3,14 @@ import {
     ReactNode,
     useCallback,
     useContext,
+    useEffect,
     useMemo,
     useState,
 } from "react";
 import { labSheet } from "../dummyData/labQuestions";
-// import axios from "axios";
-import { evaluateStudentsAnswer } from "../services/lab.service";
+import { evaluateStudentsAnswer, getLabExerciseById } from "../services/lab.service";
 import { SupportingMaterial } from "../types/lab.types";
+import { useParams } from "react-router-dom";
 
 interface LabProviderProps {
     children: ReactNode;
@@ -54,26 +55,11 @@ export function useLabContext() {
 
 //TODO: Complete the LabProvider function
 export function LabProvider({ children }: LabProviderProps) {
-    const [questions, setQuestions] = useState<LabQuestion[]>(
-        labSheet.questions.map((question) => {
-            return {
-                isCorrect: false,
-                studentAnswers: [],
-                currentAnswer: null,
-                isAnswered: false,
-                attempts: 0,
-                question: question.question,
-                answer: question.answer,
-                exampleQuestion: question.exampleQuestion,
-                exampleAnswer: question.exampleAnswer,
-            };
-        })
+    const [questions, setQuestions] = useState<LabQuestion[]>([]);
+    const [realWorldScenario, setRealWorldScenario] = useState<string>("");
+    const [supportMaterials, setSupportMaterials] = useState<SupportingMaterial>(
+        {}
     );
-
-    const realWorldScenario: string = labSheet.realWorldScenario;
-
-    const supportMaterials = labSheet.supportingMaterial;
-
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
 
     const [isLabCompleted, setIsLabCompleted] = useState<boolean>(false);
@@ -87,6 +73,33 @@ export function LabProvider({ children }: LabProviderProps) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const totalQuestions = labSheet.questions.length;
+
+    const params = useParams();
+
+    useEffect(() => {
+
+        setIsLoading(true);
+        const { labSheetId } = params;
+        console.log("LabSheetId", params);
+
+        if (!labSheetId) {
+            return;
+        }
+
+        getLabExerciseById(labSheetId)
+            .then((response) => {
+                const labSheet = response.data;
+                setRealWorldScenario(labSheet.real_world_scenario);
+                setSupportMaterials(labSheet.supportMaterial);
+                setQuestions(labSheet.labsheet_question);
+
+                setIsLoading(false)
+            })
+            .catch((error) => {
+                console.log("Error fetching lab sheet:", error);
+                setIsLoading(false);
+            });
+    }, [params]);
 
     //TODO: Implement the logic to evaluate the answer from backend
     const evaluateAnswer = useCallback(
@@ -155,6 +168,7 @@ export function LabProvider({ children }: LabProviderProps) {
             evaluateAnswer,
             getHintForCurrentQuestion,
             goToNextQuestion,
+
         }),
         [
             realWorldScenario,

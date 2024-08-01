@@ -39,6 +39,21 @@ export default function QuestionCardForLab() {
     goToNextQuestion();
   }
 
+  if (isLoading) {
+    return (
+      <Content>
+        <div className="flex items-center justify-center h-screen">
+          <Spin
+            indicator={<LoadingOutlined spin />}
+            size="large"
+            className="border-white"
+          />
+        </div>
+      </Content>
+    );
+  }
+
+
   return (
     <Content>
       <div className="bg-white flex flex-col mx-auto p-8 w-full max-w-[1200px] max-h-[800] h-max rounded-2xl">
@@ -75,7 +90,7 @@ export default function QuestionCardForLab() {
                     </Button>
                   )}
                 {questions[currentQuestionIndex]?.attempts >= 6 && (
-                  <Button type="primary">Show Answer</Button>
+                  <Button type="text" className="text-red-500">Show Answer</Button>
                 )}
               </div>
               {isLoading ? (

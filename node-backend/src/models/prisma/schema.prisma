@@ -25,17 +25,34 @@ model interaction {
 }
 
 model labsheet {
-  id                String              @id
-  learning_material learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction)
-  labsheet_question labsheet_question[]
+  id                     String              @id
+  real_world_scenario    String?             @db.VarChar(Max)
+  support_material       String?             @db.VarChar(Max)
+  current_question_index Int                 @default(1)
+  status                 String              @db.VarChar(20)
+  labsheet_question      labsheet_question[]
+  learning_material      learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction)
 }
 
 model labsheet_question {
-  id          Int      @id @default(autoincrement())
-  question    String   @db.VarChar(200)
-  answer      String   @db.VarChar(2000)
-  labsheet_id String
-  labsheet    labsheet @relation(fields: [labsheet_id], references: [id], onUpdate: NoAction)
+  id               String           @id @default(cuid())
+  question_number  Int
+  question         String           @db.VarChar(200)
+  answer           String           @db.VarChar(2000)
+  example_question String           @db.VarChar(200)
+  example_answer   String           @db.VarChar(200)
+  current_answer   String?           @db.VarChar(200)
+  is_correct       Boolean?
+  student_answers  student_answer[]
+  labsheet_id      String
+  labsheet         labsheet         @relation(fields: [labsheet_id], references: [id], onUpdate: NoAction)
+}
+
+model student_answer {
+  id                  String            @id @default(cuid())
+  student_answer      String            @db.VarChar(500)
+  labsheet_question   labsheet_question @relation(fields: [labsheet_questionId], references: [id])
+  labsheet_questionId String
 }
 
 model learner {

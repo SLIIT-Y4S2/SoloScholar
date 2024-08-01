@@ -37,10 +37,16 @@ This practical lab is a self-guided coding lab, where students will be required 
 To complete this task you must use the context inside the <RelatedContext> tag.
 The learning outcomes associated with the given lab are provided within the <LearningOutcomes> tag.
 Detailed Outline of the lab is provided within the <DetailedOutline> tag.
+The topic of the lab is provided within the <TopicOfTheLab> tag.
+Supporting material is provided within the <SupportingMaterial> tag.
 
 <RelatedContext>
     {context}
 </RelatedContext>
+
+<TopicOfTheLab>
+    {topicOfTheLab}
+</TopicOfTheLab>    
 
 <DetailedOutline>
     {detailedOutline}
@@ -60,7 +66,7 @@ You do not need to provide both tables and JSON documents, you can provide eithe
 
 - You need to analyze the subtopics of the lab, real-world scenario, and the learning outcomes associated with the given lab.
 - Then based on the real-world scenario, you need to write supporting material covering the given sub-topics and learning outcomes.
-- You can create support materials as required.
+- You can create support materials as required. There must be at least 4 records in each table if SQL is used. If NoSQL is used, there must be at least 4 documents in the JSON document.
 - Only generate support materials using the given real-world scenario under the <RealWorldScenario> tag and must not repeat the given real-world scenario again in the output.
 
 The related context is provided within the <RelatedContext> tag.
