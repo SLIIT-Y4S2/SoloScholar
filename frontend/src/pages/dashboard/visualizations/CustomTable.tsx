@@ -14,7 +14,7 @@ import {
 
 const CustomTable = () => {
   const [size, setSize] = useState<string>("small");
-  const { data } = useContext(DashboardContext);
+  const { contextData } = useContext(DashboardContext);
 
   return (
     <Fragment>
@@ -61,13 +61,13 @@ const CustomTable = () => {
           rowHoverable
           pagination={false}
           columns={
-            data?.formattedData.tableColumns
-              ? data?.formattedData.tableColumns
+            contextData?.formattedData.tableColumns
+              ? contextData?.formattedData.tableColumns
               : tablePreviewColumns
           }
           dataSource={
-            data && data.visualizationChoice === "Table"
-              ? data.formattedData.tableData
+            contextData && contextData.visualizationChoice === "Table"
+              ? contextData.formattedData.tableData
               : tablePreviewData
           }
         />

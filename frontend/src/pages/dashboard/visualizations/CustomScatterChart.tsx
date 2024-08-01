@@ -20,7 +20,7 @@ import {
 
 const CustomScatterChart = (props: { dotColor?: string }) => {
   const { dotColor } = props;
-  const { data } = useContext(DashboardContext);
+  const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(200);
 
   return (
@@ -33,6 +33,7 @@ const CustomScatterChart = (props: { dotColor?: string }) => {
         />
         <Button
           shape="circle"
+          disabled={height === 200}
           icon={<ZoomOutOutlined />}
           onClick={() => {
             height > 200 ? setHeight(height - 50) : setHeight(200);
@@ -58,8 +59,8 @@ const CustomScatterChart = (props: { dotColor?: string }) => {
           <Tooltip />
           <Scatter
             data={
-              data && data.visualizationChoice === "Scatter Chart"
-                ? data.formattedData.values
+              contextData && contextData.visualizationChoice === "Scatter Chart"
+                ? contextData.formattedData.values
                 : previewData
             }
             fill={dotColor ? dotColor : "#8884d8"}
@@ -67,15 +68,15 @@ const CustomScatterChart = (props: { dotColor?: string }) => {
           <XAxis
             dataKey="xValue"
             name={
-              data?.formattedData.xLabel
-                ? data?.formattedData.xLabel
+              contextData?.formattedData.xLabel
+                ? contextData?.formattedData.xLabel
                 : "X Label"
             }
           >
             <Label
               value={
-                data?.formattedData.xLabel
-                  ? data?.formattedData.xLabel
+                contextData?.formattedData.xLabel
+                  ? contextData?.formattedData.xLabel
                   : "X Label"
               }
               position="bottom"
@@ -85,15 +86,15 @@ const CustomScatterChart = (props: { dotColor?: string }) => {
           <YAxis
             dataKey="yValue"
             name={
-              data?.formattedData.YLabel
-                ? data?.formattedData.YLabel
+              contextData?.formattedData.YLabel
+                ? contextData?.formattedData.YLabel
                 : "Y Label"
             }
           >
             <Label
               value={
-                data?.formattedData.yLabel
-                  ? data?.formattedData.yLabel
+                contextData?.formattedData.yLabel
+                  ? contextData?.formattedData.yLabel
                   : "Y Label"
               }
               position="left"

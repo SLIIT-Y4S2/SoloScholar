@@ -11,7 +11,7 @@ import {
 
 const CustomPieChart = (props: { pieColor?: string }) => {
   const { pieColor } = props;
-  const { data } = useContext(DashboardContext);
+  const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(255);
 
   return (
@@ -52,8 +52,8 @@ const CustomPieChart = (props: { pieColor?: string }) => {
             dataKey="value"
             isAnimationActive={true}
             data={
-              data && data.visualizationChoice === "Pie Chart"
-                ? data.formattedData.values
+              contextData && contextData.visualizationChoice === "Pie Chart"
+                ? contextData.formattedData.values
                 : pieChartPreviewData
             }
             outerRadius={100}

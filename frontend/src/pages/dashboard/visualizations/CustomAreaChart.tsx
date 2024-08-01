@@ -20,7 +20,7 @@ import {
 
 const CustomAreaChart = (props: { areaColor?: string }) => {
   const { areaColor } = props;
-  const { data } = useContext(DashboardContext);
+  const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(200);
 
   return (
@@ -56,8 +56,8 @@ const CustomAreaChart = (props: { areaColor?: string }) => {
       >
         <AreaChart
           data={
-            data && data.visualizationChoice === "Area Chart"
-              ? data.formattedData.values
+            contextData && contextData.visualizationChoice === "Area Chart"
+              ? contextData.formattedData.values
               : previewData
           }
         >
@@ -72,8 +72,8 @@ const CustomAreaChart = (props: { areaColor?: string }) => {
           <XAxis dataKey="xValue">
             <Label
               value={
-                data?.formattedData.xLabel
-                  ? data?.formattedData.xLabel
+                contextData?.formattedData.xLabel
+                  ? contextData?.formattedData.xLabel
                   : "X Label"
               }
               position="bottom"
@@ -83,8 +83,8 @@ const CustomAreaChart = (props: { areaColor?: string }) => {
           <YAxis dataKey="yValue">
             <Label
               value={
-                data?.formattedData.yLabel
-                  ? data?.formattedData.yLabel
+                contextData?.formattedData.yLabel
+                  ? contextData?.formattedData.yLabel
                   : "Y Label"
               }
               position="left"

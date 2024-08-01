@@ -21,7 +21,7 @@ import {
 
 const CustomBarChart = (props: { barColor?: string }) => {
   const { barColor } = props;
-  const { data } = useContext(DashboardContext);
+  const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(200);
 
   return (
@@ -57,8 +57,8 @@ const CustomBarChart = (props: { barColor?: string }) => {
       >
         <BarChart
           data={
-            data && data.visualizationChoice === "Bar Chart"
-              ? data.formattedData.values
+            contextData && contextData.visualizationChoice === "Bar Chart"
+              ? contextData.formattedData.values
               : previewData
           }
         >
@@ -73,8 +73,8 @@ const CustomBarChart = (props: { barColor?: string }) => {
           <XAxis dataKey="xValue">
             <Label
               value={
-                data?.formattedData.xLabel
-                  ? data?.formattedData.xLabel
+                contextData?.formattedData.xLabel
+                  ? contextData?.formattedData.xLabel
                   : "X Label"
               }
               position="bottom"
@@ -84,8 +84,8 @@ const CustomBarChart = (props: { barColor?: string }) => {
           <YAxis dataKey="yValue">
             <Label
               value={
-                data?.formattedData.yLabel
-                  ? data?.formattedData.yLabel
+                contextData?.formattedData.yLabel
+                  ? contextData?.formattedData.yLabel
                   : "Y Label"
               }
               position="left"

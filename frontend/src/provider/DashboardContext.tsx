@@ -13,10 +13,11 @@ export const DashboardContext = createContext({} as any);
 export function DashboardProvider({
   children,
 }: Readonly<DashboardProviderProps>) {
-  const [data, setData] = useState<{
+  const [contextData, setContextData] = useState<{
     analysisGoal: string;
-    formattedData: any;
     visualizationChoice: string;
+    sqlQuery: string;
+    formattedData: any;
   } | null>(null);
   const [customMessage, setCustomMessage] = useState<customMessage | null>(
     null
@@ -27,7 +28,7 @@ export function DashboardProvider({
    */
   const clearData = () => {
     setCustomMessage(null);
-    setData(null);
+    setContextData(null);
   };
 
   /**
@@ -49,28 +50,31 @@ export function DashboardProvider({
         setCustomMessage({
           type: "error",
           content:
-            "Sorry, an unexpected error occurred. Please enter a valid analysis goal and try again.",
+            "Sorry, an unexpected error occurred. Please re-check your analysis goal or try again later.",
         });
       } else {
+        const sqlQuery = await data.result.sqlQuery;
+        const sqlQueryData = await data.result.sqlQueryData;
         if (
-          data.result.length === 1 &&
-          Object.keys(data.result[0])[0] === "" &&
-          data.result[0][Object.keys(data.result[0])[0]] === null
+          sqlQueryData.length === 1 &&
+          Object.keys(sqlQueryData[0])[0] === "" &&
+          sqlQueryData[0][Object.keys(sqlQueryData[0])[0]] === null
         ) {
           setCustomMessage({
             type: "info",
             content:
-              "Sorry, there is insufficient data available to visualize this analysis goal. Provide more information or try again with a different analysis goal.",
+              "Sorry, there is insufficient data available for visualization. Retry by providing more information or try a different analysis goal.",
           });
           return;
         }
-        setData({
+        setContextData({
           analysisGoal: data.goal,
+          visualizationChoice: visualizationChoice,
+          sqlQuery: sqlQuery,
           formattedData: await getFormattedData(
-            data.result,
+            sqlQueryData,
             visualizationChoice
           ),
-          visualizationChoice: visualizationChoice,
         });
       }
     } catch (error: any) {
@@ -78,9 +82,80 @@ export function DashboardProvider({
     }
   };
 
+  /**
+   * Function to get the indicators for a particular instructor.
+   * @param instructorId
+   * @returns
+   */
+  const getIndicators = async (instructorId: string) => {
+    try {
+      const response = await fetch(
+        `${DASHBOARD_API_URLS.GET_INDICATORS}/${instructorId}`
+      );
+      const data = await response.json();
+      return await data.result;
+    } catch (error: any) {
+      // TODO Need to set proper error message
+      console.log(error);
+    }
+  };
+
+  /**
+   * Function to get the data for a particular indicator.
+   * @param indicatorId
+   * @param visualizationChoice
+   * @returns
+   */
+  const getIndicatorData = async (
+    indicatorId: string,
+    visualizationChoice: string
+  ) => {
+    try {
+      const response = await fetch(
+        `${DASHBOARD_API_URLS.GET_INDICATOR_DATA}/${indicatorId}`
+      );
+      const data = await response.json();
+      const sqlQueryData = await data.result;
+      const formattedData = await getFormattedData(
+        sqlQueryData,
+        visualizationChoice
+      );
+      return formattedData;
+    } catch (error: any) {
+      // TODO Need to set proper error message
+      console.log(error);
+    }
+  };
+
+  /**
+   *
+   * @param indicatorId
+   */
+  const editIndicatorData = async (indicatorId: string) => {};
+
+  /**
+   *
+   * @param indicatorId
+   */
+  const deleteIndicator = async (indicatorId: string) => {};
+
   const contextValue = useMemo(
-    () => ({ data, customMessage, createIndicator, clearData }),
-    [data, customMessage, createIndicator, clearData]
+    () => ({
+      contextData,
+      customMessage,
+      createIndicator,
+      getIndicators,
+      getIndicatorData,
+      clearData,
+    }),
+    [
+      contextData,
+      customMessage,
+      createIndicator,
+      getIndicators,
+      getIndicatorData,
+      clearData,
+    ]
   );
 
   return (
