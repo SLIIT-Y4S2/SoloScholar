@@ -55,11 +55,10 @@ export function useLabContext() {
 
 //TODO: Complete the LabProvider function
 export function LabProvider({ children }: LabProviderProps) {
+    
     const [questions, setQuestions] = useState<LabQuestion[]>([]);
     const [realWorldScenario, setRealWorldScenario] = useState<string>("");
-    const [supportMaterials, setSupportMaterials] = useState<SupportingMaterial>(
-        {}
-    );
+    const [supportMaterials, setSupportMaterials] = useState<SupportingMaterial>({});
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
 
     const [isLabCompleted, setIsLabCompleted] = useState<boolean>(false);
@@ -77,7 +76,6 @@ export function LabProvider({ children }: LabProviderProps) {
     const params = useParams();
 
     useEffect(() => {
-
         setIsLoading(true);
         const { labSheetId } = params;
         console.log("LabSheetId", params);
@@ -85,14 +83,12 @@ export function LabProvider({ children }: LabProviderProps) {
         if (!labSheetId) {
             return;
         }
-
         getLabExerciseById(labSheetId)
             .then((response) => {
                 const labSheet = response.data;
                 setRealWorldScenario(labSheet.real_world_scenario);
                 setSupportMaterials(labSheet.supportMaterial);
                 setQuestions(labSheet.labsheet_question);
-
                 setIsLoading(false)
             })
             .catch((error) => {

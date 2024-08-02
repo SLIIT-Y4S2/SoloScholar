@@ -8,7 +8,7 @@ import { AxiosError, AxiosResponse } from "axios";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import { generateLabExercise } from "../../../../services/lab.service";
 
-const Lab = () => {
+export default function LabOverview() {
     const { module, lesson } = useParams();
     const navigate = useNavigate();
 
@@ -85,7 +85,6 @@ const Lab = () => {
 
     return (
         <Layout style={{ padding: "0 24px 24px" }}>
-            <CustomBreadcrumb />
             <Content
                 style={{
                     padding: 24,
@@ -173,10 +172,7 @@ const Lab = () => {
             </Content>
         </Layout>
     );
-};
-
-export default Lab;
-
+}
 
 const LabSheetGenerating = () => {
     const [percent, setPercent] = useState(0);

@@ -18,8 +18,10 @@ import MyIndicators from "../pages/dashboard/MyIndicators";
 import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
 import Main from "../pages/dashboard/Main";
-import Lab from "../pages/[module]/[lesson]/lab";
-import LabView from "../pages/[module]/[lesson]/lab/[labID]";
+import { LabLayout } from "../pages/[module]/[lesson]/lab/LabLayout";
+import { SupportMaterialsForLab } from "../Components/lab/SupportMaterialsForLab";
+import LabOverview from "../pages/[module]/[lesson]/lab";
+import LabSession from "../pages/[module]/[lesson]/lab/[labID]";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -71,17 +73,23 @@ const Routes = () => {
             },
             {
               path: "lab",
-              element: <Lab />,
-            },
-            {
-              path: "lab/:labSheetId",
-              element: <LabView />,
+              element: <LabLayout />,
+              children: [
+                {
+                  path: "",
+                  element: <LabOverview />
+                },
+                {
+                  path: ":labSheetId",
+                  element: <LabSession />,
+                },
+                {
+                  path: ":labSheetId/support-material",
+                  element: <SupportMaterialsForLab />
+                }
+              ]
             },
           ],
-        },
-        {
-          path: "/lab",
-          element: <Lab />,
         },
         {
           path: "/dashboard",

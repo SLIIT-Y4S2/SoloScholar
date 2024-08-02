@@ -2,6 +2,7 @@ import { useLabContext } from "../../provider/LabContext";
 
 export function SupportMaterialsForLab() {
     const { realWorldScenario, supportMaterials, isLoading } = useLabContext();
+    console.log(supportMaterials);
     if (isLoading) {
         return <div>Loading...</div>;
     }
