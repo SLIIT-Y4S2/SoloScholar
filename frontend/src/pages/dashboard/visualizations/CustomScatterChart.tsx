@@ -18,10 +18,17 @@ import {
   YAxis,
 } from "recharts";
 
-const CustomScatterChart = (props: { dotColor?: string }) => {
-  const { dotColor } = props;
-  const { data } = useContext(DashboardContext);
+const CustomScatterChart = (props: { data?: any; dotColor?: string }) => {
+  const { data, dotColor } = props;
+  const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(200);
+
+  let chartData: any;
+  if (contextData) {
+    chartData = contextData.formattedData;
+  } else if (data) {
+    chartData = data.formattedData;
+  }
 
   return (
     <Fragment>
@@ -33,6 +40,7 @@ const CustomScatterChart = (props: { dotColor?: string }) => {
         />
         <Button
           shape="circle"
+          disabled={height === 200}
           icon={<ZoomOutOutlined />}
           onClick={() => {
             height > 200 ? setHeight(height - 50) : setHeight(200);
@@ -57,45 +65,19 @@ const CustomScatterChart = (props: { dotColor?: string }) => {
           <CartesianGrid className="stroke-[#909090]" strokeDasharray="3 3" />
           <Tooltip />
           <Scatter
-            data={
-              data && data.visualizationChoice === "Scatter Chart"
-                ? data.formattedData.values
-                : previewData
-            }
+            data={chartData ? chartData.values : previewData}
             fill={dotColor ? dotColor : "#8884d8"}
           />
-          <XAxis
-            dataKey="xValue"
-            name={
-              data?.formattedData.xLabel
-                ? data?.formattedData.xLabel
-                : "X Label"
-            }
-          >
+          <XAxis dataKey="xValue">
             <Label
-              value={
-                data?.formattedData.xLabel
-                  ? data?.formattedData.xLabel
-                  : "X Label"
-              }
+              value={chartData ? chartData.xLabel : "X Label"}
               position="bottom"
               offset={-5}
             />
           </XAxis>
-          <YAxis
-            dataKey="yValue"
-            name={
-              data?.formattedData.YLabel
-                ? data?.formattedData.YLabel
-                : "Y Label"
-            }
-          >
+          <YAxis dataKey="yValue">
             <Label
-              value={
-                data?.formattedData.yLabel
-                  ? data?.formattedData.yLabel
-                  : "Y Label"
-              }
+              value={chartData ? chartData.yLabel : "Y Label"}
               position="left"
               angle={-90}
               offset={-5}

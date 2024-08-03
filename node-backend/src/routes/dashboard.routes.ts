@@ -1,11 +1,21 @@
 import { Router } from "express";
-import { createIndicator } from "../controllers/dashboard.controller";
+import {
+  generateIndicator,
+  deleteIndicator,
+  getIndicatorData,
+  getIndicators,
+  saveIndicator,
+} from "../controllers/dashboard.controller";
 
 const dashboardRouter: Router = Router();
 
 /**
  * @route POST /api/v1/dashboard/
  */
-dashboardRouter.post("/", createIndicator);
+dashboardRouter.post("/", generateIndicator);
+dashboardRouter.post("/indicators", saveIndicator);
+dashboardRouter.get("/:instructorId", getIndicators);
+dashboardRouter.get("/indicators/:indicatorId", getIndicatorData);
+dashboardRouter.delete("/indicators/:indicatorId", deleteIndicator);
 
 export default dashboardRouter;

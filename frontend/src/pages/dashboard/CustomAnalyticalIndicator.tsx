@@ -4,13 +4,14 @@ import { DashboardContext } from "../../provider/DashboardContext";
 import { useContext } from "react";
 
 const CustomAnalyticalIndicator = () => {
-  const { data, customMessage } = useContext(DashboardContext);
+  const { contextData, customMessage } = useContext(DashboardContext);
 
-  if (data) {
+  if (contextData) {
     return (
       <CustomAnalyticalIndicatorSecondary
-        analysisGoal={data.analysisGoal}
-        visualizationChoice={data.visualizationChoice}
+        analysisGoal={contextData.analysisGoal}
+        visualizationChoice={contextData.visualizationChoice}
+        sqlQuery={contextData.sqlQuery}
       />
     );
   } else if (customMessage) {

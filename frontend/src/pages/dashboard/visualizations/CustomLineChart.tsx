@@ -18,10 +18,17 @@ import {
   Label,
 } from "recharts";
 
-const CustomLineChart = (props: { lineColor?: string }) => {
-  const { lineColor } = props;
-  const { data } = useContext(DashboardContext);
+const CustomLineChart = (props: { data?: any; lineColor?: string }) => {
+  const { data, lineColor } = props;
+  const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(200);
+
+  let chartData: any;
+  if (contextData) {
+    chartData = contextData.formattedData;
+  } else if (data) {
+    chartData = data.formattedData;
+  }
 
   return (
     <Fragment>
@@ -54,13 +61,7 @@ const CustomLineChart = (props: { lineColor?: string }) => {
         border-[#eee] rounded-[5px] border-[2px]
         "
       >
-        <LineChart
-          data={
-            data && data.visualizationChoice === "Line Chart"
-              ? data.formattedData.values
-              : previewData
-          }
-        >
+        <LineChart data={chartData ? chartData.values : previewData}>
           <CartesianGrid className="stroke-[#909090]" strokeDasharray="3 3" />
           <Tooltip />
           <Line
@@ -71,22 +72,14 @@ const CustomLineChart = (props: { lineColor?: string }) => {
           />
           <XAxis dataKey="xValue">
             <Label
-              value={
-                data?.formattedData.xLabel
-                  ? data?.formattedData.xLabel
-                  : "X Label"
-              }
+              value={chartData ? chartData.xLabel : "X Label"}
               position="bottom"
               offset={-5}
             />
           </XAxis>
           <YAxis dataKey="yValue">
             <Label
-              value={
-                data?.formattedData.yLabel
-                  ? data?.formattedData.yLabel
-                  : "Y Label"
-              }
+              value={chartData ? chartData.yLabel : "Y Label"}
               position="left"
               angle={-90}
               offset={-5}

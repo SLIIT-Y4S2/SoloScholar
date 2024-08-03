@@ -2,7 +2,7 @@ import { createContext, ReactNode, useState } from "react";
 import { useMemo } from "react";
 import getFormattedData from "../utils/data_visualization_formatter";
 import { DASHBOARD_API_URLS } from "../utils/api_routes";
-import { customMessage } from "../types/dashboard.types";
+import { CustomMessage } from "../types/dashboard.types";
 
 interface DashboardProviderProps {
   children: ReactNode;
@@ -13,31 +13,39 @@ export const DashboardContext = createContext({} as any);
 export function DashboardProvider({
   children,
 }: Readonly<DashboardProviderProps>) {
-  const [data, setData] = useState<{
+  const [contextData, setContextData] = useState<{
     analysisGoal: string;
-    formattedData: any;
     visualizationChoice: string;
+    sqlQuery: string;
+    formattedData: any;
   } | null>(null);
-  const [customMessage, setCustomMessage] = useState<customMessage | null>(
+  const [contextIndicators, setContextIndicators] = useState<any>(null);
+  const [customMessage, setCustomMessage] = useState<CustomMessage | null>(
     null
   );
+  const [customMessageIndicator, setCustomMessageIndicator] =
+    useState<CustomMessage | null>(null);
 
   /**
    * Function to clear out the data stored in the context.
    */
   const clearData = () => {
     setCustomMessage(null);
-    setData(null);
+    setCustomMessageIndicator(null);
+    setContextData(null);
   };
 
   /**
-   * Function to create an indicator.
+   * Function to generate an indicator.
    * @param goal The goal for which the indicator is to be created.
    * @param visualizationChoice The visualization choice for the indicator.
    */
-  const createIndicator = async (goal: string, visualizationChoice: string) => {
+  const generateIndicator = async (
+    goal: string,
+    visualizationChoice: string
+  ) => {
     try {
-      const response = await fetch(DASHBOARD_API_URLS.CREATE_INDICATOR, {
+      const response = await fetch(DASHBOARD_API_URLS.DASHBOARD, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,28 +57,31 @@ export function DashboardProvider({
         setCustomMessage({
           type: "error",
           content:
-            "Sorry, an unexpected error occurred. Please enter a valid analysis goal and try again.",
+            "Sorry, an unexpected error occurred. Please re-check your analysis goal or try again later.",
         });
       } else {
+        const sqlQuery = await data.result.sqlQuery;
+        const sqlQueryData = await data.result.sqlQueryData;
         if (
-          data.result.length === 1 &&
-          Object.keys(data.result[0])[0] === "" &&
-          data.result[0][Object.keys(data.result[0])[0]] === null
+          sqlQueryData.length === 1 &&
+          Object.keys(sqlQueryData[0])[0] === "" &&
+          sqlQueryData[0][Object.keys(sqlQueryData[0])[0]] === null
         ) {
           setCustomMessage({
             type: "info",
             content:
-              "Sorry, there is insufficient data available to visualize this analysis goal. Provide more information or try again with a different analysis goal.",
+              "Sorry, there is insufficient data available for visualization. Retry by providing more information or try a different analysis goal.",
           });
           return;
         }
-        setData({
+        setContextData({
           analysisGoal: data.goal,
+          visualizationChoice: visualizationChoice,
+          sqlQuery: sqlQuery,
           formattedData: await getFormattedData(
-            data.result,
+            sqlQueryData,
             visualizationChoice
           ),
-          visualizationChoice: visualizationChoice,
         });
       }
     } catch (error: any) {
@@ -78,9 +89,151 @@ export function DashboardProvider({
     }
   };
 
+  /**
+   * Function to save an indicator.
+   * @param indicator
+   */
+  const saveIndicator = async (indicator: any) => {
+    try {
+      const response = await fetch(DASHBOARD_API_URLS.DASHBOARD_INDICATORS, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(indicator),
+      });
+      const data = await response.json();
+      if (data.error) {
+        setCustomMessageIndicator({
+          type: "error",
+          content:
+            "Sorry, an unexpected error occurred. Indicator creation failed.",
+        });
+      } else {
+        setCustomMessageIndicator({
+          type: "success",
+          content: "Indicator created successfully.",
+        });
+      }
+    } catch (error: any) {
+      // TODO Need to set proper error message
+      console.log(error);
+    }
+  };
+
+  /**
+   * Function to get the indicators for a particular instructor.
+   * @param instructorId
+   * @returns
+   */
+  const getIndicators = async (instructorId: string) => {
+    try {
+      const response = await fetch(
+        `${DASHBOARD_API_URLS.DASHBOARD}/${instructorId}`
+      );
+      const data = await response.json();
+      setContextIndicators(data.result);
+    } catch (error: any) {
+      // TODO Need to set proper error message
+      console.log(error);
+    }
+  };
+
+  /**
+   * Function to get the data for a particular indicator.
+   * @param indicatorId
+   * @param visualizationChoice
+   * @returns
+   */
+  const getIndicatorData = async (
+    indicatorId: string,
+    visualizationChoice: string
+  ) => {
+    try {
+      const response = await fetch(
+        `${DASHBOARD_API_URLS.DASHBOARD_INDICATORS}/${indicatorId}`
+      );
+      const data = await response.json();
+      const sqlQueryData = await data.result;
+      return {
+        formattedData: await getFormattedData(
+          sqlQueryData,
+          visualizationChoice
+        ),
+      };
+    } catch (error: any) {
+      // TODO Need to set proper error message
+      console.log(error);
+    }
+  };
+
+  /**
+   *
+   * @param indicatorId
+   */
+  const editIndicatorData = async (indicatorId: string) => {};
+
+  /**
+   * Function to delete an indicator.
+   * @param indicatorId
+   */
+  const deleteIndicator = async (indicatorId: string) => {
+    try {
+      const response = await fetch(
+        `${DASHBOARD_API_URLS.DASHBOARD_INDICATORS}/${indicatorId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await response.json();
+      if (data.error) {
+        setCustomMessageIndicator({
+          type: "error",
+          content:
+            "Sorry, an unexpected error occurred. Indicator deletion failed.",
+        });
+      } else {
+        setCustomMessageIndicator({
+          type: "success",
+          content: "Indicator deleted successfully.",
+        });
+        const updatedIndicators = contextIndicators.filter(
+          (indicator: any) => indicator.id !== indicatorId
+        );
+        setContextIndicators(updatedIndicators);
+      }
+    } catch (error: any) {
+      setCustomMessageIndicator({ type: "error", content: error.message });
+    }
+  };
+
   const contextValue = useMemo(
-    () => ({ data, customMessage, createIndicator, clearData }),
-    [data, customMessage, createIndicator, clearData]
+    () => ({
+      contextData,
+      contextIndicators,
+      customMessage,
+      customMessageIndicator,
+      generateIndicator,
+      saveIndicator,
+      getIndicators,
+      getIndicatorData,
+      deleteIndicator,
+      setCustomMessageIndicator,
+      clearData,
+    }),
+    [
+      contextData,
+      contextIndicators,
+      customMessage,
+      customMessageIndicator,
+      generateIndicator,
+      saveIndicator,
+      getIndicators,
+      getIndicatorData,
+      deleteIndicator,
+      setCustomMessageIndicator,
+      clearData,
+    ]
   );
 
   return (
