@@ -3,8 +3,8 @@ import { Fragment } from "react/jsx-runtime";
 import { Layout, Typography, Input, Button, Result, message } from "antd";
 import { useContext, useState } from "react";
 import { DashboardContext } from "../../provider/DashboardContext";
-import { visualizationChoices } from "../../utils/data_visualization_choices";
-import { customMessage } from "../../types/dashboard.types";
+import { getVisualization } from "../../utils/data_visualization_choices";
+import { CustomMessage } from "../../types/dashboard.types";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -13,12 +13,15 @@ const { TextArea } = Input;
 const CustomAnalyticalIndicatorSecondary = (props: {
   analysisGoal?: string;
   visualizationChoice?: string;
-  customMessage?: customMessage;
+  sqlQuery?: string;
+  customMessage?: CustomMessage;
 }) => {
-  const { analysisGoal, visualizationChoice, customMessage } = props;
+  const { analysisGoal, visualizationChoice, sqlQuery, customMessage } = props;
   const [messageApi, contextHolder] = message.useMessage();
-  const { clearData } = useContext(DashboardContext);
+  const { saveIndicator, clearData, customMessageIndicator } =
+    useContext(DashboardContext);
   const [indicatorName, setIndicatorName] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   return (
     <Fragment>
@@ -45,7 +48,7 @@ const CustomAnalyticalIndicatorSecondary = (props: {
               <Input
                 className="h-[42px]"
                 value={indicatorName}
-                onChange={(e: string) => setIndicatorName(e)}
+                onChange={(e: any) => setIndicatorName(e.target.value)}
               />
             </div>
             <div className="flex gap-[29px] h-fit">
@@ -60,9 +63,10 @@ const CustomAnalyticalIndicatorSecondary = (props: {
             </div>
             <div>
               {
-                visualizationChoices.find(
-                  (choice) => choice.value === visualizationChoice
-                )?.visualization
+                getVisualization(visualizationChoice)
+                // visualizationChoices.find(
+                //   (choice) => choice.value === visualizationChoice
+                // )?.visualization
               }
             </div>
           </div>
@@ -78,16 +82,35 @@ const CustomAnalyticalIndicatorSecondary = (props: {
                 Back
               </Button>
               <Button
+                onClick={async () => {
+                  if (indicatorName === "") {
+                    await messageApi.open({
+                      type: "error",
+                      content: "Please enter an indicator name",
+                    });
+                  } else {
+                    setIsLoading(true);
+                    await saveIndicator({
+                      indicatorName,
+                      analysisGoal,
+                      visualizationChoice,
+                      sqlQuery,
+                      instructorId: "clz0trbf40000ld2w4z43q9yj", // TODO Get instructor id dynamically
+                    });
+                    await messageApi.open({
+                      type: customMessageIndicator?.type,
+                      content: customMessageIndicator?.content,
+                    });
+                    if (customMessageIndicator?.type === "error") {
+                      setIsLoading(false);
+                    } else {
+                      clearData();
+                    }
+                  }
+                }}
+                loading={isLoading}
                 type="primary"
                 className="rounded-[2px]"
-                onClick={() =>
-                  indicatorName === ""
-                    ? messageApi.open({
-                        type: "error",
-                        content: "Please enter an analysis goal",
-                      })
-                    : ""
-                }
               >
                 Save
               </Button>

@@ -1,9 +1,9 @@
-import { PrismaClient } from "@prisma/client";
 import { dashboardUtil } from "../utils/dashboard.util";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { logger } from "../utils/logger.utils";
+import prisma from "../utils/prisma-client.util";
 
-async function createIndicator(
+async function generateIndicator(
   goal: string
 ): Promise<{ sqlQuery: string; sqlQueryData: [] }> {
   const sqlQuery: {
@@ -33,17 +33,11 @@ async function getSqlQuery(goal: string): Promise<{
   });
 }
 
-let prismaClient: PrismaClient | null = null;
-
 async function getSqlQueryData(query: string): Promise<[]> {
-  if (prismaClient == null) {
-    prismaClient = new PrismaClient();
-  }
-
   logger.info(`Query query: ${query}`);
-  return await new PrismaClient().$queryRawUnsafe(query);
+  return await prisma.$queryRawUnsafe(query);
 }
 
 export const dashboardService = {
-  createIndicator,
+  generateIndicator,
 };

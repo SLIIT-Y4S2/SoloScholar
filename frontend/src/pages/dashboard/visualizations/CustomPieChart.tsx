@@ -9,10 +9,17 @@ import {
   ZoomOutOutlined,
 } from "@ant-design/icons";
 
-const CustomPieChart = (props: { pieColor?: string }) => {
-  const { pieColor } = props;
+const CustomPieChart = (props: { data?: any; pieColor?: string }) => {
+  const { data, pieColor } = props;
   const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(255);
+
+  let chartData: any;
+  if (contextData) {
+    chartData = contextData.formattedData;
+  } else if (data) {
+    chartData = data.formattedData;
+  }
 
   return (
     <Fragment>
@@ -51,11 +58,7 @@ const CustomPieChart = (props: { pieColor?: string }) => {
             className="rounded-[5px] border-[#eee]"
             dataKey="value"
             isAnimationActive={true}
-            data={
-              contextData && contextData.visualizationChoice === "Pie Chart"
-                ? contextData.formattedData.values
-                : pieChartPreviewData
-            }
+            data={chartData ? chartData.values : pieChartPreviewData}
             outerRadius={100}
             fill={pieColor ? pieColor : "#8884d8"}
             label

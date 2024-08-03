@@ -12,7 +12,6 @@ export const LAB_API_URLS = {
 };
 
 export const DASHBOARD_API_URLS = {
-  CREATE_INDICATOR: `${BASE_API_URL}/dashboard`,
-  GET_INDICATORS: `${BASE_API_URL}/dashboard`,
-  GET_INDICATOR_DATA: `${BASE_API_URL}/dashboard/indicators`,
+  DASHBOARD: `${BASE_API_URL}/dashboard`,
+  DASHBOARD_INDICATORS: `${BASE_API_URL}/dashboard/indicators`,
 };

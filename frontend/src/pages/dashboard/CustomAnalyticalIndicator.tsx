@@ -11,6 +11,7 @@ const CustomAnalyticalIndicator = () => {
       <CustomAnalyticalIndicatorSecondary
         analysisGoal={contextData.analysisGoal}
         visualizationChoice={contextData.visualizationChoice}
+        sqlQuery={contextData.sqlQuery}
       />
     );
   } else if (customMessage) {

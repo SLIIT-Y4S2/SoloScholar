@@ -8,38 +8,59 @@ import CustomTable from "../pages/dashboard/visualizations/CustomTable";
 export interface VisualizationChoice {
   value: string;
   label: JSX.Element;
-  visualization: JSX.Element;
 }
 
 export const visualizationChoices: VisualizationChoice[] = [
   {
     value: "Bar Chart",
     label: <span>Bar Chart</span>,
-    visualization: <CustomBarChart />,
   },
   {
     value: "Pie Chart",
     label: <span>Pie Chart</span>,
-    visualization: <CustomPieChart />,
   },
   {
     value: "Line Chart",
     label: <span>Line Chart</span>,
-    visualization: <CustomLineChart />,
   },
   {
     value: "Area Chart",
     label: <span>Area Chart</span>,
-    visualization: <CustomAreaChart />,
   },
   {
     value: "Scatter Chart",
     label: <span>Scatter Chart</span>,
-    visualization: <CustomScatterChart />,
   },
   {
     value: "Table",
     label: <span>Table</span>,
-    visualization: <CustomTable />,
   },
 ];
+
+/**
+ *Function to get the visualization based on the visualization choice. This is used in "MyIndicators" component.
+ * @param visualizationChoice
+ * @param data
+ * @returns
+ */
+export const getVisualization = (
+  visualizationChoice: string,
+  data: any = null
+) => {
+  switch (visualizationChoice) {
+    case "Bar Chart":
+      return <CustomBarChart data={data} />;
+    case "Pie Chart":
+      return <CustomPieChart data={data} />;
+    case "Line Chart":
+      return <CustomLineChart data={data} />;
+    case "Area Chart":
+      return <CustomAreaChart data={data} />;
+    case "Scatter Chart":
+      return <CustomScatterChart data={data} />;
+    case "Table":
+      return <CustomTable data={data} />;
+    default:
+      return null;
+  }
+};

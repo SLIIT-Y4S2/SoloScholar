@@ -18,10 +18,17 @@ import {
   YAxis,
 } from "recharts";
 
-const CustomScatterChart = (props: { dotColor?: string }) => {
-  const { dotColor } = props;
+const CustomScatterChart = (props: { data?: any; dotColor?: string }) => {
+  const { data, dotColor } = props;
   const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(200);
+
+  let chartData: any;
+  if (contextData) {
+    chartData = contextData.formattedData;
+  } else if (data) {
+    chartData = data.formattedData;
+  }
 
   return (
     <Fragment>
@@ -58,45 +65,19 @@ const CustomScatterChart = (props: { dotColor?: string }) => {
           <CartesianGrid className="stroke-[#909090]" strokeDasharray="3 3" />
           <Tooltip />
           <Scatter
-            data={
-              contextData && contextData.visualizationChoice === "Scatter Chart"
-                ? contextData.formattedData.values
-                : previewData
-            }
+            data={chartData ? chartData.values : previewData}
             fill={dotColor ? dotColor : "#8884d8"}
           />
-          <XAxis
-            dataKey="xValue"
-            name={
-              contextData?.formattedData.xLabel
-                ? contextData?.formattedData.xLabel
-                : "X Label"
-            }
-          >
+          <XAxis dataKey="xValue">
             <Label
-              value={
-                contextData?.formattedData.xLabel
-                  ? contextData?.formattedData.xLabel
-                  : "X Label"
-              }
+              value={chartData ? chartData.xLabel : "X Label"}
               position="bottom"
               offset={-5}
             />
           </XAxis>
-          <YAxis
-            dataKey="yValue"
-            name={
-              contextData?.formattedData.YLabel
-                ? contextData?.formattedData.YLabel
-                : "Y Label"
-            }
-          >
+          <YAxis dataKey="yValue">
             <Label
-              value={
-                contextData?.formattedData.yLabel
-                  ? contextData?.formattedData.yLabel
-                  : "Y Label"
-              }
+              value={chartData ? chartData.yLabel : "Y Label"}
               position="left"
               angle={-90}
               offset={-5}

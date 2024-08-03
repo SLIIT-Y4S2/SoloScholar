@@ -1,7 +1,19 @@
 import prisma from "../../utils/prisma-client.util";
 
+export const saveIndicator = async (indicator: any) => {
+  return await prisma.analytical_indicator.create({
+    data: {
+      indicator_name: indicator.indicatorName,
+      analysis_goal: indicator.analysisGoal,
+      visualization_choice: indicator.visualizationChoice,
+      sql_query: indicator.sqlQuery,
+      instructor_id: indicator.instructorId,
+    },
+  });
+};
+
 export const getIndicators = async (instructorId: string) => {
-  return await prisma.analytical_indicator.findMany({
+  const indicators = await prisma.analytical_indicator.findMany({
     where: {
       instructor_id: instructorId,
     },
@@ -14,6 +26,7 @@ export const getIndicators = async (instructorId: string) => {
       instructor_id: false,
     },
   });
+  return indicators.length > 0 ? indicators : null;
 };
 
 export const getIndicatorData = async (indicatorId: string) => {
@@ -22,10 +35,20 @@ export const getIndicatorData = async (indicatorId: string) => {
       id: indicatorId,
     },
   });
-  return indicator ? prisma.$queryRawUnsafe(indicator.sql_query) : null;
+  return indicator ? await prisma.$queryRawUnsafe(indicator.sql_query) : null;
+};
+
+export const deleteIndicator = async (indicatorId: string) => {
+  return await prisma.analytical_indicator.delete({
+    where: {
+      id: indicatorId,
+    },
+  });
 };
 
 export const dashboardDbService = {
+  saveIndicator,
   getIndicators,
   getIndicatorData,
+  deleteIndicator,
 };
