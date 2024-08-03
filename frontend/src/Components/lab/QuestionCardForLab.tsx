@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useLabContext } from "../../provider/LabContext";
+import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 import { Button, Input, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { TextAreaRef } from "antd/es/input/TextArea";
@@ -19,7 +19,7 @@ export default function QuestionCardForLab() {
     getHintForCurrentQuestion,
     goToNextQuestion,
     isLabCompleted,
-  } = useLabContext();
+  } = useLabSessionContext();
 
   const answerRef = useRef<TextAreaRef>(null);
 

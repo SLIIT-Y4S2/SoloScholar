@@ -1,7 +1,7 @@
-import { useLabContext } from "../../provider/LabContext";
+import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 
 export function SupportMaterialsForLab() {
-    const { realWorldScenario, supportMaterials, isLoading } = useLabContext();
+    const { realWorldScenario, supportMaterials, isLoading } = useLabSessionContext();
     console.log(supportMaterials);
     if (isLoading) {
         return <div>Loading...</div>;

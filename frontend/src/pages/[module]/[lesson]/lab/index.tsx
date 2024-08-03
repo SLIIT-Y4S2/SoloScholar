@@ -2,61 +2,46 @@ import { Button, Form, Layout, Progress, Select, Table } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import axiosInstance from "../../../../utils/axiosInstance";
-import { API_URLS } from "../../../../utils/api_routes";
-import { AxiosError, AxiosResponse } from "axios";
-import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import { generateLabExercise } from "../../../../services/lab.service";
+import { useLabContext } from "../../../../provider/lab/LabContext";
 
 export default function LabOverview() {
     const { module, lesson } = useParams();
     const navigate = useNavigate();
 
     const [generatingNewLabSheet, setGeneratingNewLabSheet] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | undefined>();
 
-    const [pastLabSheets, setPastLabSheets] = useState<
-        {
-            id: string;
-            create_at: string;
-            status: string;
-            learning_level: string;
-        }[]
-    >();
+    const { isLoading, previousLabSheetSummary } = useLabContext();
 
-    useEffect(() => {
-        if (!module || !lesson) {
-            return;
-        }
-        axiosInstance
-            .get(API_URLS.TUTORIAL, {
-                params: {
-                    moduleName: module.replace(/-/g, " "),
-                    lessonTitle: lesson.replace(/-/g, " "),
-                },
-            })
-            .then((response: AxiosResponse) => {
-                setPastLabSheets(response.data.data);
-                setLoading(false);
-            })
-            .catch((error: AxiosError) => {
-                console.log("Error fetching past labSheets:");
-                const data = error.response?.data;
-                if (data && typeof data === "object" && "message" in data) {
-                    // message.error(data.message);
-                    setError(data.message as string);
-                }
-                setLoading(false);
-            });
-    }, [lesson, module]);
+    // useEffect(() => {
+    //     if (!module || !lesson) {
+    //         return;
+    //     }
+    //     axiosInstance
+    //         .get(API_URLS.TUTORIAL, {
+    //             params: {
+    //                 moduleName: module.replace(/-/g, " "),
+    //                 lessonTitle: lesson.replace(/-/g, " "),
+    //             },
+    //         })
+    //         .then((response: AxiosResponse) => {
+    //             setPastLabSheets(response.data.data);
+    //             setLoading(false);
+    //         })
+    //         .catch((error: AxiosError) => {
+    //             console.log("Error fetching past labSheets:");
+    //             const data = error.response?.data;
+    //             if (data && typeof data === "object" && "message" in data) {
+    //                 // message.error(data.message);
+    //                 setError(data.message as string);
+    //             }
+    //             setLoading(false);
+    //         });
+    // }, [lesson, module]);
 
-    if (loading) {
+    if (isLoading) {
+        console.log(isLoading);
         return <div>Loading...</div>;
-    }
-
-    if (error) {
-        return <div>Error: {error}</div>;
     }
 
     if (generatingNewLabSheet) {
@@ -137,14 +122,14 @@ export default function LabOverview() {
                 <div className="flex flex-col gap-4">
                     <h2 className="text-xl font-bold">Generated LabSheets</h2>
                     <Table
-                        dataSource={pastLabSheets}
+                        dataSource={previousLabSheetSummary!}
                         pagination={false}
                         className="max-w-4xl "
                         rowKey="id"
                     >
                         <Table.Column
                             title="Created"
-                            dataIndex="create_at"
+                            dataIndex="createdAt"
                             render={(text) => {
                                 const date = new Date(text);
                                 const formattedDate = `${date.getMonth() + 1
@@ -155,14 +140,14 @@ export default function LabOverview() {
                                 return `${formattedDate} ${formattedTime}`;
                             }}
                         />
-                        <Table.Column title="Learning Level" dataIndex="learning_level" />
+                        <Table.Column title="Learning Level" dataIndex="learningLevel" />
                         {/* <Table.Column title="Score" dataIndex="score" /> */}
                         <Table.Column title="Status" dataIndex="status" />
                         <Table.Column
                             title="Action"
                             dataIndex="id"
                             render={(id: string) => (
-                                <Link to={`./${id}`}>
+                                <Link to={`./session/${id}`}>
                                     <Button type="primary">View</Button>
                                 </Link>
                             )}

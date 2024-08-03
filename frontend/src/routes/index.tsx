@@ -18,6 +18,7 @@ import MyIndicators from "../pages/dashboard/MyIndicators";
 import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
 import Main from "../pages/dashboard/Main";
+import { LabSessionLayout } from "../pages/[module]/[lesson]/lab/LabSessionLayout";
 import { LabLayout } from "../pages/[module]/[lesson]/lab/LabLayout";
 import { SupportMaterialsForLab } from "../Components/lab/SupportMaterialsForLab";
 import LabOverview from "../pages/[module]/[lesson]/lab";
@@ -80,9 +81,14 @@ const Routes = () => {
                   element: <LabOverview />
                 },
                 {
-                  path: ":labSheetId",
-                  element: <LabSession />,
-                },
+                  path: "session",
+                  element: <LabSessionLayout />,
+                  children: [
+                    {
+                      path: ":labSheetId",
+                      element: <LabSession />
+                    }
+                  ]               },
                 {
                   path: ":labSheetId/support-material",
                   element: <SupportMaterialsForLab />

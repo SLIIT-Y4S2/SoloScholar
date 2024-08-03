@@ -7,16 +7,16 @@ import {
     useMemo,
     useState,
 } from "react";
-import { labSheet } from "../dummyData/labQuestions";
-import { evaluateStudentsAnswer, getLabExerciseById } from "../services/lab.service";
-import { SupportingMaterial } from "../types/lab.types";
+import { labSheet } from "../../dummyData/labQuestions";
+import { evaluateStudentsAnswer, getLabExerciseById } from "../../services/lab.service";
+import { SupportingMaterial } from "../../types/lab.types";
 import { useParams } from "react-router-dom";
 
-interface LabProviderProps {
+interface LabSessionProviderProps {
     children: ReactNode;
 }
 
-interface LabContextType {
+interface LabSessionContextType {
     realWorldScenario: string;
     supportMaterials: SupportingMaterial;
     questions: LabQuestion[];
@@ -43,10 +43,10 @@ interface LabQuestion {
     attempts: number;
 }
 
-const LabProviderContext = createContext<LabContextType | null>(null);
+const LabSessionProviderContext = createContext<LabSessionContextType | null>(null);
 
-export function useLabContext() {
-    const value = useContext(LabProviderContext);
+export function useLabSessionContext() {
+    const value = useContext(LabSessionProviderContext);
     if (!value) {
         throw new Error("useLabProvider must be used within a LabProvider");
     }
@@ -54,7 +54,7 @@ export function useLabContext() {
 }
 
 //TODO: Complete the LabProvider function
-export function LabProvider({ children }: LabProviderProps) {
+export function LabSessionProvider({ children }: LabSessionProviderProps) {
     
     const [questions, setQuestions] = useState<LabQuestion[]>([]);
     const [realWorldScenario, setRealWorldScenario] = useState<string>("");
@@ -150,7 +150,7 @@ export function LabProvider({ children }: LabProviderProps) {
         }, [currentQuestionIndex, totalQuestions, setCurrentQuestionIndex, setHintForCurrentQuestion, setIsLabCompleted]
     );
 
-    const contextValues = useMemo<LabContextType>(
+    const contextValues = useMemo<LabSessionContextType>(
         () => ({
             realWorldScenario,
             supportMaterials,
@@ -183,8 +183,8 @@ export function LabProvider({ children }: LabProviderProps) {
     );
 
     return (
-        <LabProviderContext.Provider value={contextValues}>
+        <LabSessionProviderContext.Provider value={contextValues}>
             {children}
-        </LabProviderContext.Provider>
+        </LabSessionProviderContext.Provider>
     );
 }

@@ -1,19 +1,18 @@
-import { ModuleProvider } from "../../../../provider/ModuleContext";
 import { Layout } from "antd";
+import { ModuleProvider } from "../../../../provider/ModuleContext";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
-import { LabProvider } from "../../../../provider/LabContext";
 import { Outlet } from "react-router-dom";
+import { LabProvider } from "../../../../provider/lab/LabContext";
 
 export function LabLayout() {
     return (
         <ModuleProvider>
-            <Layout className="flex flex-col gap-8 my-6 mx-4 h-max">
-                <CustomBreadcrumb />
-                <LabProvider>
+            <LabProvider>
+                <Layout className="flex flex-col gap-8 my-6 mx-4 h-max">
+                    <CustomBreadcrumb />
                     <Outlet />
-                </LabProvider>
-            </Layout>
+                </Layout>
+            </LabProvider>
         </ModuleProvider>
-
     )
 }

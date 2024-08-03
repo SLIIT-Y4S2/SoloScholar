@@ -8,6 +8,7 @@ export const API_URLS = {
 
 export const LAB_API_URLS = {
   ANSWER_EVALUATE: `/labs/evaluate-answer`,
+  GET_LAB_BY_MODULE_NAME_AND_LESSON_TITLE: `/labs`,
   GENERATE_LAB_SHEET: `/labs/generate`,
   GET_LAB_SHEET: `/labs`,
 };
