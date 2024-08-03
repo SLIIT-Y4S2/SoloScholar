@@ -37,7 +37,7 @@ export async function createLabMaterials(lessonId: number, learnerId: string, le
                             id: learnerId
                         },
                     },
-                    learning_level: learnerId,
+                    learning_level: learningLevel,
                     completion_status: 0,
                 },
             },
@@ -55,6 +55,14 @@ export async function createLabMaterials(lessonId: number, learnerId: string, le
 }
 
 
+/**
+ * 
+ * @param labSheetId 
+ * @param realWorldScenario 
+ * @param supportingMaterials 
+ * @param questions 
+ * @returns 
+ */
 export async function updateLabMaterial(labSheetId: string, realWorldScenario: string, supportingMaterials: string, questions: LabSheetQuestion[]) {
     const updatedLabSheet = await prisma.labsheet.update({
         where: {
@@ -93,6 +101,11 @@ export async function updateLabMaterial(labSheetId: string, realWorldScenario: s
 
 }
 
+/**
+ * 
+ * @param labSheetId 
+ * @returns 
+ */
 export async function getLabSheetById(labSheetId: string) {
     const labSheet = await prisma.labsheet.findUnique({
         where: {
@@ -111,4 +124,37 @@ export async function getLabSheetById(labSheetId: string) {
         ...labSheet.learning_material,
         supportMaterial: JSON.parse(labSheet.support_material!),
     }, ["support_material", "learning_material"]);
+}
+
+
+/**
+ * 
+ * @param lessonId Id of the lesson
+ * @param learnerId Id of the learner
+ * @returns
+ */
+export async function getLearningMaterialDetailsByLearnerIdAndLessonId(lessonId: number, learnerId: string) {
+    const labsSheets = await prisma.labsheet.findMany({
+        where: {
+            learning_material: {
+                lesson: {
+                    id: lessonId,
+                },
+                learner: {
+                    id: learnerId,
+                }
+            },
+        },
+        include: {
+            labsheet_question: true,
+            learning_material: true,
+        },
+    })
+
+    return labsSheets.map(labSheet => omit({
+        createdAt: labSheet.learning_material.create_at,
+        learningLevel: labSheet.learning_material.learning_level,
+        status: labSheet.status,
+        id: labSheet.id,
+    }, ["support_material", "learning_material"]));
 }

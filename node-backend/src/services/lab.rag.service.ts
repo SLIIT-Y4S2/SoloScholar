@@ -5,7 +5,18 @@ import { QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGe
 import { StringOutputParser, StructuredOutputParser } from "@langchain/core/output_parsers";
 import { zodSchemaForQuestions, zodSchemaForRealWorldScenario, zodSchemaForSupportingMaterial } from "../utils/zodSchema.util";
 import { documentRetrievalPipeline } from "../utils/rag.util";
+import { OutputFixingParser } from "langchain/output_parsers";
+import { BaseOutputParser } from "@langchain/core/output_parsers";
+import { logger } from "../utils/logger.utils";
 
+
+function fixingParser(outputParser: BaseOutputParser) {
+    const parser = OutputFixingParser.fromLLM(
+        getChatModel(),
+        outputParser
+    );
+    return parser;
+}
 
 /**
  * This function is responsible for generating a practical lab activities.
@@ -66,7 +77,7 @@ async function responseSynthesizerForLabs(
         },
         supportingMaterialPrompt,
         getChatModel,
-        outputParserForSupportingMaterial
+        () => fixingParser(outputParserForSupportingMaterial),
     ]);
 
     const supportingMaterial = await supportingMaterialPipeline.invoke({
@@ -96,25 +107,30 @@ async function responseSynthesizerForLabs(
         },
         questionGenerationPrompt,
         getChatModel,
-        outputParserForQuestions
+        () => fixingParser(outputParserForQuestions),
     ]);
 
-    const questions = await questionGenerationPipeline.invoke({
-        relatedContext: relatedContext,
-        learningOutcomes: learningOutcomes,
-        topicOfTheLab: lessonTitle,
-        detailedOutline: lessonOutline,
-        realWorldScenario: realWorldScenario,
-        supportingMaterial: supportingMaterial,
-        formatInstructions: outputParserForQuestions.getFormatInstructions()
-    });
-
-    return {
-        realWorldScenario,
-        supportingMaterial,
-        questions
-    };
-
+    try{
+        const questions = await questionGenerationPipeline.invoke({
+            relatedContext: relatedContext,
+            learningOutcomes: learningOutcomes,
+            topicOfTheLab: lessonTitle,
+            detailedOutline: lessonOutline,
+            realWorldScenario: realWorldScenario,
+            supportingMaterial: supportingMaterial,
+            formatInstructions: outputParserForQuestions.getFormatInstructions()
+        });
+    
+        return {
+            realWorldScenario,
+            supportingMaterial,
+            questions
+        };    
+    }
+    catch(error){
+        logger.error(error);
+        throw new Error("Failed to generate lab sheet");
+    }
 }
 
 

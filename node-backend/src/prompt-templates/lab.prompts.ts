@@ -21,8 +21,10 @@ Be verbose and provide as much detail as possible.
 <LearningOutcomes>
     {learningOutcomes}
 </LearningOutcomes>
-You must not provide the output in markdown format or any other format.
-You must provide the output in following JSON format (Replace the placeholders with the actual values).
+
+Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
+You must provide the output in following Structure (Replace the placeholders with the actual values).
+
 {formatInstructions}
 `;
 
@@ -96,7 +98,9 @@ The real-world scenario is provided within the <RealWorldScenario> tag.
 </RealWorldScenario>
 
 
-You must provide the output in the following JSON format (Replace the placeholders with the actual values). You must not provide the output in markdown format or any other format.: 
+Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
+You must provide the output in following Structure (Replace the placeholders with the actual values).
+
 {formatInstructions}
 
 `;
@@ -110,8 +114,9 @@ You are a experienced lecturer at a University. As the lecturer you are responsi
 - All the questions must be coding questions.
 - Assessment must contain at least 10 questions.
 - You must generate a sample answer for each question.
-- Also you must generate a example question and answer pair for each question. 
-These example question and answer pairs must be similar but not related to the original question and answer pair. But they must cover the same learning outcomes detailed outline and real-world scenario.
+- Also you must generate a example question and answer pair for each question.These example question and answer pairs must be similar but not related to the original question and answer pair. But they must cover the same learning outcomes detailed outline and real-world scenario.
+- [IMPORTANT] You must generate questions based on only the given real-world scenario and supporting materials (Or else student will not be able to answer the questions based on the scenario). 
+
 
 The related context is provided within the <RelatedContext> tag.
 The learning outcomes associated with the given lab are provided within the <LearningOutcomes> tag.
@@ -144,7 +149,9 @@ The detailed outline of the lab is provided within the <DetailedOutline> tag.
     {supportingMaterial}
 </SupportingMaterial>
 
-You must provide the output in the following JSON format (Replace the placeholders with the actual values). You must not provide the output in markdown format or any other format.: 
+Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
+You must provide the output in following Structure (Replace the placeholders with the actual values).
+
 {formatInstructions}
 
 `;
