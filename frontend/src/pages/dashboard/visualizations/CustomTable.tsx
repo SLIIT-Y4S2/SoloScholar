@@ -12,9 +12,17 @@ import {
   tablePreviewData,
 } from "../../../utils/data_visualization_preview_data";
 
-const CustomTable = () => {
+const CustomTable = (props: { data?: any }) => {
+  const { data } = props;
+  const { contextData } = useContext(DashboardContext);
   const [size, setSize] = useState<string>("small");
-  const { data } = useContext(DashboardContext);
+
+  let tableData: any;
+  if (contextData) {
+    tableData = contextData.formattedData;
+  } else if (data) {
+    tableData = data.formattedData;
+  }
 
   return (
     <Fragment>
@@ -60,16 +68,8 @@ const CustomTable = () => {
           bordered
           rowHoverable
           pagination={false}
-          columns={
-            data?.formattedData.tableColumns
-              ? data?.formattedData.tableColumns
-              : tablePreviewColumns
-          }
-          dataSource={
-            data && data.visualizationChoice === "Table"
-              ? data.formattedData.tableData
-              : tablePreviewData
-          }
+          columns={tableData ? tableData.tableColumns : tablePreviewColumns}
+          dataSource={tableData ? tableData.tableData : tablePreviewData}
         />
       </div>
     </Fragment>
