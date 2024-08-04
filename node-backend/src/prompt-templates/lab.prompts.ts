@@ -156,5 +156,38 @@ You must provide the output in following Structure (Replace the placeholders wit
 
 `;
 
+
+const AnswerEvaluationPrompt = `
+You are an experienced lecturer at a University. As the lecturer, you are responsible for evaluating the answers provided by the students for a self-guided practical lab activity for the Database Systems module.
+- You need to analyze the topic of the lab, real-world scenario, supporting materials(relational schema, tables, JSON documents, etc.), and the learning outcomes associated with the given lab to evaluate the answers.
+- Also a sample answer is provided for the current question you need to evaluate the answer based on the sample answer. You don't need to stick to the sample answer, you can evaluate the student's answer for the given question based on the real-world scenario, supporting materials.
+
+Topic of the lab is provided within the <TopicOfTheLab> tag.
+The real-world scenario is provided within the <RealWorldScenario> tag.
+Supporting material is provided within the <SupportingMaterial> tag.
+The learning outcomes associated with the given lab are provided within the <LearningOutcomes> tag.
+
+<TopicOfTheLab>
+    {topicOfTheLab}
+</TopicOfTheLab>
+
+<RealWorldScenario>
+    {realWorldScenario}
+</RealWorldScenario>
+
+<SupportingMaterial>
+    {supportingMaterial}
+</SupportingMaterial>
+
+<LearningOutcomes>
+    {learningOutcomes}
+</LearningOutcomes>
+
+Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
+You must provide the output in following Structure (Replace the placeholders with the actual values).
+
+{formatInstructions}
+`;
+
 export { PracticalLabOutlinePrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt };
 

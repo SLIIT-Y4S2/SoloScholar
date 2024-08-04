@@ -110,7 +110,7 @@ async function responseSynthesizerForLabs(
         () => fixingParser(outputParserForQuestions),
     ]);
 
-    try{
+    try {
         const questions = await questionGenerationPipeline.invoke({
             relatedContext: relatedContext,
             learningOutcomes: learningOutcomes,
@@ -120,18 +120,22 @@ async function responseSynthesizerForLabs(
             supportingMaterial: supportingMaterial,
             formatInstructions: outputParserForQuestions.getFormatInstructions()
         });
-    
+
         return {
             realWorldScenario,
             supportingMaterial,
             questions
-        };    
+        };
     }
-    catch(error){
+    catch (error) {
         logger.error(error);
         throw new Error("Failed to generate lab sheet");
     }
 }
 
+async function studentAnswerEvaluation() {
 
-export { documentRetrievalPipeline, responseSynthesizerForLabs };
+}
+
+
+export { documentRetrievalPipeline, responseSynthesizerForLabs, studentAnswerEvaluation };
