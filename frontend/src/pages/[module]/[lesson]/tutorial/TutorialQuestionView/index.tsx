@@ -1,6 +1,5 @@
-import React from "react";
 import TutorialQuestionStatus from "./TutorialQuestionStatus";
-import QuestionCardForTutorialComponent from "./QuestionCardForTutorialComponent";
+import QuestionCardForTutorialAnswering from "./QuestionCardForTutorialAnswering";
 import { useTutorialContext } from "../../../../../provider/TutorialContext";
 
 const TutorialQuestionView = () => {
@@ -17,7 +16,7 @@ const TutorialQuestionView = () => {
         current_question={current_question}
       />
 
-      <QuestionCardForTutorialComponent />
+      <QuestionCardForTutorialAnswering />
     </div>
   );
 };

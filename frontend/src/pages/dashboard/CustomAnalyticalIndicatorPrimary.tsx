@@ -3,7 +3,7 @@ import BreadCrumb from "../../Components/BreadCrumb";
 import { useContext, useState } from "react";
 import { DashboardContext } from "../../provider/DashboardContext";
 import {
-  VisualizationChoice,
+  getVisualization,
   visualizationChoices,
 } from "../../utils/data_visualization_choices";
 import {
@@ -21,12 +21,13 @@ const { Text } = Typography;
 const { TextArea } = Input;
 
 const CustomAnalyticalIndicatorPrimary = () => {
-  const { createIndicator } = useContext(DashboardContext);
+  const { generateIndicator } = useContext(DashboardContext);
   const [messageApi, contextHolder] = message.useMessage();
   const [analysisGoal, setAnalysisGoal] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [visualizationChoice, setVisualizationChoice] =
-    useState<VisualizationChoice>(visualizationChoices[0]);
+  const [visualizationChoice, setVisualizationChoice] = useState<string>(
+    visualizationChoices[0].value
+  );
 
   return (
     <Fragment>
@@ -69,9 +70,8 @@ E.g. I want to see how many beginner level students have scored more than averag
                   showSearch
                   onChange={(e: string) =>
                     setVisualizationChoice(
-                      visualizationChoices.find(
-                        (visualizationChoice) => visualizationChoice.value === e
-                      )!
+                      visualizationChoices.find((choice) => choice.value === e)!
+                        .value
                     )
                   }
                   defaultValue={visualizationChoices[0].value}
@@ -82,7 +82,9 @@ E.g. I want to see how many beginner level students have scored more than averag
                 <Text className="font-medium text-[16px] w-[66px]">
                   Preview
                 </Text>
-                {visualizationChoice.visualization}
+                <div className="w-full">
+                  {getVisualization(visualizationChoice)}
+                </div>
               </div>
             </div>
             <div className="flex justify-end mt-[50px]">
@@ -97,7 +99,7 @@ E.g. I want to see how many beginner level students have scored more than averag
                     });
                   } else {
                     setIsLoading(true);
-                    createIndicator(analysisGoal, visualizationChoice.value);
+                    generateIndicator(analysisGoal, visualizationChoice);
                   }
                 }}
               >

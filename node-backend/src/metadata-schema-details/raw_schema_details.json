@@ -148,7 +148,7 @@
         {
           "name": "level",
           "data_type": "VARCHAR(10)",
-          "description": "This is an enumeration type column which stores seven values only related to cognitive levels: Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'. It does not contain any null values."
+          "description": "This is an enumeration type unique column which stores seven values only related to cognitive levels: Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'. It does not contain any null values."
         }
       ]
     },

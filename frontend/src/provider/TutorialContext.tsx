@@ -8,6 +8,7 @@ import {
 import {
   getTutorialByIndex,
   submitAnswerByQuestionId,
+  submitTutorial,
 } from "../services/tutorial.service";
 import { useParams } from "react-router-dom";
 import { AxiosError } from "axios";
@@ -118,11 +119,16 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   }
 
   const submitAnswer = async (current: number, next: number | null) => {
+    const currentQuestionId = questions[current - 1].id;
     if (next === null) {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Finish the tutorial
+      const result = await submitTutorial(
+        tutorialId,
+        currentQuestionId,
+        studentsAnswerForTheCurrentQuestion
+      );
       updateQuestionAnswer(current);
-      set_current_question(1);
-      setStatus("submitted");
+      set_current_question(result.current_question);
+      setStatus(result.status);
       return;
     }
 
@@ -132,21 +138,20 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
       studentsAnswerForTheCurrentQuestion !== displayedQuestion?.student_answer
     ) {
       try {
-        // await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Submit answer to backend
         const result = await submitAnswerByQuestionId(
           tutorialId,
-          questions[current - 1].id,
+          currentQuestionId,
           studentsAnswerForTheCurrentQuestion,
           next
         );
-        console.log(result);
         updateQuestionAnswer(current);
+        set_current_question(result.current_question);
+        return;
       } catch (error) {
         console.error(error);
         return;
       }
     }
-
     set_current_question(next);
 
     // TODO: Change question only if submission is successful

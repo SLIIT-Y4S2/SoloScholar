@@ -18,3 +18,15 @@ export const submitAnswerByQuestionId = async (
   });
   return response.data.data;
 };
+
+export const submitTutorial = async (
+  tutorialId: string,
+  questionId: number,
+  answer: string | null
+) => {
+  const response = await axiosInstance.post(
+    `/tutorial/${tutorialId}/submission`,
+    { questionId, answer }
+  );
+  return response.data.data;
+};
