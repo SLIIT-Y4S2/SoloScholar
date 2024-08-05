@@ -19,6 +19,7 @@ import MyIndicators from "../pages/dashboard/MyIndicators";
 import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
 import Main from "../pages/dashboard/Main";
+import Module from "../pages/[module]";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -56,6 +57,10 @@ const Routes = () => {
         {
           path: "/login",
           element: <Navigate to="/" />,
+        },
+        {
+          path: "/:module",
+          element: <Module />,
         },
         {
           path: "/:module/:lesson",

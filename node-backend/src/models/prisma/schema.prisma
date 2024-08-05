@@ -172,14 +172,15 @@ model tutorial_question {
   is_student_answer_correct Boolean?
   tutorial                  tutorial                   @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction)
   options                   tutorial_question_option[]
+  //new
   subtopic_id               Int
   subtopic                  lesson_subtopic            @relation(fields: [subtopic_id], references: [id], onUpdate: NoAction)
+  feedback                  String?                    @db.VarChar(Max)
 }
 
 model tutorial_question_option {
-  id   Int    @id @default(autoincrement())
-  text String @db.VarChar(300)
-
+  id                 Int               @id @default(autoincrement())
+  text               String            @db.VarChar(300)
   tutorialQuestionId Int
   tutorial_question  tutorial_question @relation(fields: [tutorialQuestionId], references: [id])
 }

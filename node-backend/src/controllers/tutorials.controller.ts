@@ -15,12 +15,12 @@ import {
   getLessonOutlineByModuleAndLessonName,
   getModuleByName,
   getLessonByModuleIdAndTitle,
+  findSubtopicById,
 } from "../services/db/module.db.service";
 import { logger } from "../utils/logger.utils";
 import { groupBy } from "lodash";
-import prisma from "../utils/prisma-client.util";
 
-export const generateTutorials = async (req: Request, res: Response) => {
+export const generateTutorialHandler = async (req: Request, res: Response) => {
   try {
     // MARK: pre-requisite
     // we need check if the student has already generated the tutorial for the lesson for the given learning rate
@@ -56,7 +56,15 @@ export const generateTutorials = async (req: Request, res: Response) => {
     // loop through the detailed lesson plan and create questions for each subtopic
     const totalNumberOfQuestions = 30; // TEMPORARY
     const totalNumberOfQuestionsPerSubtopics = Math.floor(
-      totalNumberOfQuestions / 2 / lessonOutline.lesson_subtopics.length
+      totalNumberOfQuestions / lessonOutline.lesson_subtopics.length
+    );
+
+    const numberOfMCQQuestionsPerSubtopic = Math.floor(
+      totalNumberOfQuestionsPerSubtopics / 3
+    );
+
+    const numberOfEssayQuestionsPerSubtopic = Math.floor(
+      (totalNumberOfQuestionsPerSubtopics / 3) * 2
     );
 
     const learningOutcomes = lessonOutline.lesson_learning_outcomes.map(
@@ -82,7 +90,7 @@ export const generateTutorials = async (req: Request, res: Response) => {
           learningOutcomes,
           combined_cognitive_level,
           learningLevel,
-          totalNumberOfQuestionsPerSubtopics,
+          numberOfMCQQuestionsPerSubtopic,
           "mcq"
         ),
         synthesizeQuestionsForSubtopic(
@@ -93,7 +101,7 @@ export const generateTutorials = async (req: Request, res: Response) => {
           learningOutcomes,
           combined_cognitive_level,
           learningLevel,
-          totalNumberOfQuestionsPerSubtopics,
+          numberOfEssayQuestionsPerSubtopic,
           "essay"
         ),
       ]);
@@ -124,6 +132,7 @@ export const generateTutorials = async (req: Request, res: Response) => {
       data: {
         id: updatedTutorialWithQuestions.id,
         status: updatedTutorialWithQuestions.status,
+        questions: questions,
       },
     });
   } catch (error) {
@@ -133,7 +142,10 @@ export const generateTutorials = async (req: Request, res: Response) => {
   }
 };
 
-export const getTutorials = async (req: Request, res: Response) => {
+export const getTutorialsByLearnerHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { id: learner_id } = res.locals.user;
     const { moduleName, lessonTitle } = req.query;
@@ -308,16 +320,7 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
     await Promise.all(
       Object.entries(groupedEssayQuestions).map(
         async ([subtopic_id, questions]) => {
-          const subtopic = await prisma.lesson_subtopic.findFirst({
-            where: { id: parseInt(subtopic_id) },
-            include: {
-              lesson: {
-                include: {
-                  module: true,
-                },
-              },
-            },
-          });
+          const subtopic = await findSubtopicById(parseInt(subtopic_id));
 
           if (!subtopic) {
             throw new Error("Subtopic not found");
@@ -348,6 +351,54 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Tutorial submitted successfully",
       data: updateTutorial,
+    });
+  } catch (error) {
+    const message = (error as Error).message;
+    res.status(500).json({ message });
+    logger.error({ message });
+  }
+};
+
+export const requestFeedbackHandler = async (req: Request, res: Response) => {
+  try {
+    const { id: learner_id } = res.locals.user; // verify if the learner is the owner of the tutorial
+    const { tutorialId } = req.params;
+    const { feedback } = req.body;
+
+    if (!tutorialId) {
+      return res.status(400).json({
+        message: "Invalid request body",
+      });
+    }
+
+    const tutorial = await getTutorialById(tutorialId);
+
+    if (tutorial.status !== "submitted") {
+      return res.status(400).json({
+        message: "Tutorial not submitted",
+      });
+    }
+
+    // get all the questions for the tutorial
+    const tutorialQuestions = tutorial.questions;
+
+    // need to group all the tutorials by subtopic
+
+    // generate feedback for questions based on the student answer under each subtopic
+
+    /**
+     * const feedback = await generateFeedbackForQuestions(
+     * lesson,
+     * subtopic,
+     * questions
+     * );
+     *
+     *
+     */
+
+    res.status(200).json({
+      message: "Feedback requested successfully",
+      data: { ...tutorial },
     });
   } catch (error) {
     const message = (error as Error).message;

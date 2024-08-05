@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
-import { createModule } from "../services/db/module.db.service";
+import {
+  createModule,
+  getModuleByName,
+} from "../services/db/module.db.service";
 import {
   convertLessonOutlineToText,
   extractSearchingKeywordsFromLessonOutline,
@@ -7,6 +10,7 @@ import {
 } from "../services/detailedOutline.rag.service";
 
 import { InputModule, Lesson, LessonSubtopic } from "../types/module.types";
+import { logger } from "../utils/logger.utils";
 
 export const createModuleHandler = async (req: Request, res: Response) => {
   try {
@@ -58,7 +62,36 @@ export const createModuleHandler = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json((error as Error).message);
+    logger.error(error);
+  }
+};
 
-    console.error(error);
+export const getModuleByNameHandler = async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+
+    if (!name) {
+      return res.status(400).json({
+        message: "Invalid request",
+      });
+    }
+
+    const module = await getModuleByName(name);
+
+    if (!module) {
+      return res.status(404).json({
+        message: "Module not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Module found",
+      data: {
+        ...module,
+      },
+    });
+  } catch (error) {
+    res.status(500).json((error as Error).message);
+    logger.error(error);
   }
 };

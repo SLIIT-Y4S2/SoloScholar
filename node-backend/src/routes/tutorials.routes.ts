@@ -1,10 +1,11 @@
 import { Router } from "express";
 import {
-  generateTutorials,
-  getTutorials,
+  generateTutorialHandler,
+  getTutorialsByLearnerHandler,
   getTutorialByIdHandler,
   saveTutorialAnswerHandler,
   submitTutorialHandler,
+  requestFeedbackHandler,
 } from "../controllers/tutorials.controller";
 
 const tutorialsRouter = Router();
@@ -13,7 +14,7 @@ const tutorialsRouter = Router();
  * @route POST /api/v1/tutorial/
  */
 
-tutorialsRouter.post("/", generateTutorials);
+tutorialsRouter.post("/", generateTutorialHandler);
 
 //TODO: 2. get route to get all tutorials of that student
 
@@ -21,7 +22,7 @@ tutorialsRouter.post("/", generateTutorials);
  * @route GET /api/v1/tutorial/
  */
 
-tutorialsRouter.get("/", getTutorials);
+tutorialsRouter.get("/", getTutorialsByLearnerHandler);
 
 export default tutorialsRouter;
 
@@ -42,3 +43,9 @@ tutorialsRouter.post("/:tutorialId/answer", saveTutorialAnswerHandler);
  */
 
 tutorialsRouter.post("/:tutorialId/submission", submitTutorialHandler);
+
+/**
+ * @route POST /api/v1/tutorial/:tutorialId/feedback
+ */
+
+tutorialsRouter.post("/:tutorialId/feedback", requestFeedbackHandler);

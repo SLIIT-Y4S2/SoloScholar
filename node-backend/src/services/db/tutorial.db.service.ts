@@ -246,6 +246,7 @@ export const deleteTutorial = async (id: string): Promise<void> => {
     }),
   ]);
 };
+
 /**
  * Save the tutorial answer
  * update the status of the tutorial to in-progress

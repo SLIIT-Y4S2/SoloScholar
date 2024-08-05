@@ -156,6 +156,9 @@ export const getLessonOutlineByModuleAndLessonName = async (
 export const getModuleByName = async (moduleName: string) => {
   const module = await prisma.module.findFirst({
     where: { name: moduleName },
+    include: {
+      lessons: true,
+    },
   });
 
   return module;
@@ -289,3 +292,24 @@ export const deleteModule = async (id: number) => {
 };
 
 // deleteModule(3);
+
+/**
+ * Find subtopic by id
+ * @param id
+ * @returns
+ * @async
+ */
+export const findSubtopicById = async (subtopic_id: number) => {
+  const subtopic = await prisma.lesson_subtopic.findFirst({
+    where: { id: subtopic_id },
+    include: {
+      lesson: {
+        include: {
+          module: true,
+        },
+      },
+    },
+  });
+
+  return subtopic;
+};

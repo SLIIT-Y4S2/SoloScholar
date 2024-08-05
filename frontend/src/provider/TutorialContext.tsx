@@ -7,6 +7,7 @@ import {
 } from "react";
 import {
   getTutorialByIndex,
+  requestFeedbackService,
   submitAnswerByQuestionId,
   submitTutorial,
 } from "../services/tutorial.service";
@@ -46,12 +47,7 @@ interface TutorialContextType {
 
   setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
   submitAnswer: (current: number, next: number | null) => void;
-  requestFeedback: (
-    questionFeedback: {
-      questionNumber: number;
-      feedbackType: string;
-    }[]
-  ) => void;
+  requestFeedback: (questionFeedback: { [key: string]: string }[]) => void;
 }
 
 const TutorialProviderContext = createContext<TutorialContextType | null>(null);
@@ -159,10 +155,9 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         console.error(error);
         return;
       }
+    } else {
+      set_current_question(next);
     }
-    set_current_question(next);
-
-    // TODO: Change question only if submission is successful
   };
 
   const updateQuestionAnswer = (questionNumber: number) => {
@@ -176,13 +171,12 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   };
 
   const requestFeedback = async (
-    questionFeedback: { questionNumber: number; feedbackType: string }[]
+    questionFeedback: { [key: string]: string }[]
   ) => {
     setStatus("feedback-generating");
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Request feedback from backend
-    console.log(questionFeedback);
-
-    setStatus("feedback-generated");
+    const tutorial = await requestFeedbackService(tutorialId, questionFeedback);
+    setQuestions(tutorial.questions);
+    setStatus(tutorial.status);
   };
 
   return (

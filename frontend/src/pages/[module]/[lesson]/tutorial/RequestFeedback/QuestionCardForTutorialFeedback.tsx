@@ -1,5 +1,3 @@
-import TextArea from "antd/es/input/TextArea";
-import React from "react";
 import { TutorialQuestion } from "../../../../../provider/TutorialContext";
 // import { CheckCircleTwoTone, CloseCircleOutlined } from "@ant-design/icons";
 import CheckCircleTwoTone from "@ant-design/icons/CheckCircleTwoTone";
