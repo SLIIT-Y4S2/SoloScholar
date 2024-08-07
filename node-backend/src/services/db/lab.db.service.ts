@@ -1,6 +1,5 @@
-import Prisma from "@prisma/client";
 import prisma from "../../utils/prisma-client.util";
-import { omit, remove } from "lodash";
+import { omit } from "lodash";
 
 interface LabSheetQuestion {
     question: string;
@@ -157,4 +156,60 @@ export async function getLearningMaterialDetailsByLearnerIdAndLessonId(lessonId:
         status: labSheet.status,
         id: labSheet.id,
     }, ["support_material", "learning_material"]));
+}
+
+export async function updateLabSheetAnswers(labSheetId: string, questionId: string, answer: string) {
+    const updatedLabSheet = await prisma.labsheet.update({
+        where: {
+            id: labSheetId
+        },
+        data: {
+            labsheet_question: {
+                update: {
+                    where: {
+                        id: questionId
+                    },
+                    data: {
+                        student_answers: {
+                            create: {
+                                student_answer: answer
+                            }
+                        },
+                    }
+                }
+            }
+        },
+        include: {
+            labsheet_question: true,
+            learning_material: true,
+        }
+    });
+
+    return omit({
+        ...updatedLabSheet,
+        ...updatedLabSheet.learning_material,
+        supportMaterial: JSON.parse(updatedLabSheet.support_material!),
+    }, ["support_material", "learning_material"]);
+}
+
+export async function getLessonDetailsByLabSheetId(labSheetId: string) {
+    const labSheet = await prisma.labsheet.findUnique({
+        where: {
+            id: labSheetId
+        },
+        include: {
+            learning_material: {
+                include: {
+                    lesson: true,
+                }
+            }
+        }
+    });
+
+    if (!labSheet) throw new Error("Lab sheet not found");
+
+    return omit({
+        ...labSheet,
+        ...labSheet.learning_material.lesson,
+    }, ["learning_material"]);
 }

@@ -21,7 +21,22 @@ function getChatModel(): ChatOpenAI {
     apiKey: OPENAI_API_KEY,
     model: OPENAI_CHAT_MODEL,
     temperature: 0.1,
+    callbacks: [
+      {
+        handleLLMEnd(output) {
+          if (OPENAI_CHAT_MODEL !== "gpt-4o") return;
+          const promptTokens = output?.llmOutput?.tokenUsage.promptTokens;
+          const completionTokens =
+            output?.llmOutput?.tokenUsage.completionTokens;
+          const totalCost =
+            (promptTokens / 1000000) * 5 + // gpt-4o
+            (completionTokens / 1000000) * 15;
+          console.log("tokens cost: $", totalCost);
+        },
+      },
+    ],
   });
 }
 
 export { getEmbeddings, getChatModel };
+

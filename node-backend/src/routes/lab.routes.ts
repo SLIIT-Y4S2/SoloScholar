@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { generateLabMaterialsHandler, getLabSheetByIdHandler, getLearningMaterialSummaryByLessonNameHandler } from "../controllers/lab.controller";
+import { evaluateStudentAnswersHandler, generateLabMaterialsHandler, getLabSheetByIdHandler, getLearningMaterialSummaryByLessonNameHandler } from "../controllers/lab.controller";
 
 const labRouter = Router();
 
@@ -9,5 +9,6 @@ const labRouter = Router();
 labRouter.post('/generate', generateLabMaterialsHandler);
 labRouter.get('/:labSheetId', getLabSheetByIdHandler);
 labRouter.get('/:moduleName/:lessonName', getLearningMaterialSummaryByLessonNameHandler);
+labRouter.post('/evaluate', evaluateStudentAnswersHandler);
 
 export default labRouter;

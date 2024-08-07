@@ -79,3 +79,10 @@ export const zodSchemaForQuestions = z.array(
         exampleAnswer: z.string().describe("Answer to the example question"),
     })
 ).describe("A list of questions for the lab activity");
+
+
+// Schema for the student answer evaluation for labs
+export const zodSchemaForStudentAnswerEvaluation = z.object({
+    isCorrect : z.boolean().describe("Whether the student answer is correct or not"),
+    feedback : z.string().describe("Feedback for the student answer"),
+});

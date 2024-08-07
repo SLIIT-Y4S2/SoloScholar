@@ -113,7 +113,7 @@ You are a experienced lecturer at a University. As the lecturer you are responsi
 - Use the supporting materials provided to generate the questions.
 - All the questions must be coding questions.
 - Assessment must contain at least 10 questions.
-- You must generate a sample answer for each question.
+- You must generate a sample answer for each question. The sample answer must be a valid and a complete answer for the given question. Don't provide part of the answer. 
 - Also you must generate a example question and answer pair for each question.These example question and answer pairs must be similar but not related to the original question and answer pair. But they must cover the same learning outcomes detailed outline and real-world scenario.
 - [IMPORTANT] You must generate questions based on only the given real-world scenario and supporting materials (Or else student will not be able to answer the questions based on the scenario). 
 
@@ -124,10 +124,6 @@ The real-world scenario is provided within the <RealWorldScenario> tag.
 The topic of the lab is provided within the <TopicOfTheLab> tag.
 Supporting material is provided within the <SupportingMaterial> tag.
 The detailed outline of the lab is provided within the <DetailedOutline> tag.
-
-<RelatedContext>
-    {context}
-</RelatedContext>
 
 <TopicOfTheLab>
     {topicOfTheLab}
@@ -159,13 +155,13 @@ You must provide the output in following Structure (Replace the placeholders wit
 
 const AnswerEvaluationPrompt = `
 You are an experienced lecturer at a University. As the lecturer, you are responsible for evaluating the answers provided by the students for a self-guided practical lab activity for the Database Systems module.
-- You need to analyze the topic of the lab, real-world scenario, supporting materials(relational schema, tables, JSON documents, etc.), and the learning outcomes associated with the given lab to evaluate the answers.
-- Also a sample answer is provided for the current question you need to evaluate the answer based on the sample answer. You don't need to stick to the sample answer, you can evaluate the student's answer for the given question based on the real-world scenario, supporting materials.
+- You need to analyze the topic of the lab, real-world scenario, supporting materials(relational schema, tables, JSON documents, etc.) associated with the given lab to evaluate the answers.
 
 Topic of the lab is provided within the <TopicOfTheLab> tag.
 The real-world scenario is provided within the <RealWorldScenario> tag.
 Supporting material is provided within the <SupportingMaterial> tag.
-The learning outcomes associated with the given lab are provided within the <LearningOutcomes> tag.
+The question is provided within the <Question> tag.
+Student's answer for the given question is provided within the <StudentAnswer> tag.
 
 <TopicOfTheLab>
     {topicOfTheLab}
@@ -179,9 +175,15 @@ The learning outcomes associated with the given lab are provided within the <Lea
     {supportingMaterial}
 </SupportingMaterial>
 
-<LearningOutcomes>
-    {learningOutcomes}
-</LearningOutcomes>
+<Question>
+    {question}
+</Question>  
+
+<StudentAnswer>
+    {studentAnswer}
+</StudentAnswer>
+
+
 
 Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
 You must provide the output in following Structure (Replace the placeholders with the actual values).
@@ -189,5 +191,8 @@ You must provide the output in following Structure (Replace the placeholders wit
 {formatInstructions}
 `;
 
-export { PracticalLabOutlinePrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt };
+// - Also a sample answer is provided for the current question you need to evaluate the answer based on the sample answer. You don't need to stick to the sample answer, you can evaluate the student's answer for the given question based on the real-world scenario, supporting materials.
+
+
+export { PracticalLabOutlinePrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt, AnswerEvaluationPrompt };
 

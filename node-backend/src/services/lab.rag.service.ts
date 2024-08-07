@@ -1,34 +1,49 @@
 import { RunnableSequence } from "@langchain/core/runnables";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { getChatModel } from "../utils/openai.util";
-import { QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
-import { StringOutputParser, StructuredOutputParser } from "@langchain/core/output_parsers";
-import { zodSchemaForQuestions, zodSchemaForRealWorldScenario, zodSchemaForSupportingMaterial } from "../utils/zodSchema.util";
+import { AnswerEvaluationPrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
+import { StringOutputParser, StructuredOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
+import { zodSchemaForQuestions, zodSchemaForRealWorldScenario, zodSchemaForStudentAnswerEvaluation, zodSchemaForSupportingMaterial } from "../utils/zodSchema.util";
 import { documentRetrievalPipeline } from "../utils/rag.util";
 import { OutputFixingParser } from "langchain/output_parsers";
-import { BaseOutputParser } from "@langchain/core/output_parsers";
 import { logger } from "../utils/logger.utils";
+import { z } from "zod";
+import { LearningOutcome } from "../types/module.types";
 
-
-function fixingParser(outputParser: BaseOutputParser) {
-    const parser = OutputFixingParser.fromLLM(
-        getChatModel(),
-        outputParser
-    );
-    return parser;
-}
-
-/**
- * This function is responsible for generating a practical lab activities.
- * @param topic - The topic of the lab 
- * @returns 
- */
-async function responseSynthesizerForLabs(
+interface ResponseSynthesizerForLabsInputType {
     lessonTitle: string,
     learningLevel: string,
     lessonOutline: string,
-    learningOutcomes: string,
-) {
+    learningOutcomes: LearningOutcome[],
+}
+
+interface ResponseSynthesizerForLabsOutputType {
+    realWorldScenario: string;
+    supportingMaterial: z.infer<typeof zodSchemaForSupportingMaterial>;
+    questions: z.infer<typeof zodSchemaForQuestions>;
+}
+
+interface StudentAnswerEvaluationInputType {
+    topicOfTheLab: string;
+    realWorldScenario: string;
+    supportingMaterial: z.infer<typeof zodSchemaForSupportingMaterial>;
+    question: string;
+    studentAnswer: string;
+}
+
+interface StudentAnswerEvaluationOutputType {
+    studentAnswerEvaluation: z.infer<typeof zodSchemaForStudentAnswerEvaluation>;
+}
+
+/**
+ * 
+ * @param lessonTitle 
+ * @param learningLevel 
+ * @param lessonOutline 
+ * @param learningOutcomes 
+ * @returns 
+ */
+async function responseSynthesizerForLabs({ lessonTitle, learningLevel, lessonOutline, learningOutcomes }: ResponseSynthesizerForLabsInputType): Promise<ResponseSynthesizerForLabsOutputType> {
     // Retrieve related context to the keywords from the vector database
     const relatedContext = await documentRetrievalPipeline(`${lessonTitle} ${learningOutcomes} ${lessonOutline}`, 10);
 
@@ -37,7 +52,7 @@ async function responseSynthesizerForLabs(
 
     const outputParserForRealWorldScenario = StructuredOutputParser.fromZodSchema(zodSchemaForRealWorldScenario);
 
-    // Create a runnable sequence for generating a real-world scenario
+    // Runnable sequence for generating a real-world scenario
     const realWorldScenarioPipeline = RunnableSequence.from([
         {
             context: (input) => input.relatedContext,
@@ -65,7 +80,13 @@ async function responseSynthesizerForLabs(
     // Define the output parser for the supporting material prompt using Zod
     const outputParserForSupportingMaterial = StructuredOutputParser.fromZodSchema(zodSchemaForSupportingMaterial);
 
-    // Create a runnable sequence for generating supporting materials
+    // Fixing parser for the supporting material
+    const fixingParserForSupportingMaterial = OutputFixingParser.fromLLM(
+        getChatModel(),
+        outputParserForSupportingMaterial
+    );
+
+    // Runnable sequence for generating supporting materials
     const supportingMaterialPipeline = RunnableSequence.from([
         {
             context: (input) => input.relatedContext,
@@ -77,7 +98,7 @@ async function responseSynthesizerForLabs(
         },
         supportingMaterialPrompt,
         getChatModel,
-        () => fixingParser(outputParserForSupportingMaterial),
+        fixingParserForSupportingMaterial,
     ]);
 
     const supportingMaterial = await supportingMaterialPipeline.invoke({
@@ -94,10 +115,15 @@ async function responseSynthesizerForLabs(
 
     const outputParserForQuestions = StructuredOutputParser.fromZodSchema(zodSchemaForQuestions);
 
+    // Fixing parser for the questions
+    const fixingParserForQuestions = OutputFixingParser.fromLLM(
+        getChatModel(),
+        outputParserForQuestions
+    );
+
     // Create a runnable sequence for generating questions
     const questionGenerationPipeline = RunnableSequence.from([
         {
-            context: (input) => input.relatedContext,
             learningOutcomes: (input) => input.learningOutcomes,
             topicOfTheLab: (input) => input.topicOfTheLab,
             detailedOutline: (input) => input.detailedOutline,
@@ -107,12 +133,11 @@ async function responseSynthesizerForLabs(
         },
         questionGenerationPrompt,
         getChatModel,
-        () => fixingParser(outputParserForQuestions),
+        fixingParserForQuestions,
     ]);
 
     try {
         const questions = await questionGenerationPipeline.invoke({
-            relatedContext: relatedContext,
             learningOutcomes: learningOutcomes,
             topicOfTheLab: lessonTitle,
             detailedOutline: lessonOutline,
@@ -133,9 +158,50 @@ async function responseSynthesizerForLabs(
     }
 }
 
-async function studentAnswerEvaluation() {
+/**
+ * @param topicOfTheLab The topic of the lab
+ * @param realWorldScenario The real-world scenario for the lab activity
+ * @param supportingMaterial The supporting materials for the lab activity
+ * @param learningOutcomes The learning outcomes associated with the lab activity
+ * @param question The question to evaluate the student's answer
+*/
+async function evaluateStudentAnswers({ topicOfTheLab, realWorldScenario, supportingMaterial, question, studentAnswer }: StudentAnswerEvaluationInputType): Promise<StudentAnswerEvaluationOutputType> {
+    const studentAnswerEvaluationPrompt = PromptTemplate.fromTemplate(AnswerEvaluationPrompt);
 
+    const outputParserForAnswers = StructuredOutputParser.fromZodSchema(zodSchemaForStudentAnswerEvaluation);
+
+    const fixingParserForAnswers = OutputFixingParser.fromLLM(
+        getChatModel(),
+        outputParserForAnswers
+    );
+
+    const studentAnswerEvaluationPipeline = RunnableSequence.from([
+        {
+            topicOfTheLab: (input) => input.topicOfTheLab,
+            realWorldScenario: (input) => input.realWorldScenario,
+            supportingMaterial: (input) => input.supportingMaterial,
+            question: (input) => input.question,
+            studentAnswer: (input) => input.studentAnswer,
+            formatInstructions: (input) => input.formatInstructions
+        },
+        studentAnswerEvaluationPrompt,
+        getChatModel,
+        fixingParserForAnswers,
+    ]);
+
+    const studentAnswerEvaluation = await studentAnswerEvaluationPipeline.invoke({
+        topicOfTheLab: topicOfTheLab,
+        realWorldScenario: realWorldScenario,
+        supportingMaterial: supportingMaterial,
+        question: question,
+        studentAnswer: studentAnswer,
+        formatInstructions: outputParserForAnswers.getFormatInstructions()
+    });
+
+    return {
+        studentAnswerEvaluation
+    };
 }
 
 
-export { documentRetrievalPipeline, responseSynthesizerForLabs, studentAnswerEvaluation };
+export { documentRetrievalPipeline, responseSynthesizerForLabs, evaluateStudentAnswers };
