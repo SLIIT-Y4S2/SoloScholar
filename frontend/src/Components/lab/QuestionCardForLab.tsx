@@ -13,8 +13,9 @@ export default function QuestionCardForLab() {
     currentQuestionIndex,
     totalQuestions,
     questions,
-    evaluateAnswer,
+    evaluateStudentAnswerHandler,
     isLoading,
+    isEvaluatingAnswer,
     hintForCurrentQuestion,
     getHintForCurrentQuestion,
     goToNextQuestion,
@@ -23,12 +24,13 @@ export default function QuestionCardForLab() {
 
   const answerRef = useRef<TextAreaRef>(null);
 
-  // TODO: Implement the handleSubmit function and backend logic
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const answer = answerRef.current?.resizableTextArea?.textArea.value;
+    console.log(answer);
+
     if (answer && answer.trim() !== "") {
-      evaluateAnswer(answer);
+      evaluateStudentAnswerHandler(answer);
     } else {
       alert("Please provide an answer");
     }
@@ -93,7 +95,7 @@ export default function QuestionCardForLab() {
                   <Button type="text" className="text-red-500">Show Answer</Button>
                 )}
               </div>
-              {isLoading ? (
+              {isEvaluatingAnswer ? (
                 <Spin
                   indicator={<LoadingOutlined spin />}
                   size="large"

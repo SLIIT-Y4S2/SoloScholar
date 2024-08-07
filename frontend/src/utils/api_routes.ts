@@ -11,6 +11,7 @@ export const LAB_API_URLS = {
   GET_LAB_BY_MODULE_NAME_AND_LESSON_TITLE: `/labs`,
   GENERATE_LAB_SHEET: `/labs/generate`,
   GET_LAB_SHEET: `/labs`,
+  EVALUATE_ANSWER: `/labs/evaluate-answer`,
 };
 
 export const DASHBOARD_API_URLS = {

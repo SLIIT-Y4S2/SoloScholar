@@ -6,9 +6,9 @@ const labRouter = Router();
 /**
  * @route POST /api/v1/labs
  */
-labRouter.post('/generate', generateLabMaterialsHandler);
 labRouter.get('/:labSheetId', getLabSheetByIdHandler);
 labRouter.get('/:moduleName/:lessonName', getLearningMaterialSummaryByLessonNameHandler);
-labRouter.post('/evaluate', evaluateStudentAnswersHandler);
+labRouter.post('/generate', generateLabMaterialsHandler);
+labRouter.post('/evaluate-answer', evaluateStudentAnswersHandler);
 
 export default labRouter;

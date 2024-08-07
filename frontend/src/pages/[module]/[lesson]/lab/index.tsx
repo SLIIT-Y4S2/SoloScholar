@@ -1,9 +1,10 @@
-import { Button, Form, Layout, Progress, Select, Table } from "antd";
+import { Button, Form, Layout, Select, Skeleton, Table } from "antd";
 import { Content } from "antd/es/layout/layout";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { generateLabExercise } from "../../../../services/lab.service";
 import { useLabContext } from "../../../../provider/lab/LabContext";
+import { QuestionCardForLabSkeleton } from "../../../../Components/lab/QuestionCardForLabSkeleton";
 
 export default function LabOverview() {
     const { module, lesson } = useParams();
@@ -13,39 +14,19 @@ export default function LabOverview() {
 
     const { isLoading, previousLabSheetSummary } = useLabContext();
 
-    // useEffect(() => {
-    //     if (!module || !lesson) {
-    //         return;
-    //     }
-    //     axiosInstance
-    //         .get(API_URLS.TUTORIAL, {
-    //             params: {
-    //                 moduleName: module.replace(/-/g, " "),
-    //                 lessonTitle: lesson.replace(/-/g, " "),
-    //             },
-    //         })
-    //         .then((response: AxiosResponse) => {
-    //             setPastLabSheets(response.data.data);
-    //             setLoading(false);
-    //         })
-    //         .catch((error: AxiosError) => {
-    //             console.log("Error fetching past labSheets:");
-    //             const data = error.response?.data;
-    //             if (data && typeof data === "object" && "message" in data) {
-    //                 // message.error(data.message);
-    //                 setError(data.message as string);
-    //             }
-    //             setLoading(false);
-    //         });
-    // }, [lesson, module]);
+
 
     if (isLoading) {
         console.log(isLoading);
-        return <div>Loading...</div>;
+        return <LabSkelton />;
     }
 
     if (generatingNewLabSheet) {
-        return <LabSheetGenerating />;
+        return (
+            <div className="flex content-center justify-center">
+                <QuestionCardForLabSkeleton />
+            </div>
+        );
     }
 
     const generateLabSheet = async ({
@@ -62,7 +43,7 @@ export default function LabOverview() {
             const response = await generateLabExercise(module.replace(/-/g, " "), lesson.replace(/-/g, " "), learningLevel);
 
             const labSheetId = response.data.id;
-            navigate(`./${labSheetId}`);
+            navigate(`./session/${labSheetId}`);
         } catch (error) {
             console.log("Error generating labSheet:", error);
         }
@@ -159,30 +140,47 @@ export default function LabOverview() {
     );
 }
 
-const LabSheetGenerating = () => {
-    const [percent, setPercent] = useState(0);
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setPercent((prev) => {
-                if (prev >= 100) {
-                    clearInterval(interval);
-                    return 100;
-                }
-                return prev + 1;
-            });
-        }, 800);
-        return () => clearInterval(interval);
-    }, []);
+function LabSkelton() {
+    const active = true;
+    const size = 'default';
+
+    const emptyLabSheetSummary = Array.from({ length: 5 }, (_k, id) => ({
+        Created: "",
+        "Learning Level": "",
+        Status: "",
+        Action: id,
+    }));
+
+    const columns = Object.keys(emptyLabSheetSummary[0]).map((k, i) => {
+        return {
+            title: k,
+            index: k,
+            key: i
+        };
+    });
+
+    console.log(emptyLabSheetSummary);
+
     return (
-        <div className="flex flex-col items-center justify-center h-screen">
-            {/* <Spin size="large" /> */}
-            <Progress
-                percent={percent}
-                status="active"
-                showInfo={false}
-                className="w-1/2"
+        <Content className="bg-white py-6 px-6 rounded-2xl flex flex-col gap-4">
+            {/* <Skeleton title={true} /> */}
+            <Skeleton paragraph={{ rows: 4 }} active={active} />
+            <div className="flex flex-row justify-between gap-2">
+                <Skeleton.Input active={active} size={size} />
+                <Skeleton.Input active={active} size={size} />
+            </div>
+
+            <Table
+                dataSource={[]}
+                pagination={false}
+                className="max-w-4xl "
+                rowKey="_id"
+                columns={columns}
+                locale={{
+                    emptyText: emptyLabSheetSummary.map(empty => <Skeleton.Input key={empty.Action} style={{ marginTop: '10px', width: '100%' }} active={true} block={true} />)
+                }}
             />
-            <p>Loading... Please wait for about 2 minutes.</p>
-        </div>
-    );
-};
+        </Content>
+
+    )
+}

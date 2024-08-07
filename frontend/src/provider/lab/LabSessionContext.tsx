@@ -7,7 +7,6 @@ import {
     useMemo,
     useState,
 } from "react";
-import { labSheet } from "../../dummyData/labQuestions";
 import { evaluateStudentsAnswer, getLabExerciseById } from "../../services/lab.service";
 import { SupportingMaterial } from "../../types/lab.types";
 import { useParams } from "react-router-dom";
@@ -23,15 +22,18 @@ interface LabSessionContextType {
     currentQuestionIndex: number;
     totalQuestions: number;
     isLoading: boolean;
+    isEvaluatingAnswer: boolean;
     hintForCurrentQuestion: string;
     isAnsForCurrQuesCorrect: boolean;
     isLabCompleted: boolean;
-    evaluateAnswer: (answer: string) => Promise<void>;
+    evaluateStudentAnswerHandler: (answer: string) => void;
     getHintForCurrentQuestion: () => Promise<void>;
     goToNextQuestion: () => void;
 }
 
 interface LabQuestion {
+    id: string
+    question_number: number;
     question: string;
     answer: string;
     exampleQuestion: string;
@@ -53,15 +55,15 @@ export function useLabSessionContext() {
     return value;
 }
 
-//TODO: Complete the LabProvider function
-export function LabSessionProvider({ children }: LabSessionProviderProps) {
-    
+export function LabSessionProvider({ children }: Readonly<LabSessionProviderProps>) {
+
     const [questions, setQuestions] = useState<LabQuestion[]>([]);
     const [realWorldScenario, setRealWorldScenario] = useState<string>("");
     const [supportMaterials, setSupportMaterials] = useState<SupportingMaterial>({});
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-
     const [isLabCompleted, setIsLabCompleted] = useState<boolean>(false);
+    const [labSheetId, setLabSheetId] = useState<string | null>(null);
+    const [isEvaluatingAnswer, setIsEvaluatingAnswer] = useState<boolean>(false);
 
     const [hintForCurrentQuestion, setHintForCurrentQuestion] =
         useState<string>("");
@@ -71,7 +73,7 @@ export function LabSessionProvider({ children }: LabSessionProviderProps) {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const totalQuestions = labSheet.questions.length;
+    const [totalQuestions, setTotalQuestions] = useState<number>(0);
 
     const params = useParams();
 
@@ -88,7 +90,23 @@ export function LabSessionProvider({ children }: LabSessionProviderProps) {
                 const labSheet = response.data;
                 setRealWorldScenario(labSheet.real_world_scenario);
                 setSupportMaterials(labSheet.supportMaterial);
-                setQuestions(labSheet.labsheet_question);
+                setQuestions([
+                    ...labSheet.labsheet_question.map((question: LabQuestion) => ({
+                        id: question.id,
+                        question_number: question.question_number,
+                        question: question.question,
+                        answer: question.answer,
+                        exampleQuestion: question.exampleQuestion,
+                        exampleAnswer: question.exampleAnswer,
+                        isCorrect: false,
+                        studentAnswers: [],
+                        currentAnswer: null,
+                        isAnswered: false,
+                        attempts: 0,
+                    })),
+                ]);
+                setTotalQuestions(labSheet.labsheet_question.length);
+                setLabSheetId(labSheetId);
                 setIsLoading(false)
             })
             .catch((error) => {
@@ -97,40 +115,62 @@ export function LabSessionProvider({ children }: LabSessionProviderProps) {
             });
     }, [params]);
 
-    //TODO: Implement the logic to evaluate the answer from backend
-    const evaluateAnswer = useCallback(
-        async (answer: string) => {
-            setIsLoading(true);
+    /**
+     * Evaluate the student's answer
+     */
+    const evaluateStudentAnswerHandler = useCallback(
+        (answer: string) => {
+            console.log("Evaluating answer", answer);
+            if (!labSheetId) {
+                return;
+            }
+            setIsEvaluatingAnswer(true);
 
             // Evaluate the answer
-            const isCorrectAnswer = await evaluateStudentsAnswer(
-                answer,
-                questions[currentQuestionIndex].answer
-            );
-            console.log("Is correct", isCorrectAnswer);
+            evaluateStudentsAnswer(
+                answer, labSheetId, questions[currentQuestionIndex].id).then((response) => {
+                    console.log("Is correct", response.data.studentAnswerEvaluation.isCorrect);
+                    if (response.data.studentAnswerEvaluation.isCorrect) {
+                        setQuestions((prevQuestions) =>
+                            prevQuestions.map((question, index) =>
+                                index === currentQuestionIndex
+                                    ? {
+                                        ...question,
+                                        studentAnswers: [...question.studentAnswers, answer],
+                                        currentAnswer: answer,
+                                        isAnswered: true,
+                                        attempts: question.attempts + 1,
+                                        isCorrect: true
+                                    }
+                                    : question
+                            )
+                        );
+                        setIsAnsForCurrQuesCorrect(true);
+                    } else {
+                        setQuestions((prevQuestions) =>
+                            prevQuestions.map((question, index) =>
+                                index === currentQuestionIndex
+                                    ? {
+                                        ...question,
+                                        studentAnswers: [...question.studentAnswers, answer],
+                                        currentAnswer: answer,
+                                        isAnswered: true,
+                                        attempts: question.attempts + 1,
+                                        isCorrect: false
+                                    }
+                                    : question
+                            )
+                        );
+                    }
 
-            // Update student answers and current answer
-            setQuestions((prevQuestions) =>
-                prevQuestions.map((question, index) =>
-                    index === currentQuestionIndex
-                        ? {
-                            ...question,
-                            studentAnswers: [...question.studentAnswers, answer],
-                            currentAnswer: answer,
-                            isAnswered: true,
-                            attempts: question.attempts + 1,
-                            isCorrect: isCorrectAnswer,
-                        }
-                        : question
-                )
-            );
-
-            setIsAnsForCurrQuesCorrect(isCorrectAnswer);
-
-            setIsLoading(false);
-            console.log("Questions", questions[currentQuestionIndex]?.isCorrect);
+                    setIsEvaluatingAnswer(false);
+                    console.log("Questions", questions[currentQuestionIndex]);
+                }).catch((error) => {
+                    console.log("Error evaluating answer", error);
+                    setIsEvaluatingAnswer(false);
+                });
         },
-        [questions, currentQuestionIndex, setIsLoading, setIsAnsForCurrQuesCorrect]
+        [labSheetId, questions, currentQuestionIndex, setIsEvaluatingAnswer]
     );
 
     const getHintForCurrentQuestion = useCallback(
@@ -161,7 +201,8 @@ export function LabSessionProvider({ children }: LabSessionProviderProps) {
             hintForCurrentQuestion,
             isAnsForCurrQuesCorrect,
             isLabCompleted,
-            evaluateAnswer,
+            isEvaluatingAnswer,
+            evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,
 
@@ -176,7 +217,8 @@ export function LabSessionProvider({ children }: LabSessionProviderProps) {
             hintForCurrentQuestion,
             isAnsForCurrQuesCorrect,
             isLabCompleted,
-            evaluateAnswer,
+            isEvaluatingAnswer,
+            evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,
         ]

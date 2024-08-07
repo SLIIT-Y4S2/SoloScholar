@@ -140,10 +140,9 @@ export async function getLearningMaterialSummaryByLessonNameHandler(req: Request
 export async function evaluateStudentAnswersHandler(req: Request, res: Response) {
 
     try {
-        const { answer, labSheetId, questions_id } = req.body;
-        const { id: learnerId } = res.locals.user;
+        const { studentsAnswer, labSheetId, questionsId } = req.body;
 
-        if (!labSheetId || !answer) {
+        if (!labSheetId || !studentsAnswer) {
             return res.status(400).json({
                 message: "Invalid request body",
             });
@@ -158,7 +157,7 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
             });
         }
 
-        const question_object = labSheet.labsheet_question.find((question) => question.id === questions_id);
+        const question_object = labSheet.labsheet_question.find((question) => question.id === questionsId);
 
         if (!question_object) {
             return res.status(404).json({
@@ -168,7 +167,7 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
 
         console.log({
             question: question_object.question,
-            studentAnswer: answer,
+            studentAnswer: studentsAnswer,
             topicOfTheLab: lesson.title,
             realWorldScenario: labSheet.real_world_scenario!,
             supportingMaterial: labSheet.supportMaterial
@@ -177,23 +176,13 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
 
         const response = await evaluateStudentAnswers({
             question: question_object.question,
-            studentAnswer: answer,
+            studentAnswer: studentsAnswer,
             topicOfTheLab: lesson.title,
             realWorldScenario: labSheet.real_world_scenario!,
             supportingMaterial: labSheet.supportMaterial
         })
 
-        console.log(response);
-
-        return res.status(200).json({
-            question: question_object.question,
-            studentAnswer: answer,
-            topicOfTheLab: lesson.title,
-            realWorldScenario: labSheet.real_world_scenario!,
-            supportingMaterial: labSheet.supportMaterial
-        });
-
-
+        return res.status(200).json(response);
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);

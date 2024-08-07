@@ -87,12 +87,14 @@ const Routes = () => {
                     {
                       path: ":labSheetId",
                       element: <LabSession />
+                    },
+                    {
+                      path: ":labSheetId/support-material",
+                      element: <SupportMaterialsForLab />
                     }
-                  ]               },
-                {
-                  path: ":labSheetId/support-material",
-                  element: <SupportMaterialsForLab />
-                }
+                  ]
+                },
+
               ]
             },
           ],

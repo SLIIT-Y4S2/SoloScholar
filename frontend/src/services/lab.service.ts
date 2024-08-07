@@ -1,10 +1,16 @@
 import { LAB_API_URLS } from "../utils/api_routes";
 import axiosInstance from "../utils/axiosInstance";
 
-export async function evaluateStudentsAnswer(studentsAnswer: string, correctAnswer: string): Promise<boolean> {
-    //Simulate a delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return false;
+export async function evaluateStudentsAnswer(studentsAnswer: string, labSheetId: string, questionsId: string) {
+    console.log("Evaluating answer", studentsAnswer, labSheetId, questionsId);
+    const response = await axiosInstance.post(LAB_API_URLS.EVALUATE_ANSWER, {
+        studentsAnswer,
+        labSheetId,
+        questionsId
+    });
+
+    return response;
+
 }
 
 /**
