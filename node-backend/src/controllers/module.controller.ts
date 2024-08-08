@@ -12,9 +12,12 @@ import {
 import { InputModule, Lesson, LessonSubtopic } from "../types/module.types";
 import { logger } from "../utils/logger.utils";
 
-export const createModuleHandler = async (req: Request, res: Response) => {
+export const createModuleHandler = async (
+  req: Request<{}, {}, InputModule>,
+  res: Response
+) => {
   try {
-    const moduleData: InputModule = req.body;
+    const moduleData = req.body;
 
     if (
       !moduleData ||
@@ -34,13 +37,15 @@ export const createModuleHandler = async (req: Request, res: Response) => {
     const detailedLessons = lessons.map(async (lesson): Promise<Lesson> => {
       const searchingKeywords =
         extractSearchingKeywordsFromLessonOutline(lesson);
-      const lessonOutlineAsAText: string = convertLessonOutlineToText(lesson);
-
+      const lessonOutlineAsAText: string = convertLessonOutlineToText(
+        moduleData.name,
+        moduleData.description,
+        lesson
+      );
       const detailedLessonOutline = await synthesizeDetailedLessonOutline(
         searchingKeywords,
         lessonOutlineAsAText
       );
-
       return {
         ...lesson,
         lesson_subtopics: detailedLessonOutline,
@@ -49,7 +54,7 @@ export const createModuleHandler = async (req: Request, res: Response) => {
 
     const detailedLessonOutlines = await Promise.all(detailedLessons);
 
-    const module = await createModule({
+    const createdModule = await createModule({
       ...moduleData,
       lessons: detailedLessonOutlines,
     });
@@ -57,7 +62,8 @@ export const createModuleHandler = async (req: Request, res: Response) => {
     res.status(201).json({
       message: "Module created successfully",
       data: {
-        module,
+        module: createdModule,
+        // detailedLessonOutlines,
       },
     });
   } catch (error) {

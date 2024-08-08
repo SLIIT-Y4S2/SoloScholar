@@ -38,8 +38,13 @@ export const requestFeedbackService = async (
   const response = await axiosInstance.post(
     `/tutorial/${tutorialId}/feedback`,
     {
-      feedback,
+      ...feedback,
     }
   );
+  return response.data.data;
+};
+
+export const completeTutorialService = async (tutorialId: string) => {
+  const response = await axiosInstance.post(`/tutorial/${tutorialId}/complete`);
   return response.data.data;
 };

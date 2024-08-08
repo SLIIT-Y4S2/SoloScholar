@@ -40,7 +40,7 @@ const RequestFeedback = () => {
       </p>
 
       <Form
-        onFinish={(values) => {
+        onFinish={async (values) => {
           // console.log(values);
           requestFeedback(values);
         }}

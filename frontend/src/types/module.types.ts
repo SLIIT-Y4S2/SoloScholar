@@ -8,8 +8,13 @@ interface Lesson {
   id: number;
   title: string;
   description: string;
-  subtopics: string[];
+  lesson_subtopics: lesson_subtopic[];
   learning_outcomes: LearningOutcome[];
+}
+
+interface lesson_subtopic {
+  topic: string;
+  description: string;
 }
 
 interface LearningOutcome {

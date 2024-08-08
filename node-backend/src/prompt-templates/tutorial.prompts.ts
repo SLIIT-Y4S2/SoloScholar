@@ -71,7 +71,9 @@
 export const GenerateShortAnswerQuestionPrompt = `
 You are an adaptive assessment creator for a university, skilled at creating questions across all learning levels. Your task is to create a set of open-ended questions for the following lesson topic, tailored to the student's chosen level but also including bridging questions:
 
-Topic: {subtopic}
+Module: {module}
+Lesson: {lesson}
+Subtopic: {subtopic} (questions should be based on this subtopic)
 Description: {description}
 Student Level: {learningRate} [Options: Beginner, Intermediate, Advanced]
 
@@ -110,10 +112,12 @@ Formatting Instructions:
 
 Before submitting:
 1. Review each question for clarity, relevance, and appropriate difficulty.
-2. Ensure the distribution of question levels matches the specified percentages for the chosen student level.
-3. Ensure the questions as a whole achieve the minimum required Bloom's Taxonomy levels.
-4. Arrange questions so that bridging questions transition from beginner to advanced levels.
-5. Label each question with its difficulty level (Beginner, Intermediate, or Advanced) for clarity.
+2. Ensure the question can be answered through text input. And no illustrations or diagrams are required.
+3. Ensure the questions are unique and do not overlap in content.
+4. Ensure the questions can be categorized under the module, lesson, and subtopic provided. Don't include questions that are out of scope.
+5. Ensure the questions as a whole achieve the minimum required Bloom's Taxonomy levels.
+6. Arrange questions so that bridging questions transition from beginner to advanced levels.
+7. Label each question with its difficulty level (Beginner, Intermediate, or Advanced) for clarity.
 `;
 
 /**
@@ -126,7 +130,9 @@ Question Formulation Guidelines:
 export const GenerateMultipleChoiceQuestionPrompt = `
 You are an experienced assessment setter at a university. As the exam setter, you are responsible for writing assessment materials for undergraduate courses. Your job involves creating mcq questions for the following subtopic:
 
-Subtopic: {subtopic}
+Module: {module}
+Lesson: {lesson}
+Subtopic: {subtopic} (questions should be based on this subtopic)
 Description for the subtopic : {description}
 
 These questions should be based on the given learning outcomes and Bloom's Taxonomy levels.

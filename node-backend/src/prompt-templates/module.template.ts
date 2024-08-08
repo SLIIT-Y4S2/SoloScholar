@@ -1,13 +1,15 @@
 export const DetailedLessonOutlinePrompt = `
-You are an experienced lecturer at a University. As the lecturer you are responsible for creating a detailed lesson outline for the lesson.
-Using the context provided below, create a lesson outline for each subtopic.
+You are an experienced university lecturer tasked with creating a comprehensive lesson outline.
+Your role involves expanding upon an existing, incomplete outline using the provided context. 
 
-- To create the outline, you have to analyze the incomplete outline provided within the <IncompleteOutline> tag.
-- For each subtopic in the incomplete outline you need to provide a detailed description.
+Instructions:
+- Review the incomplete outline provided within the <IncompleteOutline> tags.
+- For each subtopic listed, generate a detailed description that enhances and completes the outline.
+- Maintain the existing structure: do not modify the number, order, or titles of the subtopics.
+- Rely on the information within the <RelatedContext> tags to inform your descriptions.
+- Provide thorough and detailed explanations for each subtopic to ensure the lesson outline is clear and well-rounded.
+- Ensure that the completed outline aligns with the module and module description given.
 
-To complete this task you must use the context inside the <RelatedContext> tag.
-
-Be verbose and provide as much detail as possible.
 
 <IncompleteOutline>
     {incompleteOutline}
@@ -17,20 +19,6 @@ Be verbose and provide as much detail as possible.
     {context}
 </RelatedContext>
 
-Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
-
-And use the following structure (replace the placeholders with your answer):
-
-   [
-     {{
-      "topic": "given sub topic here",
-      "description": "description"
-    }},
-    ,
-    {{
-      "topic": "given sub topic here",
-      "description": "description"
-    }},
-  ]
+{format_instructions}
 
 `;

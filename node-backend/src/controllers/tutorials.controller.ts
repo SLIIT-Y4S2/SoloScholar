@@ -7,9 +7,11 @@ import {
   createTutorial,
   updateTutorialQuestions,
   getTutorialByLearnerId,
-  getTutorialById,
+  getTutorialByIdWithQuestions,
   saveTutorialAnswer,
   updateTutorialQuestionResult,
+  updateTutorialsWithFeedback,
+  updateTutorialStatus,
 } from "../services/db/tutorial.db.service";
 import {
   getLessonOutlineByModuleAndLessonName,
@@ -84,6 +86,8 @@ export const generateTutorialHandler = async (req: Request, res: Response) => {
       const [mcqQuestions, essayQuestions] = await Promise.all([
         synthesizeQuestionsForSubtopic(
           `${subtopic.topic} ${subtopic.description}`,
+          moduleName,
+          lessonTitle,
           subtopic.id,
           subtopic.topic,
           subtopic.description,
@@ -95,6 +99,8 @@ export const generateTutorialHandler = async (req: Request, res: Response) => {
         ),
         synthesizeQuestionsForSubtopic(
           `${subtopic.topic} ${subtopic.description}`,
+          moduleName,
+          lessonTitle,
           subtopic.id,
           subtopic.topic,
           subtopic.description,
@@ -205,7 +211,7 @@ export const getTutorialByIdHandler = async (req: Request, res: Response) => {
       });
     }
 
-    const tutorial = await getTutorialById(tutorialId);
+    const tutorial = await getTutorialByIdWithQuestions(tutorialId);
 
     const noAnswers =
       tutorial.status === "generated" || tutorial.status === "in-progress";
@@ -288,7 +294,7 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
     //MARK: Questions getting marked correct or incorrect
 
     // get all the questions for the tutorial
-    const tutorial = await getTutorialById(tutorialId);
+    const tutorial = await getTutorialByIdWithQuestions(tutorialId);
 
     // filter out the question with defined student answers
     const answeredQuestions = tutorial.questions.filter(
@@ -346,7 +352,7 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
       )
     );
 
-    const updateTutorial = await getTutorialById(tutorialId);
+    const updateTutorial = await getTutorialByIdWithQuestions(tutorialId);
 
     res.status(200).json({
       message: "Tutorial submitted successfully",
@@ -359,19 +365,26 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const requestFeedbackHandler = async (req: Request, res: Response) => {
+interface FeedbackBody {
+  [key: number]: string;
+}
+
+export const requestFeedbackHandler = async (
+  req: Request<{ tutorialId: string }, {}, FeedbackBody>,
+  res: Response
+) => {
   try {
     const { id: learner_id } = res.locals.user; // verify if the learner is the owner of the tutorial
     const { tutorialId } = req.params;
-    const { feedback } = req.body;
+    const feedback = req.body;
 
-    if (!tutorialId) {
+    if (feedback === null || !tutorialId) {
       return res.status(400).json({
         message: "Invalid request body",
       });
     }
 
-    const tutorial = await getTutorialById(tutorialId);
+    const tutorial = await getTutorialByIdWithQuestions(tutorialId);
 
     if (tutorial.status !== "submitted") {
       return res.status(400).json({
@@ -379,13 +392,14 @@ export const requestFeedbackHandler = async (req: Request, res: Response) => {
       });
     }
 
+    await updateTutorialStatus(tutorialId, "feedback-generating");
+
     // get all the questions for the tutorial
     const tutorialQuestions = tutorial.questions;
 
     // need to group all the tutorials by subtopic
 
     // generate feedback for questions based on the student answer under each subtopic
-
     /**
      * const feedback = await generateFeedbackForQuestions(
      * lesson,
@@ -396,9 +410,55 @@ export const requestFeedbackHandler = async (req: Request, res: Response) => {
      *
      */
 
+    const feedbackInput = tutorialQuestions.map((question) => {
+      return {
+        id: question.id,
+        feedback:
+          "Quis culpa et pariatur nostrud. Nulla aliqua nulla laborum veniam eu ea ut sint ea. Exercitation magna qui voluptate esse est deserunt. Irure excepteur deserunt enim cillum ut dolore elit consequat mollit mollit aliquip aliquip esse.",
+        feedback_type: feedback[question.id],
+      };
+    });
+
+    await updateTutorialsWithFeedback(tutorialId, feedbackInput);
+
     res.status(200).json({
       message: "Feedback requested successfully",
       data: { ...tutorial },
+    });
+  } catch (error) {
+    const message = (error as Error).message;
+    res.status(500).json({ message });
+    logger.error({ message });
+  }
+};
+
+export const markTutorialAsCompletedHandler = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { id: learner_id } = res.locals.user; // verify if the learner is the owner of the tutorial
+    const { tutorialId } = req.params;
+
+    if (!tutorialId) {
+      return res.status(400).json({
+        message: "Invalid request body",
+      });
+    }
+
+    const tutorial = await getTutorialByIdWithQuestions(tutorialId);
+
+    if (tutorial.status !== "feedback-generated") {
+      return res.status(400).json({
+        message: "Tutorial feedback not received",
+      });
+    }
+
+    const updatedTutorial = await updateTutorialStatus(tutorialId, "completed");
+
+    res.status(200).json({
+      message: "Tutorial marked as completed",
+      data: updatedTutorial,
     });
   } catch (error) {
     const message = (error as Error).message;

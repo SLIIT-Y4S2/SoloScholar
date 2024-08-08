@@ -7,6 +7,7 @@ import { ItemType } from "antd/es/breadcrumb/Breadcrumb";
 import axiosInstance from "../../../../utils/axiosInstance";
 import { API_URLS } from "../../../../utils/api_routes";
 import { AxiosError, AxiosResponse } from "axios";
+import { TutorialStatus } from "../../../../provider/TutorialContext";
 
 const Tutorial = () => {
   const { module, lesson } = useParams();
@@ -166,11 +167,19 @@ const Tutorial = () => {
             <Table.Column
               title="Action"
               dataIndex="id"
-              render={(id: string) => (
-                <Link to={`./${id}`}>
-                  <Button type="primary">View</Button>
-                </Link>
-              )}
+              render={(id: string, record: { status: TutorialStatus }) => {
+                if (
+                  record.status === "generating" ||
+                  record.status === "feedback-generating"
+                ) {
+                  return;
+                }
+                return (
+                  <Link to={`./${id}`}>
+                    <Button type="primary">View</Button>
+                  </Link>
+                );
+              }}
             />
           </Table>
         </div>

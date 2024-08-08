@@ -1,6 +1,6 @@
+import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { getChatModel, getEmbeddings } from "../utils/openai.util";
 import {
   GenerateMultipleChoiceQuestionPrompt,
@@ -16,21 +16,36 @@ import { shuffle } from "lodash";
 
 // MARK: Question Generation
 
-async function documentRetrievalPipeline() {
+/**
+ * TODO: remove this
+ * The prompt template for generating a detailed lesson outline
+ * @returns A PineconeStore object
+ */
+async function documentRetrievalPipeline(
+  keyWords: string,
+  kValue: number = 10
+) {
   const pineconeIndex = await getPineconeIndex();
   const embeddingModel = getEmbeddings();
+
   // Get the PineconeStore object
   const pineconeStore = await PineconeStore.fromExistingIndex(embeddingModel, {
     pineconeIndex,
   });
-  const retriever = pineconeStore.asRetriever(3);
+
+  // Fetch the top 10 similar documents.
+  const retriever = pineconeStore.asRetriever(kValue);
+
   // Create a runnable sequence
   const runnableSequence = RunnableSequence.from([
-    (input) => input.searchingKeywords,
+    (input) => input.keyWords,
     retriever,
     convertDocsToString,
   ]);
-  return runnableSequence;
+
+  const relatedContext = await runnableSequence.invoke({ keyWords: keyWords });
+
+  return relatedContext;
 }
 
 /**
@@ -47,6 +62,8 @@ async function documentRetrievalPipeline() {
  */
 export async function synthesizeQuestionsForSubtopic(
   searchingKeywords: string,
+  module: string,
+  lesson: string,
   subtopic_id: number,
   subtopic: string,
   subtopic_description: string,
@@ -74,17 +91,22 @@ export async function synthesizeQuestionsForSubtopic(
     ? "Respond with a valid JSON array, containing object with three fields: 'question', 'answer', and 'difficulty'."
     : "Respond with a valid JSON array, containing object with four fields: 'question', 'answer', 'distractors', and 'difficulty'.";
 
-  const parser = new JsonOutputParser<SynthesizedQuestions[]>();
+  const jsonParser = new JsonOutputParser<SynthesizedQuestions[]>();
 
-  const questionGenerationPrompt = ChatPromptTemplate.fromTemplate(prompt);
+  const questionGenerationPrompt = PromptTemplate.fromTemplate(prompt);
 
-  const partialedPrompt = await questionGenerationPrompt.partial({
-    format_instructions: formatInstructions,
-  });
+  const promptWithFormattingInstructions =
+    await questionGenerationPrompt.partial({
+      format_instructions: formatInstructions,
+    });
+
+  const context = documentRetrievalPipeline(searchingKeywords, 3);
 
   const retrievalChain = RunnableSequence.from([
     {
-      context: documentRetrievalPipeline,
+      context: (input) => input.context,
+      module: (input) => input.module,
+      lesson: (input) => input.lesson,
       subtopic: (input) => input.subtopic,
       description: (input) => input.subtopic_description,
       lesson_learning_outcome: (input) => input.lesson_learning_outcome,
@@ -95,13 +117,15 @@ export async function synthesizeQuestionsForSubtopic(
       intermediateQuestions: (input) => input.questionDistribution.intermediate,
       advancedQuestions: (input) => input.questionDistribution.advanced,
     },
-    partialedPrompt,
+    promptWithFormattingInstructions,
     getChatModel,
-    new StringOutputParser(),
+    jsonParser,
   ]);
 
-  const questionResponse = await retrievalChain.pipe(parser).invoke({
-    searchingKeywords,
+  const questionResponse = await retrievalChain.invoke({
+    context,
+    module,
+    lesson,
     subtopic,
     subtopic_description,
     lesson_learning_outcome,
@@ -187,9 +211,9 @@ export async function markStudentAnswerCorrectOrIncorrect(
   const formatInstructions =
     "Respond with a valid JSON array of boolean values.";
 
-  const parser = new JsonOutputParser<boolean[]>();
+  const jsonParser = new JsonOutputParser<boolean[]>();
 
-  const generationPrompt = ChatPromptTemplate.fromTemplate(
+  const generationPrompt = PromptTemplate.fromTemplate(
     MarkShortAnswerQuestionPrompt
   );
 
@@ -197,9 +221,13 @@ export async function markStudentAnswerCorrectOrIncorrect(
     format_instructions: formatInstructions,
   });
 
+  const context = documentRetrievalPipeline(
+    `${lesson} ${subtopic} ${subtopic_description}`,
+    2
+  );
   const retrievalChain = RunnableSequence.from([
     {
-      context: documentRetrievalPipeline,
+      context: (input) => input.context,
       lesson: (input) => input.lesson,
       subtopic: (input) => input.subtopic,
       description: (input) => input.subtopic_description,
@@ -207,11 +235,11 @@ export async function markStudentAnswerCorrectOrIncorrect(
     },
     partialedPrompt,
     getChatModel,
-    new StringOutputParser(),
+    jsonParser,
   ]);
 
-  const questionResponse = await retrievalChain.pipe(parser).invoke({
-    searchingKeywords: `${lesson} ${subtopic} ${subtopic_description}`,
+  const questionResponse = await retrievalChain.invoke({
+    context,
     lesson,
     subtopic,
     subtopic_description,
@@ -227,10 +255,10 @@ interface Distribution {
   advanced: number;
 }
 
-function distributeQuestions(
+const distributeQuestions = (
   learningLevel: LearningLevel,
   totalQuestions: number
-): Distribution {
+): Distribution => {
   const distribution: Record<LearningLevel, Distribution> = {
     beginner: { beginner: 0.7, intermediate: 0.2, advanced: 0.1 },
     intermediate: { beginner: 0.2, intermediate: 0.6, advanced: 0.2 },
@@ -285,4 +313,4 @@ function distributeQuestions(
     intermediate: numIntermediate,
     advanced: numAdvanced,
   };
-}
+};

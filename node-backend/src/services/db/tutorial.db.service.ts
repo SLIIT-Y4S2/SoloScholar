@@ -139,7 +139,7 @@ export const updateTutorialQuestions = async (
  * @public
  * /
  */
-export const getTutorialById = async (id: string) => {
+export const getTutorialByIdWithQuestions = async (id: string) => {
   const tutorial = await prisma.tutorial.findFirst({
     where: { id },
     include: {
@@ -163,6 +163,18 @@ export const getTutorialById = async (id: string) => {
       options: q.options.map((o) => o.text),
     })),
   };
+};
+
+export const getTutorialById = async (id: string) => {
+  const tutorial = await prisma.tutorial.findFirst({
+    where: { id },
+  });
+
+  if (!tutorial) {
+    throw new Error("Tutorial not found");
+  }
+
+  return tutorial;
 };
 
 /**
@@ -331,4 +343,71 @@ export const updateTutorialQuestionResult = async (
   if (!tutorialQuestion) {
     throw new Error("Tutorial question not found");
   }
+};
+
+export const updateTutorialsWithFeedback = async (
+  tutorialId: string,
+  feedback: {
+    id: number;
+    feedback: string;
+    feedback_type: string;
+  }[]
+): Promise<void> => {
+  const updatePromises = feedback.map(async (feedbackItem) => {
+    const tutorialQuestion = await prisma.tutorial_question.update({
+      where: {
+        id: feedbackItem.id,
+      },
+      data: {
+        feedback_type: feedbackItem.feedback_type,
+        feedback: feedbackItem.feedback,
+      },
+    });
+
+    if (!tutorialQuestion) {
+      throw new Error("Tutorial question not found");
+    }
+  });
+
+  await prisma.tutorial.update({
+    where: {
+      id: tutorialId,
+    },
+    data: {
+      status: "feedback-generated",
+    },
+  });
+
+  try {
+    await Promise.all(updatePromises);
+  } catch (error) {
+    console.error("Error updating tutorial questions:", error);
+    throw new Error("Failed to update tutorial questions");
+  }
+};
+
+/**
+ * Mark tutorial as completed
+ * @param tutorialId
+ * @returns
+ */
+
+export const updateTutorialStatus = async (
+  tutorialId: string,
+  status: string
+) => {
+  const tutorial = await prisma.tutorial.update({
+    where: {
+      id: tutorialId,
+    },
+    data: {
+      status,
+    },
+  });
+
+  if (!tutorial) {
+    throw new Error("Tutorial not found");
+  }
+
+  return tutorial;
 };

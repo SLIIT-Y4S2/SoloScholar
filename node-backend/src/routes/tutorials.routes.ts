@@ -6,6 +6,7 @@ import {
   saveTutorialAnswerHandler,
   submitTutorialHandler,
   requestFeedbackHandler,
+  markTutorialAsCompletedHandler,
 } from "../controllers/tutorials.controller";
 
 const tutorialsRouter = Router();
@@ -49,3 +50,9 @@ tutorialsRouter.post("/:tutorialId/submission", submitTutorialHandler);
  */
 
 tutorialsRouter.post("/:tutorialId/feedback", requestFeedbackHandler);
+
+/**
+ * @route POST /api/v1/tutorial/:tutorialId/complete
+ */
+
+tutorialsRouter.post("/:tutorialId/complete", markTutorialAsCompletedHandler);

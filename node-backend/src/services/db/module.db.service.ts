@@ -157,7 +157,11 @@ export const getModuleByName = async (moduleName: string) => {
   const module = await prisma.module.findFirst({
     where: { name: moduleName },
     include: {
-      lessons: true,
+      lessons: {
+        include: {
+          lesson_subtopics: true,
+        },
+      },
     },
   });
 
@@ -291,7 +295,7 @@ export const deleteModule = async (id: number) => {
   return deletedModule;
 };
 
-// deleteModule(3);
+// deleteModule(1);
 
 /**
  * Find subtopic by id

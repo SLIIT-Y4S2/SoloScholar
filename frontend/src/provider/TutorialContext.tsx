@@ -10,6 +10,7 @@ import {
   requestFeedbackService,
   submitAnswerByQuestionId,
   submitTutorial,
+  completeTutorialService,
 } from "../services/tutorial.service";
 import { useParams } from "react-router-dom";
 import { AxiosError } from "axios";
@@ -24,10 +25,11 @@ export interface TutorialQuestion {
   type: "essay" | "mcq";
   answer: string;
   student_answer: string | null;
-  feedbackType?: "skip" | "basic" | "detailed";
+  feedback_type?: "skip" | "basic" | "detailed";
+  feedback?: string;
   is_student_answer_correct?: boolean;
 }
-type TutorialStatus =
+export type TutorialStatus =
   | "generating"
   | "generated"
   | "in-progress"
@@ -35,7 +37,7 @@ type TutorialStatus =
   | "submitted"
   | "feedback-generating"
   | "feedback-generated"
-  | "ended";
+  | "completed";
 
 interface TutorialContextType {
   questions: TutorialQuestion[];
@@ -48,6 +50,7 @@ interface TutorialContextType {
   setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
   submitAnswer: (current: number, next: number | null) => void;
   requestFeedback: (questionFeedback: { [key: string]: string }[]) => void;
+  completeTutorial: () => void;
 }
 
 const TutorialProviderContext = createContext<TutorialContextType | null>(null);
@@ -179,6 +182,12 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     setStatus(tutorial.status);
   };
 
+  const completeTutorial = async () => {
+    setIsLoading(true);
+    const tutorial = await completeTutorialService(tutorialId);
+    setStatus(tutorial.status);
+  };
+
   return (
     <TutorialProviderContext.Provider
       value={{
@@ -191,6 +200,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         status,
         requestFeedback,
         error,
+        completeTutorial,
       }}
     >
       {children}
