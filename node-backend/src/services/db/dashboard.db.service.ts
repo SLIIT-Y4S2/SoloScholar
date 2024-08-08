@@ -38,6 +38,19 @@ export const getIndicatorData = async (indicatorId: string) => {
   return indicator ? await prisma.$queryRawUnsafe(indicator.sql_query) : null;
 };
 
+export const editIndicator = async (indicator: any) => {
+  return await prisma.analytical_indicator.update({
+    where: {
+      id: indicator.id,
+    },
+    data: {
+      indicator_name: indicator.indicatorName,
+      analysis_goal: indicator.analysisGoal,
+      visualization_choice: indicator.visualizationChoice,
+    },
+  });
+};
+
 export const deleteIndicator = async (indicatorId: string) => {
   return await prisma.analytical_indicator.delete({
     where: {
@@ -50,5 +63,6 @@ export const dashboardDbService = {
   saveIndicator,
   getIndicators,
   getIndicatorData,
+  editIndicator,
   deleteIndicator,
 };

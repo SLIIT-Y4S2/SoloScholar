@@ -5,6 +5,7 @@ import {
   getIndicatorData,
   getIndicators,
   saveIndicator,
+  editIndicator,
 } from "../controllers/dashboard.controller";
 
 const dashboardRouter: Router = Router();
@@ -14,6 +15,7 @@ const dashboardRouter: Router = Router();
  */
 dashboardRouter.post("/", generateIndicator);
 dashboardRouter.post("/indicators", saveIndicator);
+dashboardRouter.put("/indicators", editIndicator);
 dashboardRouter.get("/:instructorId", getIndicators);
 dashboardRouter.get("/indicators/:indicatorId", getIndicatorData);
 dashboardRouter.delete("/indicators/:indicatorId", deleteIndicator);

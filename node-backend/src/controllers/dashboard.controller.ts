@@ -68,6 +68,22 @@ export async function getIndicatorData(
   }
 }
 
+export async function editIndicator(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    res.status(200).send({
+      result: await dashboardDbService.editIndicator(req.body),
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({
+      error: error,
+    });
+  }
+}
+
 export async function deleteIndicator(
   req: Request,
   res: Response
