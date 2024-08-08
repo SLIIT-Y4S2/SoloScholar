@@ -52,7 +52,6 @@ const CustomAnalyticalIndicatorPrimary = () => {
               <div className="flex gap-[41px] h-fit">
                 <Text className="font-medium text-[16px]">Analysis Goal</Text>
                 <TextArea
-                  required={true}
                   className="font-normal text-[14px] rounded-[5px] resize-none"
                   autoSize={{ minRows: 3 }}
                   placeholder="Enter your analysis goal here...

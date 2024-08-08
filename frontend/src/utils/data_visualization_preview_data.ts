@@ -5,13 +5,13 @@
 import type { TableColumnsType } from "antd";
 
 interface PreviewData {
-  xValue: number | string;
-  yValue: number | string;
+  xValue: number | string | boolean;
+  yValue: number | string | boolean;
 }
 
 interface PieChartPreviewData {
-  name: number | string;
-  value: number | string;
+  name: number | string | boolean;
+  value: number | string | boolean;
 }
 
 export const pieChartPreviewData: PieChartPreviewData[] = [

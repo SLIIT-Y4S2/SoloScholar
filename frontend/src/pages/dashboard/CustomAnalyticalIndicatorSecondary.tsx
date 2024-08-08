@@ -18,8 +18,7 @@ const CustomAnalyticalIndicatorSecondary = (props: {
 }) => {
   const { analysisGoal, visualizationChoice, sqlQuery, customMessage } = props;
   const [messageApi, contextHolder] = message.useMessage();
-  const { saveIndicator, clearData, customMessageIndicator } =
-    useContext(DashboardContext);
+  const { saveIndicator, clearData } = useContext(DashboardContext);
   const [indicatorName, setIndicatorName] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -90,7 +89,7 @@ const CustomAnalyticalIndicatorSecondary = (props: {
                     });
                   } else {
                     setIsLoading(true);
-                    await saveIndicator({
+                    const message = await saveIndicator({
                       indicatorName,
                       analysisGoal,
                       visualizationChoice,
@@ -98,14 +97,12 @@ const CustomAnalyticalIndicatorSecondary = (props: {
                       instructorId: "clz0trbf40000ld2w4z43q9yj", // TODO Get instructor id dynamically
                     });
                     await messageApi.open({
-                      type: customMessageIndicator?.type,
-                      content: customMessageIndicator?.content,
+                      type: message.type,
+                      content: message.content,
                     });
-                    if (customMessageIndicator?.type === "error") {
-                      setIsLoading(false);
-                    } else {
-                      clearData();
-                    }
+                    message.type === "error"
+                      ? setIsLoading(false)
+                      : await clearData();
                   }
                 }}
                 loading={isLoading}

@@ -23,15 +23,12 @@ export function DashboardProvider({
   const [customMessage, setCustomMessage] = useState<CustomMessage | null>(
     null
   );
-  const [customMessageIndicator, setCustomMessageIndicator] =
-    useState<CustomMessage | null>(null);
 
   /**
    * Function to clear out the data stored in the context.
    */
   const clearData = () => {
     setCustomMessage(null);
-    setCustomMessageIndicator(null);
     setContextData(null);
   };
 
@@ -93,7 +90,9 @@ export function DashboardProvider({
    * Function to save an indicator.
    * @param indicator
    */
-  const saveIndicator = async (indicator: any) => {
+  const saveIndicator = async (
+    indicator: any
+  ): Promise<CustomMessage | void> => {
     try {
       const response = await fetch(DASHBOARD_API_URLS.DASHBOARD_INDICATORS, {
         method: "POST",
@@ -103,20 +102,21 @@ export function DashboardProvider({
         body: JSON.stringify(indicator),
       });
       const data = await response.json();
+      let message: CustomMessage;
       if (data.error) {
-        setCustomMessageIndicator({
+        message = {
           type: "error",
-          content:
-            "Sorry, an unexpected error occurred. Indicator creation failed.",
-        });
+          content: "Sorry, a server error occurred. Indicator saving failed.",
+        };
       } else {
-        setCustomMessageIndicator({
+        message = {
           type: "success",
-          content: "Indicator created successfully.",
-        });
+          content: "Indicator saved successfully.",
+        };
       }
+      return message;
     } catch (error: any) {
-      // TODO Need to set proper error message
+      // TODO Need to use a logger.
       console.log(error);
     }
   };
@@ -134,7 +134,7 @@ export function DashboardProvider({
       const data = await response.json();
       setContextIndicators(data.result);
     } catch (error: any) {
-      // TODO Need to set proper error message
+      // TODO Need to use a logger
       console.log(error);
     }
   };
@@ -162,7 +162,7 @@ export function DashboardProvider({
         ),
       };
     } catch (error: any) {
-      // TODO Need to set proper error message
+      // TODO Need to use a logger
       console.log(error);
     }
   };
@@ -177,7 +177,9 @@ export function DashboardProvider({
    * Function to delete an indicator.
    * @param indicatorId
    */
-  const deleteIndicator = async (indicatorId: string) => {
+  const deleteIndicator = async (
+    indicatorId: string
+  ): Promise<CustomMessage | void> => {
     try {
       const response = await fetch(
         `${DASHBOARD_API_URLS.DASHBOARD_INDICATORS}/${indicatorId}`,
@@ -186,24 +188,27 @@ export function DashboardProvider({
         }
       );
       const data = await response.json();
+      let message: CustomMessage;
       if (data.error) {
-        setCustomMessageIndicator({
+        message = {
           type: "error",
           content:
             "Sorry, an unexpected error occurred. Indicator deletion failed.",
-        });
+        };
       } else {
-        setCustomMessageIndicator({
-          type: "success",
-          content: "Indicator deleted successfully.",
-        });
         const updatedIndicators = contextIndicators.filter(
           (indicator: any) => indicator.id !== indicatorId
         );
         setContextIndicators(updatedIndicators);
+        message = {
+          type: "success",
+          content: "Indicator deleted successfully.",
+        };
       }
+      return message;
     } catch (error: any) {
-      setCustomMessageIndicator({ type: "error", content: error.message });
+      // Need to use a logger
+      console.log(error);
     }
   };
 
@@ -212,26 +217,22 @@ export function DashboardProvider({
       contextData,
       contextIndicators,
       customMessage,
-      customMessageIndicator,
       generateIndicator,
       saveIndicator,
       getIndicators,
       getIndicatorData,
       deleteIndicator,
-      setCustomMessageIndicator,
       clearData,
     }),
     [
       contextData,
       contextIndicators,
       customMessage,
-      customMessageIndicator,
       generateIndicator,
       saveIndicator,
       getIndicators,
       getIndicatorData,
       deleteIndicator,
-      setCustomMessageIndicator,
       clearData,
     ]
   );
