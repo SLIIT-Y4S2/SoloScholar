@@ -1,3 +1,12 @@
+export type JSONDocument =
+    | string
+    | number
+    | boolean
+    | null
+    | { [key: string]: JSONDocument }
+    | JSONDocument[];
+
+
 export type SupportingMaterial = {
     tables?: {
         tableName: string;
@@ -6,10 +15,10 @@ export type SupportingMaterial = {
             type: string;
         }[];
         rows: {
-            [key: string]: any;
+            [key: string]: string | number | boolean | null | undefined;
         }[];
     }[];
-    jsonDocument?: any;
+    jsonDocument?: JSONDocument;
     relationalSchema?: {
         [tableName: string]: {
             name: string;

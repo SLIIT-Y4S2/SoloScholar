@@ -62,7 +62,7 @@ async function responseSynthesizerForLabs({ lessonTitle, learningLevel, lessonOu
             formatInstructions: (input) => input.formatInstructions
         },
         realWorldScenarioPrompt,
-        getChatModel,
+        () => getChatModel({ model: "gpt-4o" }),
         new StringOutputParser()
     ]);
 
@@ -82,7 +82,7 @@ async function responseSynthesizerForLabs({ lessonTitle, learningLevel, lessonOu
 
     // Fixing parser for the supporting material
     const fixingParserForSupportingMaterial = OutputFixingParser.fromLLM(
-        getChatModel(),
+        getChatModel({ model: "gpt-4o" }),
         outputParserForSupportingMaterial
     );
 
@@ -97,7 +97,7 @@ async function responseSynthesizerForLabs({ lessonTitle, learningLevel, lessonOu
             formatInstructions: (input) => input.formatInstructions
         },
         supportingMaterialPrompt,
-        getChatModel,
+        () => getChatModel({ model: "gpt-4o" }),
         fixingParserForSupportingMaterial,
     ]);
 
@@ -132,7 +132,7 @@ async function responseSynthesizerForLabs({ lessonTitle, learningLevel, lessonOu
             formatInstructions: (input) => input.formatInstructions
         },
         questionGenerationPrompt,
-        getChatModel,
+        () => getChatModel({ model: "gpt-4o" }),
         fixingParserForQuestions,
     ]);
 

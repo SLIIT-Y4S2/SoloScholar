@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { evaluateStudentAnswers, responseSynthesizerForLabs } from "../services/lab.rag.service";
 import { getLessonByModuleIdAndTitle, getLessonOutlineByModuleAndLessonName, getModuleByName } from "../services/db/module.db.service";
-import { createLabMaterials, updateLabMaterial, getLabSheetById, getLearningMaterialDetailsByLearnerIdAndLessonId, getLessonDetailsByLabSheetId } from "../services/db/lab.db.service";
+import { createLabMaterials, updateLabMaterial, getLabSheetById, getLearningMaterialDetailsByLearnerIdAndLessonId, getLessonDetailsByLabSheetId, updateLabSheetAnswers, deleteLabSheetById, getStudentAnswersByLabSheetIdAndQuestionId } from "../services/db/lab.db.service";
 
 /**
  * 
@@ -27,10 +27,22 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
         }, '');
 
         const labMaterials = await createLabMaterials(lessonOutline.id, learnerId, learningLevel);
-        const practicalLabData = await responseSynthesizerForLabs({ learningLevel: learningLevel, lessonTitle: lessonTitle, lessonOutline: subTopics, learningOutcomes: lessonOutline.lesson_learning_outcomes });
-        const updateLabSheet = await updateLabMaterial(labMaterials.id, practicalLabData.realWorldScenario, JSON.stringify(practicalLabData.supportingMaterial), practicalLabData.questions);
+        const practicalLabData = await responseSynthesizerForLabs({ learningLevel: learningLevel, lessonTitle: lessonTitle, lessonOutline: subTopics, learningOutcomes: lessonOutline.lesson_learning_outcomes })
+            .then((practicalLabData) => {
+                return updateLabMaterial(labMaterials.id, practicalLabData.realWorldScenario, JSON.stringify(practicalLabData.supportingMaterial), practicalLabData.questions);
+            }).catch((error) => {
+                deleteLabSheetById(labMaterials.id);
+                return res.status(500).json(
+                    {
+                        message: "Failed to generate lab sheet",
+                        error: error
+                    }
+                )
+            });
 
-        return res.status(200).send(updateLabSheet);
+
+
+        return res.status(200).send(practicalLabData);
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);
@@ -136,7 +148,12 @@ export async function getLearningMaterialSummaryByLessonNameHandler(req: Request
     }
 }
 
-
+/**
+ * 
+ * @param req 
+ * @param res 
+ * @returns 
+ */
 export async function evaluateStudentAnswersHandler(req: Request, res: Response) {
 
     try {
@@ -165,16 +182,7 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
             });
         }
 
-        console.log({
-            question: question_object.question,
-            studentAnswer: studentsAnswer,
-            topicOfTheLab: lesson.title,
-            realWorldScenario: labSheet.real_world_scenario!,
-            supportingMaterial: labSheet.supportMaterial
-
-        });
-
-        const response = await evaluateStudentAnswers({
+        const results = await evaluateStudentAnswers({
             question: question_object.question,
             studentAnswer: studentsAnswer,
             topicOfTheLab: lesson.title,
@@ -182,7 +190,9 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
             supportingMaterial: labSheet.supportMaterial
         })
 
-        return res.status(200).json(response);
+        await updateLabSheetAnswers(labSheetId, questionsId, studentsAnswer);
+
+        return res.status(200).json(results);
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);
@@ -199,3 +209,41 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
     }
 }
 
+export async function generateHintForQuestionHandler(req: Request, res: Response) {
+    try {
+        const { labSheetId, questionId } = req.params;
+
+        if (!labSheetId || !questionId) {
+            return res.status(400).json({
+                message: "Invalid request body",
+            });
+        }
+
+        if (isNaN(Number(questionId))) {
+            return res.status(400).json({
+                message: "Invalid question id",
+            });
+        }
+
+        const studentAnswers = await getStudentAnswersByLabSheetIdAndQuestionId(labSheetId, Number(questionId));
+
+        console.log(studentAnswers);
+
+        return res.status(200).json({
+            studentAnswers
+        });
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error(error.message);
+            error.stack && console.error(error.stack);
+        }
+
+        if (error) {
+            console.error(error);
+        }
+
+        res.status(500).send({
+            message: "Failed to generate hint",
+        });
+    }
+}

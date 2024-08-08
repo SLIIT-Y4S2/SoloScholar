@@ -1,4 +1,4 @@
-import { OpenAIEmbeddings, ChatOpenAI } from "@langchain/openai";
+import { OpenAIEmbeddings, ChatOpenAI, } from "@langchain/openai";
 import { OPENAI_API_KEY } from "../constants/app.constants";
 import {
   OPENAI_CHAT_MODEL,
@@ -16,15 +16,18 @@ function getEmbeddings(): OpenAIEmbeddings {
   });
 }
 
-function getChatModel(): ChatOpenAI {
+interface GetChatModelInputType {
+  model: string;
+};
+
+function getChatModel({ model }: GetChatModelInputType = { model: OPENAI_CHAT_MODEL }): ChatOpenAI {
   return new ChatOpenAI({
     apiKey: OPENAI_API_KEY,
-    model: OPENAI_CHAT_MODEL,
+    model: model,
     temperature: 0.1,
     callbacks: [
       {
         handleLLMEnd(output) {
-          if (OPENAI_CHAT_MODEL !== "gpt-4o") return;
           const promptTokens = output?.llmOutput?.tokenUsage.promptTokens;
           const completionTokens =
             output?.llmOutput?.tokenUsage.completionTokens;

@@ -2,15 +2,15 @@ import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 
 export function SupportMaterialsForLab() {
     const { realWorldScenario, supportMaterials, isLoading } = useLabSessionContext();
-    console.log(supportMaterials);
+
     if (isLoading) {
         return <div>Loading...</div>;
     }
     return (
         <div className="bg-white flex flex-col mx-auto p-8 w-full max-w-[1200px] max-h-[800] h-max rounded-2xl gap-4">
             <h2 className="text-2xl font-bold">Scenario</h2>
-            <p className="font-normal text-base">{realWorldScenario}</p>
-            {supportMaterials.relationalSchema && (
+            <p className="font-normal text-base">{realWorldScenario && realWorldScenario}</p>
+            {supportMaterials && supportMaterials.relationalSchema && (
                 <div className="flex flex-col gap-4">
                     <h2 className="text-2xl font-bold">Relational Schema</h2>
                     {Object.keys(supportMaterials.relationalSchema).map((tableName) => {
@@ -41,7 +41,7 @@ export function SupportMaterialsForLab() {
                     )}
                 </div>
             )}
-            {supportMaterials.tables && (
+            {supportMaterials && supportMaterials.tables && (
                 <div className="flex flex-col gap-4">
                     <h2 className="text-2xl font-bold border-black">Tables</h2>
                     {supportMaterials.tables.map((table) => {
@@ -74,10 +74,10 @@ export function SupportMaterialsForLab() {
                     })}
                 </div>
             )}
-            {supportMaterials.jsonDocument && (
+            {supportMaterials && supportMaterials.jsonDocument && (
                 <div>
                     <h2 className="text-2xl font-bold">JSON Document</h2>
-                    <p className="font-normal text-base">{JSON.stringify(supportMaterials.jsonDocument, null, 2)}</p>
+                    <pre className="font-normal text-base bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto">{JSON.stringify(supportMaterials.jsonDocument, null, 2)}</pre>
                 </div>
             )}
         </div>

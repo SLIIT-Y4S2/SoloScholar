@@ -1,5 +1,5 @@
 import prisma from "../../utils/prisma-client.util";
-import { omit } from "lodash";
+import { omit, pick } from "lodash";
 
 interface LabSheetQuestion {
     question: string;
@@ -158,32 +158,41 @@ export async function getLearningMaterialDetailsByLearnerIdAndLessonId(lessonId:
     }, ["support_material", "learning_material"]));
 }
 
-export async function updateLabSheetAnswers(labSheetId: string, questionId: string, answer: string) {
-    const updatedLabSheet = await prisma.labsheet.update({
-        where: {
-            id: labSheetId
-        },
-        data: {
-            labsheet_question: {
-                update: {
-                    where: {
-                        id: questionId
-                    },
-                    data: {
-                        student_answers: {
-                            create: {
-                                student_answer: answer
-                            }
+/**
+ * 
+ * @param labSheetId 
+ * @param questionId 
+ * @param answer 
+ * @returns 
+ */
+export async function updateLabSheetAnswers(labSheetId: string, questionId: number, answer: string) {
+    const updatedLabSheet = await prisma.labsheet.update(
+        {
+            where: {
+                id: labSheetId
+            },
+            data: {
+                labsheet_question: {
+                    update: {
+                        where: {
+                            id: questionId
                         },
+                        data: {
+                            student_answers: {
+                                create: {
+                                    student_answer: answer
+                                }
+                            }
+                        }
                     }
                 }
+            },
+            include: {
+                learning_material: true,
+                labsheet_question: true,
             }
-        },
-        include: {
-            labsheet_question: true,
-            learning_material: true,
         }
-    });
+    );
 
     return omit({
         ...updatedLabSheet,
@@ -191,6 +200,12 @@ export async function updateLabSheetAnswers(labSheetId: string, questionId: stri
         supportMaterial: JSON.parse(updatedLabSheet.support_material!),
     }, ["support_material", "learning_material"]);
 }
+
+/**
+ * 
+ * @param labSheetId 
+ * @returns 
+ */
 
 export async function getLessonDetailsByLabSheetId(labSheetId: string) {
     const labSheet = await prisma.labsheet.findUnique({
@@ -212,4 +227,38 @@ export async function getLessonDetailsByLabSheetId(labSheetId: string) {
         ...labSheet,
         ...labSheet.learning_material.lesson,
     }, ["learning_material"]);
+}
+
+/**
+ * 
+ * @param labSheetId 
+ */
+export async function deleteLabSheetById(labSheetId: string) {
+    await prisma.labsheet.delete({
+        where: {
+            id: labSheetId
+        }
+    });
+}
+
+/**
+ * 
+ * @param labSheetId 
+ * @param questionId 
+ * @returns 
+ */
+export async function getStudentAnswersByLabSheetIdAndQuestionId(labSheetId: string, questionId: number) {
+    const studentAnswers = await prisma.labsheet_question.findUnique({
+        where: {
+            id: questionId
+        },
+        include: {
+            student_answers: true,
+        }
+    });
+
+
+    return pick(studentAnswers, ["student_answers"]);
+
+
 }

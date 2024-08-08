@@ -35,25 +35,23 @@ model labsheet {
 }
 
 model labsheet_question {
-  id                String           @id @default(cuid())
-  question_number   Int
-  question          String           @db.VarChar(200)
-  answer            String           @db.VarChar(2000)
-  example_question  String           @db.VarChar(200)
-  example_answer    String           @db.VarChar(200)
-  current_answer_id String?
-  correct_answer_id String?
-  student_answers   student_answer[]
-  labsheet_id       String
-  labsheet          labsheet         @relation(fields: [labsheet_id], references: [id], onUpdate: NoAction)
+  id               Int              @id @default(autoincrement())
+  question_number  Int
+  question         String           @db.VarChar(200)
+  answer           String           @db.VarChar(2000)
+  example_question String           @db.VarChar(200)
+  example_answer   String           @db.VarChar(200)
+  isCorrect        Boolean?
+  student_answers  student_answer[]
+  labsheet_id      String
+  labsheet         labsheet         @relation(fields: [labsheet_id], references: [id], onUpdate: NoAction)
 }
 
 model student_answer {
-  id                  String            @id @default(cuid())
+  id                  Int               @id @default(autoincrement())
   student_answer      String            @db.VarChar(500)
-  is_correct          Boolean?
   labsheet_question   labsheet_question @relation(fields: [labsheet_questionId], references: [id])
-  labsheet_questionId String
+  labsheet_questionId Int
 }
 
 model learner {

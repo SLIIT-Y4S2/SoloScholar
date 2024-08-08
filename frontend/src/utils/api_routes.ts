@@ -12,6 +12,7 @@ export const LAB_API_URLS = {
   GENERATE_LAB_SHEET: `/labs/generate`,
   GET_LAB_SHEET: `/labs`,
   EVALUATE_ANSWER: `/labs/evaluate-answer`,
+  GET_HINT: `/labs/hint`,
 };
 
 export const DASHBOARD_API_URLS = {

@@ -1,8 +1,7 @@
-import { useRef } from "react";
+import { useState } from "react";
 import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 import { Button, Input, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import { TextAreaRef } from "antd/es/input/TextArea";
 
 const { Content } = Layout;
 const { TextArea } = Input;
@@ -22,15 +21,15 @@ export default function QuestionCardForLab() {
     isLabCompleted,
   } = useLabSessionContext();
 
-  const answerRef = useRef<TextAreaRef>(null);
+  const [currentAnswer, setCurrentAnswer] = useState<string>("");
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    const answer = answerRef.current?.resizableTextArea?.textArea.value;
-    console.log(answer);
 
-    if (answer && answer.trim() !== "") {
-      evaluateStudentAnswerHandler(answer);
+    console.log(currentAnswer);
+
+    if (currentAnswer && currentAnswer.trim() !== "") {
+      evaluateStudentAnswerHandler(currentAnswer);
     } else {
       alert("Please provide an answer");
     }
@@ -38,6 +37,7 @@ export default function QuestionCardForLab() {
 
   function handleNextQuestion(event: React.FormEvent) {
     event.preventDefault();
+    setCurrentAnswer("");
     goToNextQuestion();
   }
 
@@ -55,6 +55,16 @@ export default function QuestionCardForLab() {
     );
   }
 
+  if (!questions || questions.length === 0) {
+    return (
+      <Content>
+        <div className="flex items-center justify-center h-screen">
+          <p>No questions available</p>
+        </div>
+      </Content>
+    );
+  }
+
 
   return (
     <Content>
@@ -64,24 +74,24 @@ export default function QuestionCardForLab() {
             <h1 className="text-2xl font-bold my-2">
               Question {currentQuestionIndex + 1} of {totalQuestions}
             </h1>
-            <p>{questions[currentQuestionIndex]?.question}</p>
+            <p>{questions && questions[currentQuestionIndex].question}</p>
             <div className="my-4">
               <p className="font-semibold my-2">
                 Provide your answer in below text box.
               </p>
               <TextArea
                 className="overflow-visible bg-sky-950 text-white w-full p-4 custom-scrollbar hover:bg-sky-950 focus:bg-sky-950"
-                ref={answerRef}
+                value={currentAnswer}
+                onChange={(event) => setCurrentAnswer(event.target.value)}
                 autoSize={{ minRows: 4, maxRows: 8 }}
               />
             </div>
             <div className="flex justify-between items-center">
               <div className="flex flex-row gap-4 items-center justify-between">
                 <p className="font-medium">
-                  Number of attempts:{" "}
-                  {questions[currentQuestionIndex]?.attempts}
+                  Number of attempts : {questions && questions[currentQuestionIndex].attempts}
                 </p>
-                {questions[currentQuestionIndex]?.attempts >= 3 &&
+                {questions && questions[currentQuestionIndex]?.attempts >= 3 &&
                   questions[currentQuestionIndex]?.attempts < 6 && (
                     <Button
                       type="primary"
@@ -91,7 +101,7 @@ export default function QuestionCardForLab() {
                       Hint
                     </Button>
                   )}
-                {questions[currentQuestionIndex]?.attempts >= 6 && (
+                {questions && questions[currentQuestionIndex].attempts >= 6 && (
                   <Button type="text" className="text-red-500">Show Answer</Button>
                 )}
               </div>
@@ -101,7 +111,7 @@ export default function QuestionCardForLab() {
                   size="large"
                   className="border-white"
                 />
-              ) : questions[currentQuestionIndex]?.attempts >= 6 ||
+              ) : questions && questions[currentQuestionIndex].attempts >= 6 ||
                 isAnsForCurrQuesCorrect ? (
                 isLabCompleted ? (
                   <Button

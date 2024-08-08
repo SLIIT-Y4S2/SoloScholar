@@ -7,7 +7,7 @@ import {
     useMemo,
     useState,
 } from "react";
-import { evaluateStudentsAnswer, getLabExerciseById } from "../../services/lab.service";
+import { evaluateStudentsAnswer, getLabExerciseById, getHintForQuestion } from "../../services/lab.service";
 import { SupportingMaterial } from "../../types/lab.types";
 import { useParams } from "react-router-dom";
 
@@ -27,7 +27,7 @@ interface LabSessionContextType {
     isAnsForCurrQuesCorrect: boolean;
     isLabCompleted: boolean;
     evaluateStudentAnswerHandler: (answer: string) => void;
-    getHintForCurrentQuestion: () => Promise<void>;
+    getHintForCurrentQuestion: () => void;
     goToNextQuestion: () => void;
 }
 
@@ -44,6 +44,8 @@ interface LabQuestion {
     isAnswered: boolean;
     attempts: number;
 }
+
+
 
 const LabSessionProviderContext = createContext<LabSessionContextType | null>(null);
 
@@ -64,15 +66,9 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
     const [isLabCompleted, setIsLabCompleted] = useState<boolean>(false);
     const [labSheetId, setLabSheetId] = useState<string | null>(null);
     const [isEvaluatingAnswer, setIsEvaluatingAnswer] = useState<boolean>(false);
-
-    const [hintForCurrentQuestion, setHintForCurrentQuestion] =
-        useState<string>("");
-
-    const [isAnsForCurrQuesCorrect, setIsAnsForCurrQuesCorrect] =
-        useState<boolean>(false);
-
+    const [hintForCurrentQuestion, setHintForCurrentQuestion] = useState<string>("");
+    const [isAnsForCurrQuesCorrect, setIsAnsForCurrQuesCorrect] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-
     const [totalQuestions, setTotalQuestions] = useState<number>(0);
 
     const params = useParams();
@@ -87,17 +83,18 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
         }
         getLabExerciseById(labSheetId)
             .then((response) => {
+                console.log("LabSheet", response.data);
                 const labSheet = response.data;
                 setRealWorldScenario(labSheet.real_world_scenario);
                 setSupportMaterials(labSheet.supportMaterial);
                 setQuestions([
-                    ...labSheet.labsheet_question.map((question: LabQuestion) => ({
-                        id: question.id,
-                        question_number: question.question_number,
-                        question: question.question,
-                        answer: question.answer,
-                        exampleQuestion: question.exampleQuestion,
-                        exampleAnswer: question.exampleAnswer,
+                    ...labSheet.labsheet_question.map((data: LabQuestion) => ({
+                        id: data.id,
+                        question_number: data.question_number,
+                        question: data.question,
+                        answer: data.answer,
+                        exampleQuestion: data.exampleQuestion,
+                        exampleAnswer: data.exampleAnswer,
                         isCorrect: false,
                         studentAnswers: [],
                         currentAnswer: null,
@@ -174,12 +171,18 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
     );
 
     const getHintForCurrentQuestion = useCallback(
-        async () => {
-            setHintForCurrentQuestion("Hint for the current question");
-        }, [setHintForCurrentQuestion]);
+        () => {
+            if (!labSheetId) {
+                return;
+            }
+            getHintForQuestion(labSheetId, questions[currentQuestionIndex].id).then((response) => {
+                setHintForCurrentQuestion(JSON.stringify(response.data));
+            });
+
+        }, [setHintForCurrentQuestion, labSheetId, currentQuestionIndex, questions]);
 
     const goToNextQuestion = useCallback(
-        async () => {
+        () => {
             if (currentQuestionIndex < totalQuestions - 1) {
                 setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
                 setHintForCurrentQuestion("");
@@ -205,7 +208,6 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,
-
         }),
         [
             realWorldScenario,
