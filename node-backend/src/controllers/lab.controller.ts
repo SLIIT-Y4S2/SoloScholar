@@ -190,7 +190,7 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
             supportingMaterial: labSheet.supportMaterial
         })
 
-        await updateLabSheetAnswers(labSheetId, questionsId, studentsAnswer);
+        await updateLabSheetAnswers(labSheetId, questionsId, studentsAnswer, results.studentAnswerEvaluation.isCorrect);
 
         return res.status(200).json(results);
     } catch (error) {

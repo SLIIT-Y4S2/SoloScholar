@@ -165,7 +165,7 @@ export async function getLearningMaterialDetailsByLearnerIdAndLessonId(lessonId:
  * @param answer 
  * @returns 
  */
-export async function updateLabSheetAnswers(labSheetId: string, questionId: number, answer: string) {
+export async function updateLabSheetAnswers(labSheetId: string, questionId: number, answer: string, isCorrect: boolean) {
     const updatedLabSheet = await prisma.labsheet.update(
         {
             where: {
@@ -178,6 +178,7 @@ export async function updateLabSheetAnswers(labSheetId: string, questionId: numb
                             id: questionId
                         },
                         data: {
+                            isCorrect: isCorrect,
                             student_answers: {
                                 create: {
                                     student_answer: answer
