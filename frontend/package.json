@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.7",
+    "@monaco-editor/react": "^4.6.0",
     "@react-pdf/renderer": "^3.4.4",
     "antd": "^5.16.4",
     "axios": "^1.6.8",

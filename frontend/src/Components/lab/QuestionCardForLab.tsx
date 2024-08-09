@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 import { Button, Input, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-
+import { CodeEditor } from "./CodeEditor";
 const { Content } = Layout;
 const { TextArea } = Input;
 
@@ -22,6 +22,7 @@ export default function QuestionCardForLab() {
   } = useLabSessionContext();
 
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
+  // const [showHint, setShowHint] = useState<boolean>(false);
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -33,6 +34,12 @@ export default function QuestionCardForLab() {
     } else {
       alert("Please provide an answer");
     }
+  }
+
+  function handleCodeOnChange(codeSnippet: string) {
+    setCurrentAnswer(codeSnippet);
+    console.log(codeSnippet);
+
   }
 
   function handleNextQuestion(event: React.FormEvent) {
@@ -79,12 +86,9 @@ export default function QuestionCardForLab() {
               <p className="font-semibold my-2">
                 Provide your answer in below text box.
               </p>
-              <TextArea
-                className="overflow-visible bg-sky-950 text-white w-full p-4 custom-scrollbar hover:bg-sky-950 focus:bg-sky-950"
-                value={currentAnswer}
-                onChange={(event) => setCurrentAnswer(event.target.value)}
-                autoSize={{ minRows: 4, maxRows: 8 }}
-              />
+              <div className="flex flex-col justify-center items-center">
+                <CodeEditor handleCodeOnChange={handleCodeOnChange} />
+              </div>
             </div>
             <div className="flex justify-between items-center">
               <div className="flex flex-row gap-4 items-center justify-between">
@@ -96,7 +100,7 @@ export default function QuestionCardForLab() {
                     <Button
                       type="primary"
                       htmlType="button"
-                      onClick={getHintForCurrentQuestion}
+                      onClick={() => getHintForCurrentQuestion}
                     >
                       Hint
                     </Button>
@@ -105,6 +109,11 @@ export default function QuestionCardForLab() {
                   <Button type="text" className="text-red-500">Show Answer</Button>
                 )}
               </div>
+              {isAnsForCurrQuesCorrect && isAnsForCurrQuesCorrect ? (
+                <p className="text-green-500">Correct Answer</p>
+              ) : isAnsForCurrQuesCorrect === false ? (
+                <p className="text-red-500">Incorrect Answer</p>
+              ) : null}
               {isEvaluatingAnswer ? (
                 <Spin
                   indicator={<LoadingOutlined spin />}
@@ -153,7 +162,6 @@ export default function QuestionCardForLab() {
               </p>
               <TextArea
                 className="overflow-visible bg-sky-950 text-white w-full p-4 custom-scrollbar hover:bg-sky-950 focus:bg-sky-950"
-                // ref={''}
                 autoSize={{ minRows: 4, maxRows: 8 }}
               />
             </div>

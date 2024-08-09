@@ -38,8 +38,7 @@ interface LabQuestion {
     answer: string;
     exampleQuestion: string;
     exampleAnswer: string;
-    isCorrect: boolean;
-    studentAnswers: string[];
+    isCorrect: boolean | null;
     currentAnswer: string | null;
     isAnswered: boolean;
     attempts: number;
@@ -95,13 +94,12 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                         answer: data.answer,
                         exampleQuestion: data.exampleQuestion,
                         exampleAnswer: data.exampleAnswer,
-                        isCorrect: false,
-                        studentAnswers: [],
+                        isCorrect: data.isCorrect,
                         currentAnswer: null,
-                        isAnswered: false,
                         attempts: 0,
                     })),
                 ]);
+                setIsAnsForCurrQuesCorrect(labSheet.labsheet_question[0].isCorrect!);
                 setTotalQuestions(labSheet.labsheet_question.length);
                 setLabSheetId(labSheetId);
                 setIsLoading(false)
@@ -117,7 +115,6 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
      */
     const evaluateStudentAnswerHandler = useCallback(
         (answer: string) => {
-            console.log("Evaluating answer", answer);
             if (!labSheetId) {
                 return;
             }
@@ -126,41 +123,23 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             // Evaluate the answer
             evaluateStudentsAnswer(
                 answer, labSheetId, questions[currentQuestionIndex].id).then((response) => {
-                    console.log("Is correct", response.data.studentAnswerEvaluation.isCorrect);
-                    if (response.data.studentAnswerEvaluation.isCorrect) {
-                        setQuestions((prevQuestions) =>
-                            prevQuestions.map((question, index) =>
-                                index === currentQuestionIndex
-                                    ? {
-                                        ...question,
-                                        studentAnswers: [...question.studentAnswers, answer],
-                                        currentAnswer: answer,
-                                        isAnswered: true,
-                                        attempts: question.attempts + 1,
-                                        isCorrect: true
-                                    }
-                                    : question
-                            )
-                        );
-                        setIsAnsForCurrQuesCorrect(true);
-                    } else {
-                        setQuestions((prevQuestions) =>
-                            prevQuestions.map((question, index) =>
-                                index === currentQuestionIndex
-                                    ? {
-                                        ...question,
-                                        studentAnswers: [...question.studentAnswers, answer],
-                                        currentAnswer: answer,
-                                        isAnswered: true,
-                                        attempts: question.attempts + 1,
-                                        isCorrect: false
-                                    }
-                                    : question
-                            )
-                        );
-                    }
-
+                    console.log("Is correct", response.data);
+                    setQuestions((prevQuestions) =>
+                        prevQuestions.map((question, index) =>
+                            index === currentQuestionIndex
+                                ? {
+                                    ...question,
+                                    currentAnswer: answer,
+                                    isAnswered: true,
+                                    attempts: question.attempts + 1,
+                                    isCorrect: response.data.studentAnswerEvaluation.isCorrect
+                                }
+                                : question
+                        )
+                    );
+                    setIsAnsForCurrQuesCorrect(response.data.studentAnswerEvaluation.isCorrect);
                     setIsEvaluatingAnswer(false);
+
                     console.log("Questions", questions[currentQuestionIndex]);
                 }).catch((error) => {
                     console.log("Error evaluating answer", error);
@@ -176,6 +155,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                 return;
             }
             getHintForQuestion(labSheetId, questions[currentQuestionIndex].id).then((response) => {
+                console.log("Hint for current question", response.data);
                 setHintForCurrentQuestion(JSON.stringify(response.data));
             });
 
