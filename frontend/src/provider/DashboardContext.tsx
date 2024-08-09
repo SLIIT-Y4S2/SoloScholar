@@ -106,7 +106,8 @@ export function DashboardProvider({
       if (data.error) {
         message = {
           type: "error",
-          content: "Sorry, a server error occurred. Indicator saving failed.",
+          content:
+            "Sorry, an unexpected server error occurred. Indicator saving failed.",
         };
       } else {
         message = {
@@ -168,10 +169,46 @@ export function DashboardProvider({
   };
 
   /**
-   *
-   * @param indicatorId
+   * Function to edit an indicator.
+   * @param indicator
    */
-  const editIndicatorData = async (indicatorId: string) => {};
+  const editIndicator = async (indicator: any) => {
+    try {
+      const response = await fetch(
+        `${DASHBOARD_API_URLS.DASHBOARD_INDICATORS}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(indicator),
+        }
+      );
+      const data = await response.json();
+      let message: CustomMessage;
+      if (data.error) {
+        message = {
+          type: "error",
+          content:
+            "Sorry, an unexpected error occurred. Indicator update failed.",
+        };
+      } else {
+        const updatedIndicatorIndex: number = contextIndicators.findIndex(
+          (indicator: any) => indicator.id === data.result.id
+        );
+        const updatedIndicators = [...contextIndicators];
+        updatedIndicators.splice(updatedIndicatorIndex, 1, data.result);
+        setContextIndicators(updatedIndicators);
+        message = {
+          type: "success",
+          content: "Indicator updated successfully.",
+        };
+      }
+      return message;
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   /**
    * Function to delete an indicator.
@@ -221,6 +258,7 @@ export function DashboardProvider({
       saveIndicator,
       getIndicators,
       getIndicatorData,
+      editIndicator,
       deleteIndicator,
       clearData,
     }),
@@ -232,6 +270,7 @@ export function DashboardProvider({
       saveIndicator,
       getIndicators,
       getIndicatorData,
+      editIndicator,
       deleteIndicator,
       clearData,
     ]
