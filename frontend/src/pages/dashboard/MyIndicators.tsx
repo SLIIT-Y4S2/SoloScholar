@@ -28,22 +28,29 @@ const { Text } = Typography;
 const { Content } = Layout;
 const { TextArea } = Input;
 
+interface CurrentIndicator {
+  indicatorName: string | null;
+  analysisGoal: string | null;
+  visualizationChoice: string | null;
+}
+interface IndicatorState extends CurrentIndicator {
+  id: string | null;
+  data: any;
+}
+
 // Hold the current values of the indicator before being edited
-let currentIndicator: any = {
-  id: "",
-  indicatorName: "",
-  analysisGoal: "",
-  visualizationChoice: "",
-};
+let currentIndicator: CurrentIndicator;
 
 const MyIndicators = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [searchText, setSearchText] = useState<string>("");
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
-  const [indicatorState, setIndicatorState] = useState<any>({
-    indicatorName: "",
-    analysisGoal: "",
+  const [indicatorState, setIndicatorState] = useState<IndicatorState>({
+    id: null,
+    indicatorName: null,
+    analysisGoal: null,
     visualizationChoice: null,
+    data: null,
   });
   const {
     contextIndicators,
@@ -94,7 +101,8 @@ const MyIndicators = () => {
                     onClick={async () => {
                       const data = await getIndicatorData(
                         indicator.id,
-                        indicator.visualization_choice
+                        indicator.visualization_choice,
+                        null
                       );
                       Modal.info({
                         title: <Text>{indicator.indicator_name}</Text>,
@@ -115,23 +123,26 @@ const MyIndicators = () => {
                     </Text>
                     <div className="flex justify-end gap-3">
                       <Button
-                        onClick={(e: any) => {
+                        onClick={async (e: any) => {
                           e.stopPropagation();
-                          setIndicatorState({
+                          // Set the current values of the indicator before being edited
+                          currentIndicator = {
                             indicatorName: indicator.indicator_name,
                             analysisGoal: indicator.analysis_goal,
                             visualizationChoice: indicator.visualization_choice,
-                          });
-                          // Set the current values of the indicator before being edited
-                          currentIndicator = {
-                            ...{
-                              id: indicator.id,
-                              indicatorName: indicator.indicator_name,
-                              analysisGoal: indicator.analysis_goal,
-                              visualizationChoice:
-                                indicator.visualization_choice,
-                            },
                           };
+                          const data = await getIndicatorData(
+                            indicator.id,
+                            indicator.visualization_choice,
+                            null
+                          );
+                          setIndicatorState({
+                            id: indicator.id,
+                            indicatorName: indicator.indicator_name,
+                            analysisGoal: indicator.analysis_goal,
+                            visualizationChoice: indicator.visualization_choice,
+                            data,
+                          });
                           setIsDrawerOpen(true);
                         }}
                         icon={<EditOutlined />}
@@ -187,10 +198,12 @@ const MyIndicators = () => {
                         <Input
                           onChange={(e: any) =>
                             setIndicatorState({
+                              id: indicatorState.id,
                               indicatorName: e.target.value,
                               analysisGoal: indicatorState.analysisGoal,
                               visualizationChoice:
                                 indicatorState.visualizationChoice,
+                              data: indicatorState.data,
                             })
                           }
                           value={indicatorState.indicatorName}
@@ -203,10 +216,12 @@ const MyIndicators = () => {
                         <TextArea
                           onChange={(e: any) =>
                             setIndicatorState({
-                              analysisGoal: e.target.value,
+                              id: indicatorState.id,
                               indicatorName: indicatorState.indicatorName,
+                              analysisGoal: e.target.value,
                               visualizationChoice:
                                 indicatorState.visualizationChoice,
+                              data: indicatorState.data,
                             })
                           }
                           value={indicatorState.analysisGoal}
@@ -220,13 +235,20 @@ const MyIndicators = () => {
                         <Select
                           className="w-full"
                           showSearch
-                          onChange={(e: string) =>
+                          onChange={async (e: string) => {
+                            const data = await getIndicatorData(
+                              null,
+                              e,
+                              indicatorState.data.sqlQueryData
+                            );
                             setIndicatorState({
-                              visualizationChoice: e,
+                              id: indicatorState.id,
                               indicatorName: indicatorState.indicatorName,
                               analysisGoal: indicatorState.analysisGoal,
-                            })
-                          }
+                              visualizationChoice: e,
+                              data: data,
+                            });
+                          }}
                           value={indicatorState.visualizationChoice}
                           options={visualizationChoices.filter(
                             (choice: any) =>
@@ -234,29 +256,28 @@ const MyIndicators = () => {
                           )}
                         />
                       </div>
-                      <div>
-                        <Text>
-                          <b>Preview</b>
-                        </Text>
-                        {getVisualization(indicatorState.visualizationChoice)}
-                      </div>
+                      {getVisualization(
+                        indicatorState.visualizationChoice,
+                        indicatorState.data
+                      )}
                       <div className="flex gap-[10px] mt-auto">
                         <Button
                           onClick={async () => {
-                            if (
-                              indicatorState.indicatorName === "" ||
-                              indicatorState.analysisGoal === ""
-                            ) {
+                            const {
+                              indicatorName,
+                              analysisGoal,
+                              visualizationChoice,
+                            } = indicatorState;
+                            if (indicatorName === "" || analysisGoal === "") {
                               messageApi.open({
                                 type: "error",
                                 content: "Please fill all the fields",
                               });
                             } else if (
-                              indicatorState.indicatorName ===
+                              indicatorName ===
                                 currentIndicator.indicatorName &&
-                              indicatorState.analysisGoal ===
-                                currentIndicator.analysisGoal &&
-                              indicatorState.visualizationChoice ===
+                              analysisGoal === currentIndicator.analysisGoal &&
+                              visualizationChoice ===
                                 currentIndicator.visualizationChoice
                             ) {
                               messageApi.open({
@@ -265,10 +286,9 @@ const MyIndicators = () => {
                               });
                             } else {
                               setIsDrawerOpen(false);
-                              const message = await editIndicator({
-                                id: currentIndicator.id,
-                                ...indicatorState,
-                              });
+                              const message = await editIndicator(
+                                indicatorState
+                              );
                               messageApi.open({
                                 type: message.type,
                                 content: message.content,

@@ -59,15 +59,15 @@ export const previewData: PreviewData[] = [
     yValue: 100,
   },
   {
-    xValue: "x1",
+    xValue: "x3",
     yValue: 40,
   },
   {
-    xValue: "x2",
+    xValue: "x4",
     yValue: 100,
   },
   {
-    xValue: "x1",
+    xValue: "x5",
     yValue: 10,
   },
 ];

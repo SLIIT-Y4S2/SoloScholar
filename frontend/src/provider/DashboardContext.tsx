@@ -148,15 +148,22 @@ export function DashboardProvider({
    */
   const getIndicatorData = async (
     indicatorId: string,
-    visualizationChoice: string
+    visualizationChoice: string,
+    fetchedData: any
   ) => {
+    let sqlQueryData: any;
     try {
-      const response = await fetch(
-        `${DASHBOARD_API_URLS.DASHBOARD_INDICATORS}/${indicatorId}`
-      );
-      const data = await response.json();
-      const sqlQueryData = await data.result;
+      if (indicatorId) {
+        const response = await fetch(
+          `${DASHBOARD_API_URLS.DASHBOARD_INDICATORS}/${indicatorId}`
+        );
+        const data = await response.json();
+        sqlQueryData = await data.result;
+      } else if (fetchedData) {
+        sqlQueryData = fetchedData;
+      }
       return {
+        sqlQueryData: sqlQueryData,
         formattedData: await getFormattedData(
           sqlQueryData,
           visualizationChoice
@@ -174,6 +181,8 @@ export function DashboardProvider({
    */
   const editIndicator = async (indicator: any) => {
     try {
+      const { id, indicatorName, analysisGoal, visualizationChoice } =
+        await indicator;
       const response = await fetch(
         `${DASHBOARD_API_URLS.DASHBOARD_INDICATORS}`,
         {
@@ -181,7 +190,12 @@ export function DashboardProvider({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(indicator),
+          body: JSON.stringify({
+            id,
+            indicatorName,
+            analysisGoal,
+            visualizationChoice,
+          }),
         }
       );
       const data = await response.json();
