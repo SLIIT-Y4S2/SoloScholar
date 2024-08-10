@@ -27,7 +27,7 @@ const TutorialView = () => {
     status === "submitting" ||
     status === "feedback-generating"
   ) {
-    return <>Loading</>;
+    return <>Generating...</>;
   }
 
   if (status === "generated" || status === "in-progress") {

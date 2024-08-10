@@ -46,14 +46,14 @@ const Module = () => {
             </h2>
             <p className="text-gray-600 mb-4">{lesson.description}</p>
 
-            <div className="flex flex-col gap-2 mb-4">
+            {/* <div className="flex flex-col gap-2 mb-4">
               {lesson.lesson_subtopics.map(({ topic, description }) => (
                 <>
                   <span key={topic}>{topic}</span>
                   <span key={description}>{description}</span>
                 </>
               ))}
-            </div>
+            </div> */}
             <div className="flex space-x-2">
               {["lecture", "tutorial", "lab"].map((type) => {
                 const title = lesson.title.toLowerCase().replace(/\s/g, "-");

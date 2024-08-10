@@ -1,7 +1,9 @@
+import { Tutorial } from "./../types/tutorial.types";
 import { Request, Response } from "express";
 import {
   synthesizeQuestionsForSubtopic,
   markStudentAnswerCorrectOrIncorrect,
+  synthesizeFeedbackForQuestions,
 } from "../services/tutorial.rag.service";
 import {
   createTutorial,
@@ -10,7 +12,7 @@ import {
   getTutorialByIdWithQuestions,
   saveTutorialAnswer,
   updateTutorialQuestionResult,
-  updateTutorialsWithFeedback,
+  updateQuestionWithFeedback,
   updateTutorialStatus,
 } from "../services/db/tutorial.db.service";
 import {
@@ -365,12 +367,8 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
   }
 };
 
-interface FeedbackBody {
-  [key: number]: string;
-}
-
 export const requestFeedbackHandler = async (
-  req: Request<{ tutorialId: string }, {}, FeedbackBody>,
+  req: Request<{ tutorialId: string }, {}, { [key: number]: string }>,
   res: Response
 ) => {
   try {
@@ -385,45 +383,86 @@ export const requestFeedbackHandler = async (
     }
 
     const tutorial = await getTutorialByIdWithQuestions(tutorialId);
-
-    if (tutorial.status !== "submitted") {
-      return res.status(400).json({
-        message: "Tutorial not submitted",
-      });
-    }
+    //TODO: uncomment this
+    // if (tutorial.status !== "submitted") {
+    //   return res.status(400).json({
+    //     message: "Tutorial not submitted",
+    //   });
+    // }
 
     await updateTutorialStatus(tutorialId, "feedback-generating");
 
     // get all the questions for the tutorial
-    const tutorialQuestions = tutorial.questions;
+    const noFeedbackQuestions = tutorial.questions;
 
     // need to group all the tutorials by subtopic
 
-    // generate feedback for questions based on the student answer under each subtopic
-    /**
-     * const feedback = await generateFeedbackForQuestions(
-     * lesson,
-     * subtopic,
-     * questions
-     * );
-     *
-     *
-     */
-
-    const feedbackInput = tutorialQuestions.map((question) => {
+    const feedbackInput = noFeedbackQuestions.map((question) => {
       return {
-        id: question.id,
-        feedback:
-          "Quis culpa et pariatur nostrud. Nulla aliqua nulla laborum veniam eu ea ut sint ea. Exercitation magna qui voluptate esse est deserunt. Irure excepteur deserunt enim cillum ut dolore elit consequat mollit mollit aliquip aliquip esse.",
+        ...question,
         feedback_type: feedback[question.id],
       };
     });
 
-    await updateTutorialsWithFeedback(tutorialId, feedbackInput);
+    //update questions with feedback skip
+
+    await updateQuestionWithFeedback(
+      feedbackInput
+        .filter((question) => question.feedback_type === "skip")
+        .map((question) => ({
+          id: question.id,
+          feedback_type: question.feedback_type,
+        }))
+    );
+
+    const groupedEssayQuestions = groupBy(
+      feedbackInput.filter((question) => question.feedback_type !== "skip"),
+      "subtopic_id"
+    );
+
+    // generate feedback for questions based on the student answer under each subtopic
+    await Promise.all(
+      Object.entries(groupedEssayQuestions).map(
+        async ([subtopic_id, questions]) => {
+          const subtopic = await findSubtopicById(parseInt(subtopic_id));
+
+          if (!subtopic) {
+            throw new Error("Subtopic not found");
+          }
+
+          const result = await synthesizeFeedbackForQuestions(
+            subtopic.lesson.title,
+            subtopic.topic,
+            subtopic.description,
+            questions.map((question) => ({
+              question: question.question,
+              studentAnswer: question.student_answer ?? "No answer provided",
+              correctAnswer: question.answer,
+              isCorrect: question.is_student_answer_correct ?? false,
+              feedbackType: question.feedback_type as "basic" | "detailed",
+            }))
+          );
+
+          await updateQuestionWithFeedback(
+            questions.map((question, index) => ({
+              id: question.id,
+              feedback: result[index],
+              feedback_type: question.feedback_type,
+            }))
+          );
+        }
+      )
+    );
+
+    const updatedTutorial = await updateTutorialStatus(
+      tutorialId,
+      "feedback-generated",
+      true
+    );
 
     res.status(200).json({
       message: "Feedback requested successfully",
-      data: { ...tutorial },
+      data: { ...updatedTutorial },
     });
   } catch (error) {
     const message = (error as Error).message;

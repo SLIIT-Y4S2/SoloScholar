@@ -7,6 +7,7 @@ const TutorialFeedback = () => {
   const { questions, completeTutorial } = useTutorialContext();
   const [question_number, setQuestionNumber] = useState(0);
 
+  console.log(questions);
   const filteredQuestions = questions.filter(
     (question) => question.feedback_type !== "skip"
   );

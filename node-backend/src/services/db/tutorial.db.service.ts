@@ -345,11 +345,10 @@ export const updateTutorialQuestionResult = async (
   }
 };
 
-export const updateTutorialsWithFeedback = async (
-  tutorialId: string,
+export const updateQuestionWithFeedback = async (
   feedback: {
     id: number;
-    feedback: string;
+    feedback?: string;
     feedback_type: string;
   }[]
 ): Promise<void> => {
@@ -368,16 +367,6 @@ export const updateTutorialsWithFeedback = async (
       throw new Error("Tutorial question not found");
     }
   });
-
-  await prisma.tutorial.update({
-    where: {
-      id: tutorialId,
-    },
-    data: {
-      status: "feedback-generated",
-    },
-  });
-
   try {
     await Promise.all(updatePromises);
   } catch (error) {
@@ -389,13 +378,37 @@ export const updateTutorialsWithFeedback = async (
 /**
  * Mark tutorial as completed
  * @param tutorialId
+ * @param status
+ * @param includeQuestions
  * @returns
+ * @returns {Promise<void>}
  */
 
 export const updateTutorialStatus = async (
   tutorialId: string,
-  status: string
+  status: string,
+  includeQuestions: boolean = false
 ) => {
+  if (!includeQuestions) {
+    const tutorial = await prisma.tutorial.update({
+      where: {
+        id: tutorialId,
+      },
+      data: {
+        status,
+      },
+      include: {
+        learning_material: true,
+      },
+    });
+
+    if (!tutorial) {
+      throw new Error("Tutorial not found");
+    }
+
+    return tutorial;
+  }
+
   const tutorial = await prisma.tutorial.update({
     where: {
       id: tutorialId,
@@ -403,11 +416,27 @@ export const updateTutorialStatus = async (
     data: {
       status,
     },
+    include: {
+      learning_material: true,
+      ...{
+        questions: {
+          include: {
+            options: true,
+          },
+        },
+      },
+    },
   });
 
   if (!tutorial) {
     throw new Error("Tutorial not found");
   }
 
-  return tutorial;
+  return {
+    ...tutorial,
+    questions: tutorial.questions.map((q) => ({
+      ...q,
+      options: q.options.map((o) => o.text),
+    })),
+  };
 };

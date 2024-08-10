@@ -54,9 +54,13 @@ const QuestionCardForFeedback = ({
             <CloseCircleOutlined /> Incorrect
           </span>
         )}
-        <br />
-        <strong>Feedback for your answer:</strong> <br />
-        {feedback}
+        {feedback && (
+          <>
+            <br />
+            <strong>Feedback for your answer:</strong> <br />
+            {feedback}
+          </>
+        )}
         <br />
         <strong>Example answer:</strong> <br />
         {answer}
