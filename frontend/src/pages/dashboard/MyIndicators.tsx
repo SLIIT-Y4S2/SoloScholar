@@ -22,6 +22,7 @@ import {
   message,
   Select,
   Drawer,
+  Skeleton,
 } from "antd";
 
 const { Text } = Typography;
@@ -45,6 +46,7 @@ const MyIndicators = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [searchText, setSearchText] = useState<string>("");
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  const [isSkeletonLoading, setIsSkeletonLoading] = useState<boolean>(true);
   const [indicatorState, setIndicatorState] = useState<IndicatorState>({
     id: null,
     indicatorName: null,
@@ -64,6 +66,7 @@ const MyIndicators = () => {
     (async () => {
       // TODO Make the following dynamic using the data from backend
       await getIndicators("clz0trbf40000ld2w4z43q9yj"); // instructorId = clz0trbf40000ld2w4z43q9yj
+      setIsSkeletonLoading(false);
     })();
   }, []);
 
@@ -312,6 +315,25 @@ const MyIndicators = () => {
                 </Fragment>
               ))}
           </div>
+        ) : isSkeletonLoading ? (
+          // TODO Make the [1, 2] array dynamic
+          [1, 2].map((contextIndicator: any) => (
+            <div className="relative" key={contextIndicator.id}>
+              {/* TODO Make the width responsive*/}
+              <Skeleton.Input
+                size={150}
+                style={{
+                  width: "600%",
+                }}
+                active
+                className="mb-[16px] p-[1px] w-[600%]"
+              />
+              <div className="flex absolute bottom-12 right-5 gap-[20px]">
+                <Skeleton.Button active size="default" />
+                <Skeleton.Button active size="default" />
+              </div>
+            </div>
+          ))
         ) : (
           <Result status="info" title="You dont' have any indicators" />
         )}
