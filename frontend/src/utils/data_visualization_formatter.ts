@@ -41,7 +41,7 @@ const getPieChartFormattedData = async (data: any) => {
   const formattedValues: any = data.map((datum: any) => {
     const keys = Object.keys(datum);
     return {
-      name: `${keys[0]}-${datum[keys[0]]}`,
+      name: `${datum[keys[0]]}`,
       value: datum[keys[1]],
     };
   });

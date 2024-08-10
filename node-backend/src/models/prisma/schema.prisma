@@ -14,75 +14,68 @@ model cognitive_level {
 }
 
 model interaction {
-  id                   Int               @id @default(autoincrement())
-  interaction_type     String            @db.VarChar(30)
-  interaction_response String            @db.VarChar(Max)
-  attempts             Int
-  date                 DateTime          @default(now()) @db.Date
-  time_spent           DateTime          @db.Time
-  learning_material_id String
-  learning_material    learning_material @relation(fields: [learning_material_id], references: [id], onUpdate: NoAction, map: "FK__interacti__learn__7795AE5F")
+  id                   Int                   @id @default(autoincrement())
+  learning_material_id String                @db.VarChar(35)
+  learning_material    learning_material     @relation(fields: [learning_material_id], references: [id], onUpdate: NoAction)
+  labsheet_interaction labsheet_interaction?
+  lecture_interaction  lecture_interaction?
+  tutorial_interaction tutorial_interaction?
 }
 
 model labsheet {
-  id                String              @id
+  id                String              @id @db.VarChar(35)
   learning_material learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction)
   labsheet_question labsheet_question[]
 }
 
 model labsheet_question {
-  id          Int      @id @default(autoincrement())
-  question    String   @db.VarChar(200)
-  answer      String   @db.VarChar(2000)
-  labsheet_id String
-  labsheet    labsheet @relation(fields: [labsheet_id], references: [id], onUpdate: NoAction)
+  id                   Int                    @id @default(autoincrement())
+  question             String                 @db.VarChar(200)
+  answer               String                 @db.VarChar(2000)
+  labsheet_id          String                 @db.VarChar(35)
+  labsheet_interaction labsheet_interaction[]
+  labsheet             labsheet               @relation(fields: [labsheet_id], references: [id], onUpdate: NoAction)
 }
 
 model learner {
-  id                String              @id @default(cuid())
-  first_name        String              @db.VarChar(30)
-  last_name         String              @db.VarChar(30)
-  student_id        String              @unique @db.VarChar(10)
-  email             String              @unique @db.VarChar(30)
-  password          String              @unique @db.VarChar(60)
+  id                String              @id @db.VarChar(35)
+  student_number    String              @db.VarChar(15)
+  person            person              @relation(fields: [id], references: [id], onUpdate: NoAction)
   learning_material learning_material[]
   system_log        system_log[]
-  session           session[]
 }
 
 model session {
-  id         String   @id @default(cuid())
-  userId     String
-  user       learner  @relation(fields: [userId], references: [id])
-  valid      Boolean  @default(true)
-  userAgent  String
-  create_at  DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id         String   @id @default(cuid()) @db.VarChar(35)
+  user_agent String   @db.VarChar(15)
+  is_valid   Boolean
+  created_at DateTime @db.DateTime
+  updated_at DateTime @updatedAt @db.DateTime
+  person_id  String   @db.VarChar(35)
+  person     person   @relation(fields: [person_id], references: [id], onUpdate: NoAction)
 }
 
 model learning_material {
-  id                String        @id @default(cuid())
+  id                String        @id @default(cuid()) @db.VarChar(35)
   learning_level    String        @db.VarChar(12)
   completion_status Decimal       @db.Decimal(18, 0)
+  created_at        DateTime      @db.DateTime
+  updated_at        DateTime      @updatedAt @db.DateTime
+  learner_id        String        @db.VarChar(35)
   lesson_id         Int
   interaction       interaction[]
   labsheet          labsheet?
-  learner_id        String
   learner           learner       @relation(fields: [learner_id], references: [id], onUpdate: NoAction)
   lesson            lesson        @relation(fields: [lesson_id], references: [id], onUpdate: NoAction)
   lecture           lecture?
   tutorial          tutorial?
-  create_at         DateTime      @default(now())
-  updated_at        DateTime      @default(now()) @updatedAt
 }
 
 model learning_outcome {
   id                               Int                                @id @default(autoincrement())
-  description                      String                             @unique @db.VarChar(250)
+  description                      String                             @db.VarChar(250)
   learning_outcome_cognitive_level learning_outcome_cognitive_level[]
   lesson_learning_outcome          lesson_learning_outcome[]
-
-  @@index([description], name: "description")
 }
 
 model learning_outcome_cognitive_level {
@@ -95,9 +88,10 @@ model learning_outcome_cognitive_level {
 }
 
 model lecture {
-  id                String            @id
-  learning_material learning_material @relation(fields: [id], references: [id], onUpdate: NoAction)
-  sub_lecture       sub_lecture[]
+  id                  String                @id @db.VarChar(35)
+  learning_material   learning_material     @relation(fields: [id], references: [id], onUpdate: NoAction)
+  lecture_interaction lecture_interaction[]
+  sub_lecture         sub_lecture[]
 }
 
 model lesson {
@@ -108,11 +102,11 @@ model lesson {
   learning_materials       learning_material[]
   module                   module                    @relation(fields: [module_id], references: [id], onUpdate: NoAction)
   lesson_learning_outcomes lesson_learning_outcome[]
-  lesson_subtopics         lesson_subtopic[]
+  sub_lessons              sub_lesson[]
 }
 
-model lesson_subtopic {
-  id                Int                 @id() @default(autoincrement())
+model sub_lesson {
+  id                Int                 @id @default(autoincrement())
   topic             String              @db.VarChar(200)
   description       String              @db.VarChar(Max)
   lesson_id         Int
@@ -140,7 +134,7 @@ model sub_lecture {
   id         Int     @id @default(autoincrement())
   title      String  @db.VarChar(50)
   content    String? @db.VarChar(Max)
-  lecture_id String
+  lecture_id String  @db.VarChar(35)
   lecture    lecture @relation(fields: [lecture_id], references: [id], onUpdate: NoAction)
 }
 
@@ -148,39 +142,100 @@ model system_log {
   id         Int      @id @default(autoincrement())
   action     String   @db.VarChar(30)
   timestamp  DateTime @default(dbgenerated("getutcdate()")) @db.DateTime
-  learner_id String
+  learner_id String   @db.VarChar(35)
   learner    learner  @relation(fields: [learner_id], references: [id], onUpdate: NoAction)
 }
 
 model tutorial {
-  id                String              @id
-  status            String              @db.VarChar(20)
-  current_question  Int                 @default(1)
+  id                String              @id @db.VarChar(35)
+  status            String              @db.VarChar(10)
   learning_material learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction)
   questions         tutorial_question[]
 }
 
 model tutorial_question {
-  id                        Int                        @id @default(autoincrement())
-  question                  String                     @db.VarChar(300)
-  answer                    String                     @db.VarChar(MAX)
-  tutorial_id               String
-  question_number           Int
-  type                      String                     @db.VarChar(20)
-  student_answer            String?                    @db.VarChar(MAX)
-  feedback_type             String?                    @db.VarChar(10)
-  is_student_answer_correct Boolean?
-  tutorial                  tutorial                   @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction)
-  options                   tutorial_question_option[]
-  //new
-  subtopic_id               Int
-  subtopic                  lesson_subtopic            @relation(fields: [subtopic_id], references: [id], onUpdate: NoAction)
-  feedback                  String?                    @db.VarChar(Max)
+  id                           Int                           @id @default(autoincrement())
+  question                     String                        @db.VarChar(300)
+  question_number              Int
+  answer                       String                        @db.VarChar(2000)
+  tutorial_id                  String                        @db.VarChar(35)
+  mcq_tutorial_question        mcq_tutorial_question?
+  structured_tutorial_question structured_tutorial_question?
+  tutorial_interaction         tutorial_interaction[]
+  tutorial                     tutorial                      @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction)
+  sub_lesson                   sub_lesson?                   @relation(fields: [sub_lessonId], references: [id])
+  sub_lessonId                 Int?
 }
 
-model tutorial_question_option {
-  id                 Int               @id @default(autoincrement())
-  text               String            @db.VarChar(300)
-  tutorialQuestionId Int
-  tutorial_question  tutorial_question @relation(fields: [tutorialQuestionId], references: [id])
+model analytical_indicator {
+  id                   String     @id @default(cuid()) @db.VarChar(35)
+  indicator_name       String     @db.VarChar(100)
+  analysis_goal        String     @db.VarChar(250)
+  visualization_choice String     @db.VarChar(25)
+  sql_query            String     @db.VarChar(2000)
+  instructor_id        String     @db.VarChar(35)
+  instructor           instructor @relation(fields: [instructor_id], references: [id], onUpdate: NoAction)
+}
+
+model instructor {
+  id                   String                 @id @db.VarChar(35)
+  analytical_indicator analytical_indicator[]
+  person               person                 @relation(fields: [id], references: [id], onUpdate: NoAction)
+}
+
+model labsheet_interaction {
+  id                   Int               @id
+  attempts             Int
+  labsheet_question_id Int
+  labsheet_question    labsheet_question @relation(fields: [labsheet_question_id], references: [id], onUpdate: NoAction)
+  interaction          interaction       @relation(fields: [id], references: [id], onUpdate: NoAction)
+}
+
+model lecture_interaction {
+  id          Int         @id
+  views       Int
+  lecture_id  String      @db.VarChar(35)
+  lecture     lecture     @relation(fields: [lecture_id], references: [id], onUpdate: NoAction)
+  interaction interaction @relation(fields: [id], references: [id], onUpdate: NoAction)
+}
+
+model mcq_tutorial_question {
+  id                           Int                            @id
+  tutorial_question            tutorial_question              @relation(fields: [id], references: [id], onUpdate: NoAction)
+  mcq_tutorial_question_option mcq_tutorial_question_option[]
+}
+
+model mcq_tutorial_question_option {
+  id                       Int                   @id @default(autoincrement())
+  answer_option            String                @db.VarChar(300)
+  mcq_tutorial_question_id Int
+  mcq_tutorial_question    mcq_tutorial_question @relation(fields: [mcq_tutorial_question_id], references: [id], onUpdate: NoAction)
+}
+
+model person {
+  id         String      @id @default(cuid()) @db.VarChar(35)
+  first_name String      @db.VarChar(30)
+  last_name  String      @db.VarChar(30)
+  email      String      @unique @db.VarChar(30)
+  password   String      @db.VarChar(20)
+  instructor instructor?
+  learner    learner?
+  session    session[]
+}
+
+model structured_tutorial_question {
+  id                Int               @id
+  tutorial_question tutorial_question @relation(fields: [id], references: [id], onUpdate: NoAction)
+}
+
+model tutorial_interaction {
+  id                        Int               @id
+  learner_answer            String            @db.VarChar(Max)
+  attempts                  Int
+  feedback_type             String            @db.VarChar(8)
+  feedback                  String            @db.VarChar(Max)
+  is_learner_answer_correct Boolean
+  tutorial_question_id      Int
+  tutorial_question         tutorial_question @relation(fields: [tutorial_question_id], references: [id], onUpdate: NoAction)
+  interaction               interaction       @relation(fields: [id], references: [id], onUpdate: NoAction)
 }

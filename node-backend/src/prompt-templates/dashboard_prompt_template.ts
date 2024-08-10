@@ -16,7 +16,7 @@ export const SQL_MSSQL_PROMPT: PromptTemplate<
   You are an MS SQL expert. Given an input question, construct a syntactically correct MS SQL query for it. 
   Unless the user specifies in the question a specific number of results to obtain, query for all the results. 
   You must include only the columns that are needed to answer the question. Pay attention to only use the column
-  names you can see in the tables. Also, pay attention to which column is in which table. 
+  names you can see in the tables. Also, pay attention to which column is in which table.
 
   Only use the following database schema:
   {schema}
