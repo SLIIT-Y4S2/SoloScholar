@@ -9,21 +9,21 @@ const PROGRAMMING_LANGUAGES = ["javascript", "sql"];
 export function CodeEditor({ handleCodeOnChange }: { handleCodeOnChange: (codeSnippet: string) => void }) {
     const [code, setCode] = useState("");
     const [language, setLanguage] = useState("sql");
-    const [codeEditorWidth, setCodeEditorWidth] = useState<string | null>("90vw");
+    const [codeEditorWidth, setCodeEditorWidth] = useState<string | null>("1080px");
     const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
 
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth > 1640) {
+            if (window.innerWidth > 1280) {
                 setCodeEditorWidth(`${1080}px`);
             } else {
                 setCodeEditorWidth(`${window.innerWidth * 0.9}px`);
             }
         }
 
-        window.addEventListener("resize", handleResize);
         window.addEventListener("load", handleResize);
+        window.addEventListener("resize", handleResize);
         return () => {
             window.removeEventListener("resize", handleResize);
         }
@@ -33,6 +33,12 @@ export function CodeEditor({ handleCodeOnChange }: { handleCodeOnChange: (codeSn
         if (editorRef.current) {
             editorRef.current = editor;
             editor.focus();
+        }
+
+        if (window.innerWidth > 1280) {
+            setCodeEditorWidth(`${1080}px`);
+        } else {
+            setCodeEditorWidth(`${window.innerWidth * 0.9}px`);
         }
     }
 

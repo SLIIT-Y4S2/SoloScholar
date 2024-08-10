@@ -24,7 +24,7 @@ interface LabSessionContextType {
     isLoading: boolean;
     isEvaluatingAnswer: boolean;
     hintForCurrentQuestion: string;
-    isAnsForCurrQuesCorrect: boolean;
+    isAnsForCurrQuesCorrect: boolean | null;
     isLabCompleted: boolean;
     evaluateStudentAnswerHandler: (answer: string) => void;
     getHintForCurrentQuestion: () => void;
@@ -36,8 +36,8 @@ interface LabQuestion {
     question_number: number;
     question: string;
     answer: string;
-    exampleQuestion: string;
-    exampleAnswer: string;
+    example_question: string;
+    example_answer: string;
     isCorrect: boolean | null;
     currentAnswer: string | null;
     isAnswered: boolean;
@@ -66,7 +66,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
     const [labSheetId, setLabSheetId] = useState<string | null>(null);
     const [isEvaluatingAnswer, setIsEvaluatingAnswer] = useState<boolean>(false);
     const [hintForCurrentQuestion, setHintForCurrentQuestion] = useState<string>("");
-    const [isAnsForCurrQuesCorrect, setIsAnsForCurrQuesCorrect] = useState<boolean>(false);
+    const [isAnsForCurrQuesCorrect, setIsAnsForCurrQuesCorrect] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [totalQuestions, setTotalQuestions] = useState<number>(0);
 
@@ -87,19 +87,22 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                 setRealWorldScenario(labSheet.real_world_scenario);
                 setSupportMaterials(labSheet.supportMaterial);
                 setQuestions([
-                    ...labSheet.labsheet_question.map((data: LabQuestion) => ({
-                        id: data.id,
-                        question_number: data.question_number,
-                        question: data.question,
-                        answer: data.answer,
-                        exampleQuestion: data.exampleQuestion,
-                        exampleAnswer: data.exampleAnswer,
-                        isCorrect: data.isCorrect,
-                        currentAnswer: null,
-                        attempts: 0,
-                    })),
+                    ...labSheet.labsheet_question.map((data: LabQuestion) => {
+                        console.log(data.isCorrect);
+                        return ({
+                            id: data.id,
+                            question_number: data.question_number,
+                            question: data.question,
+                            answer: data.answer,
+                            exampleQuestion: data.example_question,
+                            exampleAnswer: data.example_answer,
+                            isCorrect: data.isCorrect,
+                            currentAnswer: null,
+                            attempts: 0,
+                        })
+                    }),
                 ]);
-                setIsAnsForCurrQuesCorrect(labSheet.labsheet_question[0].isCorrect!);
+                setIsAnsForCurrQuesCorrect(labSheet.labsheet_question[0].isCorrect);
                 setTotalQuestions(labSheet.labsheet_question.length);
                 setLabSheetId(labSheetId);
                 setIsLoading(false)
@@ -166,11 +169,11 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             if (currentQuestionIndex < totalQuestions - 1) {
                 setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
                 setHintForCurrentQuestion("");
-                setIsAnsForCurrQuesCorrect(false);
+                setIsAnsForCurrQuesCorrect(questions[currentQuestionIndex + 1].isCorrect);
             } else {
                 setIsLabCompleted(true);
             }
-        }, [currentQuestionIndex, totalQuestions, setCurrentQuestionIndex, setHintForCurrentQuestion, setIsLabCompleted]
+        }, [questions, currentQuestionIndex, totalQuestions, setCurrentQuestionIndex, setHintForCurrentQuestion, setIsLabCompleted]
     );
 
     const contextValues = useMemo<LabSessionContextType>(

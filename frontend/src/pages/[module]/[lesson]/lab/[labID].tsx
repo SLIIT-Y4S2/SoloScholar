@@ -1,5 +1,5 @@
 import { Button, Modal } from "antd";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { SupportMaterialsForLab } from "../../../../Components/lab/SupportMaterialsForLab";
 import QuestionCardForLab from "../../../../Components/lab/QuestionCardForLab";
 import { FileMarkdownOutlined } from "@ant-design/icons";
@@ -8,8 +8,10 @@ import { useState } from "react";
 export default function LabSession() {
   const [open, setOpen] = useState<boolean>(false);
   const { labSheetId } = useParams();
+  const location = useLocation();
+
   return (
-    <div className="flex items-center justify-center py-6">
+    <div className="flex items-center justify-center py-6" key={location.key}>
       <div className="flex flex-col gap-6 w-max">
         <Button className="w-max" onClick={() => setOpen(true)}><FileMarkdownOutlined />Support Material</Button>
         <Modal open={open} onCancel={() => setOpen(false)} width={1000} footer={[]}>

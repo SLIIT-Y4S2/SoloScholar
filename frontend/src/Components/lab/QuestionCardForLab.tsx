@@ -111,7 +111,7 @@ export default function QuestionCardForLab() {
               </div>
               {isAnsForCurrQuesCorrect && isAnsForCurrQuesCorrect ? (
                 <p className="text-green-500">Correct Answer</p>
-              ) : isAnsForCurrQuesCorrect === false ? (
+              ) : isAnsForCurrQuesCorrect == false ? (
                 <p className="text-red-500">Incorrect Answer</p>
               ) : null}
               {isEvaluatingAnswer ? (
