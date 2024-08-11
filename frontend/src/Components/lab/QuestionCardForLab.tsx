@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
-import { Button, Input, Layout, Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { Button, Input, Layout, Modal, Spin } from "antd";
+import { FileMarkdownOutlined, LoadingOutlined } from "@ant-design/icons";
 import { CodeEditor } from "./CodeEditor";
+import { Link, useParams } from "react-router-dom";
+import { SupportMaterialsForLab } from "./SupportMaterialsForLab";
 const { Content } = Layout;
 const { TextArea } = Input;
 
@@ -23,6 +25,8 @@ export default function QuestionCardForLab() {
 
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
   // const [showHint, setShowHint] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
+  const { labSheetId } = useParams();
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -76,6 +80,14 @@ export default function QuestionCardForLab() {
   return (
     <Content>
       <div className="bg-white flex flex-col mx-auto p-8 w-full max-w-[1200px] max-h-[800] h-max rounded-2xl">
+        <Modal open={open} onCancel={() => setOpen(false)} width={1000} footer={[]}>
+          <Link to={`../${labSheetId}/support-material`} relative={"path"} target="_blank">
+            <div className="text-base font-bold py-2 px-4 border-2 border-solid border-red-600 w-max text-red-600 rounded-xl">
+              Open in a new tab
+            </div>
+          </Link>
+          <SupportMaterialsForLab />
+        </Modal>
         {!isLabCompleted ? (
           <form className="" onSubmit={handleNextQuestion}>
             <h1 className="text-2xl font-bold my-2">
@@ -83,9 +95,12 @@ export default function QuestionCardForLab() {
             </h1>
             <p>{questions && questions[currentQuestionIndex].question}</p>
             <div className="my-4">
-              <p className="font-semibold my-2">
-                Provide your answer in below text box.
-              </p>
+              <div className="flex flex-row justify-between">
+                <p className="font-semibold">
+                  Provide your answer in below code editor.
+                </p>
+                <Button className="w-max" onClick={() => setOpen(true)}><FileMarkdownOutlined />Support Material</Button>
+              </div>
               <div className="flex flex-col justify-center items-center">
                 <CodeEditor handleCodeOnChange={handleCodeOnChange} />
               </div>
