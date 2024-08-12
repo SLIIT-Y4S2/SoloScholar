@@ -1,7 +1,7 @@
 import { LAB_API_URLS } from "../utils/api_routes";
 import axiosInstance from "../utils/axiosInstance";
 
-export async function evaluateStudentsAnswer(studentsAnswer: string, labSheetId: string, questionsId: string) {
+export async function evaluateStudentsAnswer(studentsAnswer: string, labSheetId: string, questionsId: number) {
     console.log("Evaluating answer", studentsAnswer, labSheetId, questionsId);
     const response = await axiosInstance.post(LAB_API_URLS.EVALUATE_ANSWER, {
         studentsAnswer,
@@ -52,7 +52,7 @@ export async function getLabExerciseByModuleAndLessonName(moduleName: string, le
     return response;
 }
 
-export async function getHintForQuestion(labSheetId: string, questionId: string) {
+export async function getHintForQuestion(labSheetId: string, questionId: number) {
     const response = axiosInstance.get(`${LAB_API_URLS.GET_HINT}/${labSheetId}/${questionId}`);
 
     return response;

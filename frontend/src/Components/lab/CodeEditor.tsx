@@ -2,15 +2,24 @@ import { Editor } from "@monaco-editor/react";
 import { useEffect, useRef, useState } from "react";
 import { editor } from 'monaco-editor';
 import { Select } from "antd";
+import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
+
+interface CodeEditorProps {
+    handleCodeOnChange: (codeSnippet: string) => void;
+    // isCorrect: boolean | null;
+    // correctAnswer: string | null;
+}
 
 
 const PROGRAMMING_LANGUAGES = ["javascript", "sql"];
 
-export function CodeEditor({ handleCodeOnChange }: { handleCodeOnChange: (codeSnippet: string) => void }) {
-    const [code, setCode] = useState("");
+export function CodeEditor({ handleCodeOnChange }: CodeEditorProps) {
+    const [code, setCode] = useState(" ");
     const [language, setLanguage] = useState("sql");
     const [codeEditorWidth, setCodeEditorWidth] = useState<string | null>("1136px");
     const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+
+    const { isAnsForCurrQuesCorrect, currentQuestionIndex, questions } = useLabSessionContext();
 
 
     useEffect(() => {
@@ -28,6 +37,15 @@ export function CodeEditor({ handleCodeOnChange }: { handleCodeOnChange: (codeSn
             window.removeEventListener("resize", handleResize);
         }
     }, []);
+
+    useEffect(() => {
+        if (isAnsForCurrQuesCorrect !== null) {
+            setCode(questions[currentQuestionIndex].currentAnswer ?? " ");
+        } else {
+            setCode(" ");
+        }
+
+    }, [isAnsForCurrQuesCorrect, currentQuestionIndex, questions]);
 
     function handleEditorOnMount(editor: editor.IStandaloneCodeEditor) {
         if (editorRef.current) {
@@ -69,8 +87,10 @@ export function CodeEditor({ handleCodeOnChange }: { handleCodeOnChange: (codeSn
                     quickSuggestions: {
                         other: false,
                         comments: false,
-                        strings: false
+                        strings: false,
                     },
+                    domReadOnly: isAnsForCurrQuesCorrect !== null,
+                    readOnly: isAnsForCurrQuesCorrect !== null,
                     parameterHints: {
                         enabled: false
                     },

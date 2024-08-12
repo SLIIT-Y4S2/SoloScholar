@@ -32,7 +32,7 @@ interface LabSessionContextType {
 }
 
 interface LabQuestion {
-    id: string
+    id: number
     question_number: number;
     question: string;
     answer: string;
@@ -42,6 +42,11 @@ interface LabQuestion {
     currentAnswer: string | null;
     isAnswered: boolean;
     attempts: number;
+    student_answers: {
+        id: number;
+        student_answer: string;
+        labsheet_questionId: number;
+    }[]
 }
 
 
@@ -75,20 +80,17 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
     useEffect(() => {
         setIsLoading(true);
         const { labSheetId } = params;
-        console.log("LabSheetId", params);
-
         if (!labSheetId) {
             return;
         }
+        // If labSheetId is present, fetch the lab sheet
         getLabExerciseById(labSheetId)
             .then((response) => {
-                console.log("LabSheet", response.data);
                 const labSheet = response.data;
                 setRealWorldScenario(labSheet.real_world_scenario);
                 setSupportMaterials(labSheet.supportMaterial);
                 setQuestions([
                     ...labSheet.labsheet_question.map((data: LabQuestion) => {
-                        console.log(data.isCorrect);
                         return ({
                             id: data.id,
                             question_number: data.question_number,
@@ -97,12 +99,18 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                             exampleQuestion: data.example_question,
                             exampleAnswer: data.example_answer,
                             isCorrect: data.isCorrect,
-                            currentAnswer: null,
-                            attempts: 0,
+                            currentAnswer: data.student_answers.length == 0 ? null : data.student_answers.find((answer) => {
+                                if (answer.labsheet_questionId === data.id) {
+                                    return data.student_answers[data.student_answers.length - 1].student_answer;
+                                }
+                                return null
+                            })?.student_answer,
+                            attempts: data.student_answers.length,
                         })
                     }),
                 ]);
                 setIsAnsForCurrQuesCorrect(labSheet.labsheet_question[0].isCorrect);
+
                 setTotalQuestions(labSheet.labsheet_question.length);
                 setLabSheetId(labSheetId);
                 setIsLoading(false)
@@ -152,6 +160,9 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
         [labSheetId, questions, currentQuestionIndex, setIsEvaluatingAnswer]
     );
 
+    /**
+     * Get hint for the current question
+     */
     const getHintForCurrentQuestion = useCallback(
         () => {
             if (!labSheetId) {

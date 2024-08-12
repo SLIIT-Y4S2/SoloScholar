@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 import { Button, Input, Layout, Modal, Spin } from "antd";
-import { FileMarkdownOutlined, LoadingOutlined } from "@ant-design/icons";
+import { ExportOutlined, FileMarkdownOutlined, LoadingOutlined } from "@ant-design/icons";
 import { CodeEditor } from "./CodeEditor";
 import { Link, useParams } from "react-router-dom";
 import { SupportMaterialsForLab } from "./SupportMaterialsForLab";
@@ -82,8 +82,8 @@ export default function QuestionCardForLab() {
       <div className="bg-white flex flex-col mx-auto p-8 w-full max-w-[1200px] max-h-[800] h-max rounded-2xl">
         <Modal open={open} onCancel={() => setOpen(false)} width={1000} footer={[]}>
           <Link to={`../${labSheetId}/support-material`} relative={"path"} target="_blank">
-            <div className="text-base font-bold py-2 px-4 border-2 border-solid border-red-600 w-max text-red-600 rounded-xl">
-              Open in a new tab
+            <div className="text-base font-bold py-2 px-4 border-2 border-solid border-blue-600 w-max text-blue-600 rounded-xl">
+              <ExportOutlined />
             </div>
           </Link>
           <SupportMaterialsForLab />

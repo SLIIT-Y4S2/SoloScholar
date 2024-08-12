@@ -43,14 +43,12 @@ export function LabProvider({ children }: LabProviderProps) {
 
     useEffect(() => {
         setIsLoading(true);
-        console.log("Fetching labSheet data");
 
         // Fetch labSheet data
         getLabExerciseByModuleAndLessonName(module, lesson)
             .then((response) => {
                 setPreviousLabSheetSummary(response.data);
                 setIsLoading(false);
-                console.log("LabSheet data fetched successfully", response.data);
             }).catch((error) => {
                 console.error("Error fetching labSheet data: ", error);
                 setIsLoading(false);
