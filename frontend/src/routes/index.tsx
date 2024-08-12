@@ -1,11 +1,15 @@
 import {
+  Link,
   Navigate,
   RouteObject,
   RouterProvider,
   createBrowserRouter,
 } from "react-router-dom";
 import { useAuth } from "../provider/authProvider";
-import { ProtectedRoute } from "../utils/ProtectRoutes";
+import {
+  ProtectedRouteInstructor,
+  ProtectedRouteLearner,
+} from "../utils/ProtectRoutes";
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Home from "../pages/Home";
@@ -20,6 +24,7 @@ import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
 import Main from "../pages/dashboard/Main";
 import Module from "../pages/[module]";
+import { Button } from "antd";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -34,13 +39,25 @@ const Routes = () => {
       path: "/about-us",
       element: <div>About Us</div>,
     },
+    {
+      path: "/unauthorized",
+      element: (
+        <div>
+          <h1>Unauthorized</h1>
+          <p>You are not authorized to view this page.</p>
+          <Link to="/">
+            <Button type="primary">Go back to home</Button>
+          </Link>
+        </div>
+      ),
+    },
   ];
 
   // Define routes accessible only to authenticated users
   const routesForAuthenticatedOnly: RouteObject[] = [
     {
       path: "/",
-      element: <ProtectedRoute />, // Wrap the component in ProtectedRoute
+      element: <ProtectedRouteLearner />, // Wrap the component in ProtectedRoute
       children: [
         {
           path: "",
@@ -62,34 +79,18 @@ const Routes = () => {
           path: "/:module",
           element: <Module />,
         },
-        {
-          path: "/:module/:lesson",
-          children: [
-            {
-              path: "tutorial",
-              element: <Tutorial />,
-            },
-            {
-              path: "tutorial/:tutorialId",
-              element: <TutorialView />,
-            },
-            {
-              path: "lab",
-              element: <Lab />,
-            },
-            {
-              path: "lab/:labId",
-              element: <div>Lab</div>,
-            },
-          ],
-        },
+
         {
           path: "/lab",
           element: <Lab />,
         },
         {
           path: "/dashboard",
-          element: <Dashboard />,
+          element: (
+            <ProtectedRouteInstructor>
+              <Dashboard />
+            </ProtectedRouteInstructor>
+          ),
           children: [
             {
               path: "/dashboard",
@@ -114,6 +115,27 @@ const Routes = () => {
             {
               path: "/dashboard/my-indicators",
               element: <MyIndicators />,
+            },
+          ],
+        },
+        {
+          path: "/:module/:lesson",
+          children: [
+            {
+              path: "tutorial",
+              element: <Tutorial />,
+            },
+            {
+              path: "tutorial/:tutorialId",
+              element: <TutorialView />,
+            },
+            {
+              path: "lab",
+              element: <Lab />,
+            },
+            {
+              path: "lab/:labId",
+              element: <div>Lab</div>,
             },
           ],
         },

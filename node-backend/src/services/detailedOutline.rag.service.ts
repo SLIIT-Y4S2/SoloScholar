@@ -6,7 +6,7 @@ import { DetailedLessonOutlinePrompt } from "../prompt-templates/module.template
 import { PineconeStore } from "@langchain/pinecone";
 import { getPineconeIndex } from "../utils/pinecone.util";
 import { convertDocsToString } from "../utils/rag.util";
-import { InputLesson, Lesson, LessonSubtopic } from "../types/module.types";
+import { InputLesson, Lesson, SubLesson } from "../types/module.types";
 
 /**
  * TODO: remove this
@@ -56,7 +56,7 @@ export async function synthesizeDetailedLessonOutline(
 
   const context = documentRetrievalPipeline(searchingKeywords);
 
-  const jsonParser = new JsonOutputParser<LessonSubtopic[]>();
+  const jsonParser = new JsonOutputParser<SubLesson[]>();
 
   const formatInstructions =
     "Respond with a valid JSON array, containing the subtopic object with two fields: 'topic' and 'description'.";
@@ -93,8 +93,8 @@ export function extractSearchingKeywordsFromLessonOutline(lesson: InputLesson) {
 
   keywords.push(lesson.title);
 
-  lesson.lesson_subtopics.forEach((subtopic) => {
-    keywords.push(subtopic);
+  lesson.sub_lessons.forEach((sub_lesson) => {
+    keywords.push(sub_lesson);
   });
 
   lesson.lesson_learning_outcomes.forEach((outcome) => {
@@ -121,7 +121,7 @@ export function convertLessonOutlineToText(
   Lesson Title: ${lesson.title}
   subtopic:\n`;
 
-  lesson.lesson_subtopics.forEach((subtopic, index) => {
+  lesson.sub_lessons.forEach((subtopic, index) => {
     text += `${index + 1}. ${subtopic}\n`;
   });
 

@@ -14,7 +14,9 @@ async function createUserSessionHandler(req: Request, res: Response) {
     const user = await validatePassword(req.body);
 
     if (!user) {
-      return res.status(401).send("Invalid email or password");
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
     }
 
     // create a session
@@ -80,7 +82,10 @@ async function invalidateUserSessionHandler(req: Request, res: Response) {
     });
   } catch (error) {
     logger.error((error as Error).message);
-    return res.status(400).send("Session invalidation failed");
+    return res.status(400).json({
+      message: "Something went wrong",
+      error: (error as Error).message,
+    });
   }
 }
 

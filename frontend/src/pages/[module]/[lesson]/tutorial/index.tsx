@@ -149,7 +149,7 @@ const Tutorial = () => {
           >
             <Table.Column
               title="Created"
-              dataIndex="create_at"
+              dataIndex="created_at"
               render={(text) => {
                 const date = new Date(text);
                 const formattedDate = `${

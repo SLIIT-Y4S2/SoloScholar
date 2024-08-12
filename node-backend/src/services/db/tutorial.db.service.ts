@@ -2,6 +2,7 @@ import { TutorialQuestion } from "./../../types/tutorial.types";
 import { logger } from "./../../utils/logger.utils";
 import { Decimal } from "@prisma/client/runtime/library";
 import prisma from "../../utils/prisma-client.util";
+import { Prisma } from "@prisma/client";
 
 /**
  * Create tutorial without questions
@@ -54,10 +55,10 @@ export const createTutorial = async (
  * @param id
  * @param questions
  */
-export const updateTutorialQuestions = async (
+export const addQuestionsToTheTutorial = async (
   id: string,
   questions: {
-    subtopic_id: number;
+    sub_lesson_id: number;
     question: string;
     answer: string;
     type: string;
@@ -80,7 +81,7 @@ export const updateTutorialQuestions = async (
     type: string;
     question_number: number;
     options: string[];
-    subtopic_id: number;
+    sub_lesson_id: number;
   }[];
 }> => {
   const tutorial = await prisma.tutorial.findFirst({
@@ -97,13 +98,13 @@ export const updateTutorialQuestions = async (
       status: "generated",
       questions: {
         create: questions.map((q, index) => ({
-          subtopic_id: q.subtopic_id,
+          sub_lesson_id: q.sub_lesson_id,
           question: q.question,
           answer: q.answer,
           type: q.type,
           question_number: index + 1,
           options: {
-            create: q.options.map((text) => ({ text })),
+            create: q.options.map((answer_option) => ({ answer_option })),
           },
         })),
       },
@@ -124,7 +125,7 @@ export const updateTutorialQuestions = async (
     status: updatedTutorial.status,
     questions: updatedTutorial.questions.map((q) => ({
       ...q,
-      options: q.options.map((o) => o.text),
+      options: q.options.map((o) => o.answer_option),
     })),
   };
 };
@@ -139,7 +140,30 @@ export const updateTutorialQuestions = async (
  * @public
  * /
  */
-export const getTutorialByIdWithQuestions = async (id: string) => {
+export const getTutorialByIdWithQuestions = async (
+  id: string
+): Promise<{
+  id: string;
+  status: string;
+  learning_material: {
+    id: string;
+    lesson_id: number;
+    learner_id: string;
+    learning_level: string;
+    completion_status: Decimal;
+  };
+  questions: {
+    id: number;
+    question: string;
+    answer: string;
+    type: string;
+    question_number: number;
+    student_answer: string | null;
+    is_student_answer_correct?: boolean;
+    options: string[];
+    sub_lesson_id: number;
+  }[];
+}> => {
   const tutorial = await prisma.tutorial.findFirst({
     where: { id },
     include: {
@@ -160,7 +184,7 @@ export const getTutorialByIdWithQuestions = async (id: string) => {
     ...tutorial,
     questions: tutorial.questions.map((q) => ({
       ...q,
-      options: q.options.map((o) => o.text),
+      options: q.options.map((o) => o.answer_option),
     })),
   };
 };
@@ -194,7 +218,7 @@ export const getTutorialByLearnerId = async (
 ): Promise<
   {
     id: string;
-    create_at: Date;
+    created_at: Date;
     status: string;
     learning_level: string;
   }[]
@@ -231,32 +255,10 @@ export const getTutorialByLearnerId = async (
 
   return tutorials.map((tutorial) => ({
     id: tutorial.id,
-    create_at: tutorial.learning_material.create_at,
+    created_at: tutorial.learning_material.created_at,
     status: tutorial.status,
     learning_level: tutorial.learning_material.learning_level,
   }));
-};
-
-/**
- * Delete tutorial by id
- * @param id
- * @returns
- */
-export const deleteTutorial = async (id: string): Promise<void> => {
-  await prisma.$transaction([
-    prisma.tutorial_question_option.deleteMany({
-      where: { tutorial_question: { tutorial_id: id } },
-    }),
-    prisma.tutorial_question.deleteMany({
-      where: { tutorial_id: id },
-    }),
-    prisma.tutorial.delete({
-      where: { id },
-    }),
-    prisma.learning_material.delete({
-      where: { id },
-    }),
-  ]);
 };
 
 /**
@@ -436,7 +438,29 @@ export const updateTutorialStatus = async (
     ...tutorial,
     questions: tutorial.questions.map((q) => ({
       ...q,
-      options: q.options.map((o) => o.text),
+      options: q.options.map((o) => o.answer_option),
     })),
   };
+};
+
+/**
+ * Delete tutorial by id
+ * @param id
+ * @returns
+ */
+export const deleteTutorial = async (id: string): Promise<void> => {
+  await prisma.$transaction([
+    prisma.mcq_tutorial_question_option.deleteMany({
+      where: { tutorial_question: { tutorial_id: id } },
+    }),
+    prisma.tutorial_question.deleteMany({
+      where: { tutorial_id: id },
+    }),
+    prisma.tutorial.delete({
+      where: { id },
+    }),
+    prisma.learning_material.delete({
+      where: { id },
+    }),
+  ]);
 };

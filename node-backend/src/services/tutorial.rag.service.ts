@@ -59,24 +59,24 @@ async function documentRetrievalPipeline(
  * @param cognitive_level The cognitive level
  * @param learningRate The learning rate
  * @param totalNumberOfQuestions The total number of questions
- * @param questionType The type of questions to generate ('short_answer' or 'multiple_choice')
+ * @param questionType The type of questions to generate ('short-answer' or 'multiple_choice')
  * @returns The generated questions
  */
 export async function synthesizeQuestionsForSubtopic(
   searchingKeywords: string,
   module: string,
   lesson: string,
-  subtopic_id: number,
+  sub_lesson_id: number,
   subtopic: string,
   subtopic_description: string,
   lesson_learning_outcome: string[],
   cognitive_level: string[],
   learningRate: LearningLevel,
   totalNumberOfQuestions: number,
-  questionType: "essay" | "mcq"
+  questionType: "short-answer" | "mcq"
 ): Promise<
   {
-    subtopic_id: number;
+    sub_lesson_id: number;
     question: string;
     answer: string;
     type: string;
@@ -84,7 +84,7 @@ export async function synthesizeQuestionsForSubtopic(
     difficulty: string;
   }[]
 > {
-  const isNotMcq = questionType === "essay";
+  const isNotMcq = questionType === "short-answer";
   const prompt = isNotMcq
     ? GenerateShortAnswerQuestionPrompt
     : GenerateMultipleChoiceQuestionPrompt;
@@ -144,7 +144,7 @@ export async function synthesizeQuestionsForSubtopic(
     if (isNotMcq)
       return {
         ...question,
-        subtopic_id,
+        sub_lesson_id,
         type: questionType,
         options: [],
       };
@@ -158,7 +158,7 @@ export async function synthesizeQuestionsForSubtopic(
 
     return {
       ...question,
-      subtopic_id,
+      sub_lesson_id,
       type: questionType,
       answer: answer,
       options: shuffle(options),

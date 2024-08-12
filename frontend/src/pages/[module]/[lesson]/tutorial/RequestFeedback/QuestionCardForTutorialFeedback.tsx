@@ -21,7 +21,7 @@ const QuestionCardForTutorialFeedback = ({
         {question_number}. {question}
       </h1>
 
-      {type === "essay" ? (
+      {type === "short-answer" ? (
         <div className="min-h-[10em] max-h-[15em] overflow-y-auto p-2 border border-gray-300 rounded bg-white text-gray-900 whitespace-pre-wrap">
           {student_answer || ""}
         </div>

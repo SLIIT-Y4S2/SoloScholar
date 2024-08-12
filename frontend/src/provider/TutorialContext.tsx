@@ -22,7 +22,7 @@ export interface TutorialQuestion {
   question_number: number;
   question: string;
   options: string[];
-  type: "essay" | "mcq";
+  type: "short-answer" | "mcq";
   answer: string;
   student_answer: string | null;
   feedback_type?: "skip" | "basic" | "detailed";

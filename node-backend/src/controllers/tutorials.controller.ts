@@ -7,7 +7,7 @@ import {
 } from "../services/tutorial.rag.service";
 import {
   createTutorial,
-  updateTutorialQuestions,
+  addQuestionsToTheTutorial,
   getTutorialByLearnerId,
   getTutorialByIdWithQuestions,
   saveTutorialAnswer,
@@ -60,7 +60,7 @@ export const generateTutorialHandler = async (req: Request, res: Response) => {
     // loop through the detailed lesson plan and create questions for each subtopic
     const totalNumberOfQuestions = 30; // TEMPORARY
     const totalNumberOfQuestionsPerSubtopics = Math.floor(
-      totalNumberOfQuestions / lessonOutline.lesson_subtopics.length
+      totalNumberOfQuestions / lessonOutline.sub_lessons.length
     );
 
     const numberOfMCQQuestionsPerSubtopic = Math.floor(
@@ -110,7 +110,7 @@ export const generateTutorialHandler = async (req: Request, res: Response) => {
           combined_cognitive_level,
           learningLevel,
           numberOfEssayQuestionsPerSubtopic,
-          "essay"
+          "short-answer"
         ),
       ]);
 
@@ -118,7 +118,7 @@ export const generateTutorialHandler = async (req: Request, res: Response) => {
     };
 
     const results = await Promise.all(
-      lessonOutline.lesson_subtopics.map(generateQuestionsForSubtopic)
+      lessonOutline.sub_lessons.map(generateQuestionsForSubtopic)
     );
 
     const mcqQuestions = results.flatMap((result) => result.mcqQuestions);
@@ -126,7 +126,7 @@ export const generateTutorialHandler = async (req: Request, res: Response) => {
 
     const questions = [...mcqQuestions, ...essayQuestions];
 
-    const updatedTutorialWithQuestions = await updateTutorialQuestions(
+    const updatedTutorialWithQuestions = await addQuestionsToTheTutorial(
       tutorial.id,
       questions
     );
@@ -146,7 +146,8 @@ export const generateTutorialHandler = async (req: Request, res: Response) => {
   } catch (error) {
     const message = (error as Error).message;
     res.status(500).json({ message });
-    logger.error({ message });
+    // logger.error({ message });
+    console.log(error);
   }
 };
 
@@ -320,15 +321,15 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
 
     // check if the student is correct through llm for essay type questions
     const essayQuestions = answeredQuestions.filter(
-      (question) => question.type === "essay"
+      (question) => question.type === "short-answer"
     );
 
-    const groupedEssayQuestions = groupBy(essayQuestions, "subtopic_id");
+    const groupedEssayQuestions = groupBy(essayQuestions, "sub_lesson_id");
 
     await Promise.all(
       Object.entries(groupedEssayQuestions).map(
-        async ([subtopic_id, questions]) => {
-          const subtopic = await findSubtopicById(parseInt(subtopic_id));
+        async ([sub_lesson_id, questions]) => {
+          const subtopic = await findSubtopicById(parseInt(sub_lesson_id));
 
           if (!subtopic) {
             throw new Error("Subtopic not found");
@@ -374,21 +375,20 @@ export const requestFeedbackHandler = async (
   try {
     const { id: learner_id } = res.locals.user; // verify if the learner is the owner of the tutorial
     const { tutorialId } = req.params;
-    const feedback = req.body;
+    const feedbackRequest = req.body;
 
-    if (feedback === null || !tutorialId) {
+    if (feedbackRequest === null || !tutorialId) {
       return res.status(400).json({
         message: "Invalid request body",
       });
     }
 
     const tutorial = await getTutorialByIdWithQuestions(tutorialId);
-    //TODO: uncomment this
-    // if (tutorial.status !== "submitted") {
-    //   return res.status(400).json({
-    //     message: "Tutorial not submitted",
-    //   });
-    // }
+    if (tutorial.status !== "submitted") {
+      return res.status(400).json({
+        message: "Tutorial not submitted",
+      });
+    }
 
     await updateTutorialStatus(tutorialId, "feedback-generating");
 
@@ -400,12 +400,11 @@ export const requestFeedbackHandler = async (
     const feedbackInput = noFeedbackQuestions.map((question) => {
       return {
         ...question,
-        feedback_type: feedback[question.id],
+        feedback_type: feedbackRequest[question.id],
       };
     });
 
     //update questions with feedback skip
-
     await updateQuestionWithFeedback(
       feedbackInput
         .filter((question) => question.feedback_type === "skip")
@@ -417,14 +416,14 @@ export const requestFeedbackHandler = async (
 
     const groupedEssayQuestions = groupBy(
       feedbackInput.filter((question) => question.feedback_type !== "skip"),
-      "subtopic_id"
+      "sub_lesson_id"
     );
 
     // generate feedback for questions based on the student answer under each subtopic
     await Promise.all(
       Object.entries(groupedEssayQuestions).map(
-        async ([subtopic_id, questions]) => {
-          const subtopic = await findSubtopicById(parseInt(subtopic_id));
+        async ([sub_lesson_id, questions]) => {
+          const subtopic = await findSubtopicById(parseInt(sub_lesson_id));
 
           if (!subtopic) {
             throw new Error("Subtopic not found");

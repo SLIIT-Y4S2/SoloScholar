@@ -16,11 +16,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userDetails, setUserDetails_] = useState<User | null>(
     JSON.parse(localStorage.getItem("userDetails") || "null")
   );
-
-  const setUser = (newUser: User | null) => {
-    setUserDetails_(newUser);
-  };
-
   useEffect(() => {
     if (userDetails) {
       localStorage.setItem("userDetails", JSON.stringify(userDetails));
@@ -28,6 +23,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem("userDetails");
     }
   }, [userDetails]);
+
+  const setUser = (newUser: User | null) => {
+    setUserDetails_(newUser);
+  };
 
   // Memoized value of the authentication context
   const contextValue = useMemo<AuthContextProps>(

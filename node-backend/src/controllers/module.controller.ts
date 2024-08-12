@@ -9,7 +9,7 @@ import {
   synthesizeDetailedLessonOutline,
 } from "../services/detailedOutline.rag.service";
 
-import { InputModule, Lesson, LessonSubtopic } from "../types/module.types";
+import { InputModule, Lesson } from "../types/module.types";
 import { logger } from "../utils/logger.utils";
 
 export const createModuleHandler = async (
@@ -23,7 +23,8 @@ export const createModuleHandler = async (
       !moduleData ||
       !moduleData.name ||
       !moduleData.description ||
-      !moduleData.lessons
+      !moduleData.lessons ||
+      !moduleData.lessons.filter((lesson) => lesson.sub_lessons.length).length
     ) {
       return res.status(400).json({
         message: "Invalid request body",
@@ -48,7 +49,7 @@ export const createModuleHandler = async (
       );
       return {
         ...lesson,
-        lesson_subtopics: detailedLessonOutline,
+        sub_lessons: detailedLessonOutline,
       };
     });
 
@@ -63,12 +64,13 @@ export const createModuleHandler = async (
       message: "Module created successfully",
       data: {
         module: createdModule,
-        // detailedLessonOutlines,
       },
     });
   } catch (error) {
-    res.status(500).json((error as Error).message);
+    console.log(error);
+
     logger.error(error);
+    res.status(500).json((error as Error).message);
   }
 };
 

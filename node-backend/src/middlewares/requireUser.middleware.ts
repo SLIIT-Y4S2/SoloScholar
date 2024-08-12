@@ -12,24 +12,32 @@ const requireUser = async (req: Request, res: Response, next: NextFunction) => {
   const accessToken = req.cookies.jwt;
 
   if (!accessToken) {
-    return res.status(403).send("Access token required");
+    return res.status(401).json({
+      message: "Unauthorized: Access token is required",
+    });
   }
 
   const { decoded, expired } = verifyJwt(accessToken);
 
   if (expired) {
-    return res.status(401).send("Token expired");
+    return res.status(401).json({
+      message: "Unauthorized: Access token expired",
+    });
   }
 
   if (!decoded) {
-    return res.status(403).send("Invalid token");
+    return res.status(401).json({
+      message: "Unauthorized: Invalid access token",
+    });
   }
 
   const session = await findSession(get(decoded, "session") || "");
 
-  if (!session || !session.valid) {
+  if (!session || !session.is_valid) {
     res.clearCookie("jwt");
-    return res.status(403).send("Invalid session");
+    return res.status(401).json({
+      message: "Unauthorized: Invalid session",
+    });
   }
 
   res.locals.user = decoded;

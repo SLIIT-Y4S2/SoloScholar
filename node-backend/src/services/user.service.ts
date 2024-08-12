@@ -2,9 +2,12 @@ import bcrypt from "bcrypt";
 import { omit } from "lodash";
 import { Prisma } from "@prisma/client";
 import prisma from "../utils/prisma-client.util";
-import { LearnerType } from "../types/auth.types";
+import { PersonCreateInput, PersonType } from "../types/auth.types";
 
-export async function createUser(input: LearnerType) {
+export async function createUser(
+  input: PersonCreateInput,
+  role: "learner" | "instructor"
+) {
   try {
     const salt = await bcrypt.genSalt(10);
 
@@ -12,8 +15,11 @@ export async function createUser(input: LearnerType) {
 
     input.password = hash;
 
-    const user = await prisma.learner.create({
-      data: input,
+    const user = await prisma.person.create({
+      data: {
+        ...input,
+        role,
+      },
     });
 
     return omit(user, "password");
@@ -24,15 +30,15 @@ export async function createUser(input: LearnerType) {
 
 // For login
 export const validatePassword = async ({
-  student_id,
+  email,
   password,
 }: {
-  student_id: string;
+  email: string;
   password: string;
-}): Promise<Omit<LearnerType, "password"> | false> => {
-  const user = await prisma.learner.findFirst({
+}): Promise<Omit<PersonType, "password"> | false> => {
+  const user = await prisma.person.findFirst({
     where: {
-      student_id,
+      email,
     },
   });
 
@@ -49,10 +55,10 @@ export const validatePassword = async ({
   return omit(user, "password");
 };
 
-export async function findUser(userId: string) {
-  return prisma.learner.findFirst({
+export async function findUser(personId: string) {
+  return prisma.person.findFirst({
     where: {
-      id: userId,
+      id: personId,
     },
   });
 }

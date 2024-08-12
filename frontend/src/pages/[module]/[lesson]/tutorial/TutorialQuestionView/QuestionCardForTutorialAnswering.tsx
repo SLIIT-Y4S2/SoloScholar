@@ -36,7 +36,7 @@ const QuestionCardForTutorialAnswering = () => {
       <h1>
         {question_number}. {question}
       </h1>
-      {type === "essay" ? (
+      {type === "short-answer" ? (
         <TextArea
           value={studentsAnswerForTheCurrentQuestion || ""}
           onChange={(e) =>
