@@ -1,7 +1,7 @@
 import { RunnableSequence } from "@langchain/core/runnables";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { getChatModel } from "../utils/openai.util";
-import { AnswerEvaluationPrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
+import { AnswerEvaluationPrompt, HintGenerationPrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
 import { StringOutputParser, StructuredOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
 import { zodSchemaForQuestions, zodSchemaForRealWorldScenario, zodSchemaForStudentAnswerEvaluation, zodSchemaForSupportingMaterial } from "../utils/zodSchema.util";
 import { documentRetrievalPipeline } from "../utils/rag.util";
@@ -35,6 +35,17 @@ interface StudentAnswerEvaluationOutputType {
     studentAnswerEvaluation: z.infer<typeof zodSchemaForStudentAnswerEvaluation>;
 }
 
+interface HintGenerationInputType {
+    realWorldScenario: string;
+    supportingMaterial: any;
+    question: string;
+    previousAnswers: string[];
+}
+
+interface HintGenerationOutputType {
+    hint: string;
+}
+
 /**
  * 
  * @param lessonTitle 
@@ -43,7 +54,7 @@ interface StudentAnswerEvaluationOutputType {
  * @param learningOutcomes 
  * @returns 
  */
-async function responseSynthesizerForLabs({ lessonTitle, learningLevel, lessonOutline, learningOutcomes }: ResponseSynthesizerForLabsInputType): Promise<ResponseSynthesizerForLabsOutputType> {
+export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, lessonOutline, learningOutcomes }: ResponseSynthesizerForLabsInputType): Promise<ResponseSynthesizerForLabsOutputType> {
     // Retrieve related context to the keywords from the vector database
     const relatedContext = await documentRetrievalPipeline(`${lessonTitle} ${learningOutcomes} ${lessonOutline}`, 10);
 
@@ -165,7 +176,7 @@ async function responseSynthesizerForLabs({ lessonTitle, learningLevel, lessonOu
  * @param learningOutcomes The learning outcomes associated with the lab activity
  * @param question The question to evaluate the student's answer
 */
-async function evaluateStudentAnswers({ topicOfTheLab, realWorldScenario, supportingMaterial, question, studentAnswer }: StudentAnswerEvaluationInputType): Promise<StudentAnswerEvaluationOutputType> {
+export async function evaluateStudentAnswers({ topicOfTheLab, realWorldScenario, supportingMaterial, question, studentAnswer }: StudentAnswerEvaluationInputType): Promise<StudentAnswerEvaluationOutputType> {
     const studentAnswerEvaluationPrompt = PromptTemplate.fromTemplate(AnswerEvaluationPrompt);
 
     const outputParserForAnswers = StructuredOutputParser.fromZodSchema(zodSchemaForStudentAnswerEvaluation);
@@ -203,5 +214,46 @@ async function evaluateStudentAnswers({ topicOfTheLab, realWorldScenario, suppor
     };
 }
 
+/**
+ * 
+ * @param previousAnswers - The previous answers provided by the student
+ * @param realWorldScenario - The real-world scenario for the lab activity
+ * @param question - The question to generate hints for
+ * @param supportingMaterial - The supporting materials for the lab activity
+ * @param topicOfTheLab - The topic of the lab
+ * @returns {Promise<HintGenerationOutputType>} - The generated hint
+ */
+export async function generateHintsForStudentAnswers({ previousAnswers, realWorldScenario, question, supportingMaterial }: HintGenerationInputType): Promise<HintGenerationOutputType> {
+    const hintGenerationPrompt = PromptTemplate.fromTemplate(HintGenerationPrompt);
 
-export { documentRetrievalPipeline, responseSynthesizerForLabs, evaluateStudentAnswers };
+    const hintGenerationPipeline = RunnableSequence.from([
+        {
+            previousAnswers: (input) => input.previousAnswers,
+            realWorldScenario: (input) => input.realWorldScenario,
+            question: (input) => input.question,
+            supportingMaterial: (input) => input.supportingMaterial,
+            formatInstructions: (input) => input.formatInstructions
+        },
+        hintGenerationPrompt,
+        getChatModel,
+        new StringOutputParser()
+    ]);
+
+    const hints = await hintGenerationPipeline.invoke(
+        {
+            previousAnswers: previousAnswers,
+            realWorldScenario: realWorldScenario,
+            question: question,
+            supportingMaterial: supportingMaterial,
+            formatInstructions: "Provide the hint in string format. Just string will be enough no need to provide 'Hint:'" 
+        }
+    );
+
+    return {
+        hint: hints
+    };
+}
+
+
+
+

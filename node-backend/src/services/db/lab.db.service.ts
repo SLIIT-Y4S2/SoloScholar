@@ -111,7 +111,11 @@ export async function getLabSheetById(labSheetId: string) {
             id: labSheetId
         },
         include: {
-            labsheet_question: true,
+            labsheet_question: {
+                include: {
+                    student_answers: true,
+                }
+            },
             learning_material: true,
         }
     });
@@ -248,14 +252,16 @@ export async function deleteLabSheetById(labSheetId: string) {
  * @param questionId 
  * @returns 
  */
-export async function getStudentAnswersByLabSheetIdAndQuestionId(labSheetId: string, questionId: number) {
-    const studentAnswers = await prisma.labsheet_question.findUnique({
+export async function getStudentAnswersByLabSheetIdAndQuestionNumber(labSheetId: string, question_number: number) {
+    const studentAnswers = await prisma.labsheet_question.findFirst({
         where: {
-            id: questionId
+            labsheet_id: labSheetId, AND: {
+                question_number: question_number
+            }
         },
         include: {
             student_answers: true,
-        }
+        },
     });
 
 

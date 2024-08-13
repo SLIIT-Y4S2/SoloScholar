@@ -115,7 +115,8 @@ You are a experienced lecturer at a University. As the lecturer you are responsi
 - Assessment must contain at least 10 questions.
 - You must generate a sample answer for each question. The sample answer must be a valid and a complete answer for the given question. Don't provide part of the answer. 
 - Also you must generate a example question and answer pair for each question.These example question and answer pairs must be similar but not related to the original question and answer pair. But they must cover the same learning outcomes detailed outline and real-world scenario.
-- [IMPORTANT] You must generate questions based on only the given real-world scenario and supporting materials (Or else student will not be able to answer the questions based on the scenario). 
+- [IMPORTANT] You must generate questions based on only the given real-world scenario and supporting materials (Or else student will not be able to answer the questions based on the scenario).
+- [IMPORTANT] Entities and attributes in the questions must be based on the given real-world scenario and supporting materials.
 
 
 The related context is provided within the <RelatedContext> tag.
@@ -191,8 +192,38 @@ You must provide the output in following Structure (Replace the placeholders wit
 {formatInstructions}
 `;
 
-// - Also a sample answer is provided for the current question you need to evaluate the answer based on the sample answer. You don't need to stick to the sample answer, you can evaluate the student's answer for the given question based on the real-world scenario, supporting materials.
+const HintGenerationPrompt = `
+You are an experienced lecturer at a University. As the lecturer, your task is to provide hints for the questions provided in the self-guided practical lab activity for the Database Systems module based on student's previous answers.
+You need to analyze the student's previous answers, real-world scenario, and supporting materials associated with the given lab to provide hints for the questions.
+[Important] You must not provide the answer to the question, just provide hints to guide the student to the correct answer.
 
+The real-world scenario is provided within the <RealWorldScenario> tag.
+Supporting material is provided within the <SupportingMaterial> tag.
+The question is provided within the <Question> tag.
+Student's previous answers for the given question are provided within the <PreviousAnswers> tag.
 
-export { PracticalLabOutlinePrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt, AnswerEvaluationPrompt };
+<RealWorldScenario>
+    {realWorldScenario}
+</RealWorldScenario>
+
+<SupportingMaterial>
+    {supportingMaterial}
+</SupportingMaterial>
+
+<Question>
+    {question}
+</Question>
+
+<PreviousAnswers>
+    {previousAnswers}
+</PreviousAnswers>
+
+Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
+You must provide the output in following Structure (Replace the placeholders with the actual values).
+
+{formatInstructions}
+
+`;
+
+export { PracticalLabOutlinePrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt, AnswerEvaluationPrompt, HintGenerationPrompt };
 

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { evaluateStudentAnswers, responseSynthesizerForLabs } from "../services/lab.rag.service";
+import { evaluateStudentAnswers, generateHintsForStudentAnswers, responseSynthesizerForLabs } from "../services/lab.rag.service";
 import { getLessonByModuleIdAndTitle, getLessonOutlineByModuleAndLessonName, getModuleByName } from "../services/db/module.db.service";
-import { createLabMaterials, updateLabMaterial, getLabSheetById, getLearningMaterialDetailsByLearnerIdAndLessonId, getLessonDetailsByLabSheetId, updateLabSheetAnswers, deleteLabSheetById, getStudentAnswersByLabSheetIdAndQuestionId } from "../services/db/lab.db.service";
+import { createLabMaterials, updateLabMaterial, getLabSheetById, getLearningMaterialDetailsByLearnerIdAndLessonId, getLessonDetailsByLabSheetId, updateLabSheetAnswers, deleteLabSheetById, getStudentAnswersByLabSheetIdAndQuestionNumber } from "../services/db/lab.db.service";
 
 /**
  * 
@@ -211,26 +211,46 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
 
 export async function generateHintForQuestionHandler(req: Request, res: Response) {
     try {
-        const { labSheetId, questionId } = req.params;
+        const { labSheetId, questionId: questionNumber } = req.params;
 
-        if (!labSheetId || !questionId) {
+        if (!labSheetId || !questionNumber) {
             return res.status(400).json({
                 message: "Invalid request body",
             });
         }
 
-        if (isNaN(Number(questionId))) {
+        if (isNaN(Number(questionNumber))) {
             return res.status(400).json({
                 message: "Invalid question id",
             });
         }
 
-        const studentAnswers = await getStudentAnswersByLabSheetIdAndQuestionId(labSheetId, Number(questionId));
+        console.log(labSheetId, questionNumber);
 
-        console.log(studentAnswers);
+        const studentAnswers = await getStudentAnswersByLabSheetIdAndQuestionNumber(labSheetId, Number(questionNumber));
+        const labSheet = await getLabSheetById(labSheetId);
+
+        if (!studentAnswers || !labSheet) {
+            return res.status(404).json({
+                message: "Student answers not found",
+            });
+        }
+
+        if (studentAnswers.student_answers && studentAnswers.student_answers.length === 0) {
+            return res.status(404).json({
+                message: "Student answers not found",
+            });
+        }
+
+        const hint = await generateHintsForStudentAnswers({
+            previousAnswers: studentAnswers.student_answers?.map((answer) => answer.student_answer)!,
+            realWorldScenario: labSheet.real_world_scenario!,
+            supportingMaterial: labSheet.supportMaterial,
+            question: labSheet.labsheet_question.find((question) => question.question_number === Number(questionNumber))!.question,
+        });
 
         return res.status(200).json({
-            studentAnswers
+            hint
         });
     } catch (error) {
         if (error instanceof Error) {
