@@ -89,8 +89,8 @@ export function CodeEditor({ handleCodeOnChange }: CodeEditorProps) {
                         comments: false,
                         strings: false,
                     },
-                    domReadOnly: isAnsForCurrQuesCorrect !== null,
-                    readOnly: isAnsForCurrQuesCorrect !== null,
+                    domReadOnly: isAnsForCurrQuesCorrect ?? false,
+                    readOnly: isAnsForCurrQuesCorrect ?? false,
                     parameterHints: {
                         enabled: false
                     },
