@@ -25,6 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.1.33",
     "lodash": "^4.17.21",
+    "microsoft-cognitiveservices-speech-sdk": "^1.40.0",
     "mongoose": "^8.3.2",
     "morgan": "^1.10.0",
     "mssql": "^10.0.2",

@@ -1,38 +1,65 @@
-//All the template
+// All the template
 
-// First we need to expand the lesson plant to include all the context for the subtopics
+// Prompt to generate lecture introduction
+export const LectureIntroductionPrompt = `
+You are an experienced lecturer at a University. You are about to start a new lecture. Generate the introduction for the lecture.
+Lesson Title: {lesson_title}
+Lesson Plan:
+{lesson_plan}
 
-export const DetailedLessonOutlinePrompt = `
-You are a experienced lecturer at a University. 
-Create a detailed lesson outline for the following subtopics. Using the context provided below, create a lesson outline for each subtopic. Be verbose. Provide as much detail as possible.
-
-To complete this task you must use the context inside the <RelatedContext> tag.
-An incomplete outline for the lesson is provided within the <IncompleteOutline> tag.
-
-<RelatedContext>
-{context}
-</RelatedContext>
-
-<IncompleteOutline>
-{lessonOutline}
-</IncompleteOutline>
-
-Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
-
-And use the following structure (replace the placeholders with your answer):
-
-   [
-    {{
-    "subtopic": "Subtopic 1 here",
-    "description": "description"
-    }}
-    ,
-    {{
-      "subtopic": "Subtopic 2 here",
-      "Description": "description"
-    }},
-  ]
-
+Make sure to attract the user to the topic by providing a real-world scenario related to the lesson.
 `;
 
-//export const lectureIntroductionPompt = `gene
+// Prompt to generate lecture section
+export const Lecturesectionprompt = `
+You are an experienced lecturer at a university. Generate a lecture transcript for 
+
+Lesson Title: {lesson_title}
+Subtopic: {subtopic}
+Description: {description}
+
+<context>
+{context}
+</context>
+
+<Previous Sections>
+{prevSections}
+</Previous Sections>
+
+Make sure to maintain a continuous flow between subtopics. Focus on delivering content without explicitly stating transitions like "Moving on to the next topic" or "Here are some questions."
+This transcript will be fed to a 3D avatar.
+`;
+
+// Prompt to generate lecture conclusion
+export const LectureConclusionPrompt = `
+You are an experienced lecturer at a university. Generate a conclusion for the lecture.
+
+Lesson Title: {lesson_title}
+Generated Content:
+{generated_content}
+
+Summarize the main points covered in the lecture and provide a final thought or call to action, but do not mention anything about future sessions, farewells, or thanks. The focus should be on reinforcing the key concepts discussed.
+`;
+
+
+// Prompt to generate pre-assessment MCQ questions
+export const LectureMCQPrompt = `
+You are an experienced lecturer at a university. Generate 5 multiple-choice questions (MCQs) that assess understanding of the lecture content.
+
+Lesson Title: {lesson_title}
+Generated Content:
+{generated_content}
+
+Generate the questions without adding introductory phrases or transitions. Focus on testing the core concepts covered.
+`;
+
+// Prompt to generate post-assessment MCQs
+export const PostAssessmentMCQPrompt = `
+You are an experienced lecturer at a university. Generate 10 post-assessment multiple-choice questions (MCQs) that cover the main points of the lecture.
+
+Lesson Title: {lesson_title}
+Generated Content:
+{generated_content}
+
+Generate the questions without adding introductory phrases or transitions. Focus on assessing the student's understanding of the main points covered in the lecture.
+`;
