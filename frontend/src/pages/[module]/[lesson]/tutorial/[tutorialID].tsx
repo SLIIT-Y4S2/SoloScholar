@@ -5,8 +5,9 @@ import {
   useTutorialContext,
 } from "../../../../provider/TutorialContext";
 import RequestFeedback from "./RequestFeedback";
-import Feedback from "./Feedback";
+import TutorialFeedback from "./Feedback";
 import TutorialQuestionView from "./TutorialQuestionView";
+import CompletedTutorial from "./CompletedTutorial";
 
 //TODO: If tutorial complete forward to feedback page
 
@@ -21,22 +22,40 @@ const TutorialView = () => {
     return <>{error}</>;
   }
 
-  return (
-    <Layout style={{ padding: "0 24px 24px" }}>
-      <DynamicBreadcrumbComponent />
-      {(status === "generated" || status === "in-progress") && (
-        <TutorialQuestionView />
-      )}
-      {status === "submitted" && <RequestFeedback />}
-      {status === "feedback-generated" && <Feedback />}
-    </Layout>
-  );
+  if (
+    status === "generating" ||
+    status === "submitting" ||
+    status === "feedback-generating"
+  ) {
+    return <>Generating...</>;
+  }
+
+  if (status === "generated" || status === "in-progress") {
+    return <TutorialQuestionView />;
+  }
+
+  if (status === "submitted") {
+    return <RequestFeedback />;
+  }
+
+  if (status === "feedback-generated") {
+    return <TutorialFeedback />;
+  }
+
+  if (status === "completed") {
+    return <CompletedTutorial />;
+  }
+
+  return <>ERROR.</>;
 };
 
 const TutorialViewWithProvider = () => {
   return (
     <TutorialProvider>
-      <TutorialView />
+      <Layout style={{ padding: "0 24px 24px" }}>
+        <DynamicBreadcrumbComponent />
+        <TutorialView />
+      </Layout>
     </TutorialProvider>
   );
 };

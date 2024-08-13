@@ -3,29 +3,29 @@ import { verifyJwt, signJwt } from "../utils/jwt.utils";
 import prisma from "../utils/prisma-client.util";
 import { SessionType } from "../types/auth.types";
 
-export async function createSession(userId: string, userAgent: string) {
+export async function createSession(personId: string, user_agent: string) {
   const session = await prisma.session.create({
     data: {
-      user: {
+      person: {
         connect: {
-          id: userId,
+          id: personId,
         },
       },
-      userAgent,
+      user_agent,
     },
   });
   return session;
 }
 
-export async function findSessions(userId: string) {
+export async function findSessions(personId: string) {
   return prisma.session.findFirst({
     where: {
-      user: {
-        id: userId,
+      person: {
+        id: personId,
       },
     },
     include: {
-      user: true,
+      person: true,
     },
   });
 }
@@ -46,7 +46,7 @@ export async function invalidateSession(
       id: sessionId,
     },
     data: {
-      valid: false,
+      is_valid: false,
     },
   });
   return session;

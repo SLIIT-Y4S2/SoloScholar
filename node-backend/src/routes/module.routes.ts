@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { createModuleHandler } from "../controllers/module.controller";
+import {
+  createModuleHandler,
+  getModuleByNameHandler,
+} from "../controllers/module.controller";
 
 const moduleRouter = Router();
 
@@ -8,5 +11,7 @@ const moduleRouter = Router();
  */
 
 moduleRouter.post("/", createModuleHandler);
+
+moduleRouter.get("/:name", getModuleByNameHandler);
 
 export default moduleRouter;
