@@ -13,7 +13,6 @@ import {
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Home from "../pages/Home";
-import Lab from "../pages/[module]/[lesson]/lab";
 import Dashboard from "../pages/dashboard/Dashboard";
 import CustomAnalyticalIndicator from "../pages/dashboard/CustomAnalyticalIndicator";
 import LecturesOverview from "../pages/dashboard/LecturesOverview";
@@ -23,6 +22,11 @@ import MyIndicators from "../pages/dashboard/MyIndicators";
 import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
 import Main from "../pages/dashboard/Main";
+import { LabSessionLayout } from "../pages/[module]/[lesson]/lab/LabSessionLayout";
+import { LabLayout } from "../pages/[module]/[lesson]/lab/LabLayout";
+import { SupportMaterialsForLab } from "../Components/lab/SupportMaterialsForLab";
+import LabOverview from "../pages/[module]/[lesson]/lab";
+import LabSession from "../pages/[module]/[lesson]/lab/[labID]";
 import Module from "../pages/[module]";
 import { Button } from "antd";
 
@@ -76,15 +80,6 @@ const Routes = () => {
           element: <Navigate to="/" />,
         },
         {
-          path: "/:module",
-          element: <Module />,
-        },
-
-        {
-          path: "/lab",
-          element: <Lab />,
-        },
-        {
           path: "/dashboard",
           element: (
             <ProtectedRouteInstructor>
@@ -119,6 +114,10 @@ const Routes = () => {
           ],
         },
         {
+          path: "/:module",
+          element: <Module />,
+        },
+        {
           path: "/:module/:lesson",
           children: [
             {
@@ -131,11 +130,28 @@ const Routes = () => {
             },
             {
               path: "lab",
-              element: <Lab />,
-            },
-            {
-              path: "lab/:labId",
-              element: <div>Lab</div>,
+              element: <LabLayout />,
+              children: [
+                {
+                  path: "",
+                  element: <LabOverview />
+                },
+                {
+                  path: "session",
+                  element: <LabSessionLayout />,
+                  children: [
+                    {
+                      path: ":labSheetId",
+                      element: <LabSession />
+                    },
+                    {
+                      path: ":labSheetId/support-material",
+                      element: <SupportMaterialsForLab />
+                    }
+                  ]
+                },
+
+              ]
             },
           ],
         },

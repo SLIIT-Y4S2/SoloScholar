@@ -7,8 +7,12 @@ export const API_URLS = {
 };
 
 export const LAB_API_URLS = {
-  ANSWER_EVALUATE: `${BASE_API_URL}/lab/evaluate-answer`,
-  GET_LAB_SHEET: `${BASE_API_URL}/lab/get-lab-sheet`, //TODO: Add query params
+  ANSWER_EVALUATE: `/labs/evaluate-answer`,
+  GET_LAB_BY_MODULE_NAME_AND_LESSON_TITLE: `/labs`,
+  GENERATE_LAB_SHEET: `/labs/generate`,
+  GET_LAB_SHEET: `/labs`,
+  EVALUATE_ANSWER: `/labs/evaluate-answer`,
+  GET_HINT: `/labs/hint`,
 };
 
 export const DASHBOARD_API_URLS = {
