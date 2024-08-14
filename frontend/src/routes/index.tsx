@@ -146,7 +146,7 @@ const Routes = () => {
                     },
                     {
                       path: ":labSheetId/support-material",
-                      element: <SupportMaterialsForLab />
+                      element: <SupportMaterialsForLab isNewTab={true} labSheetId={undefined}/>
                     }
                   ]
                 },

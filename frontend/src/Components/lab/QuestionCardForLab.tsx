@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
-import { Button, Input, Layout, Modal, Spin } from "antd";
-import { ExportOutlined, FileMarkdownOutlined, LoadingOutlined } from "@ant-design/icons";
+import { Button, Input, Layout, Modal, Result, Spin } from "antd";
+import { FileMarkdownOutlined, LoadingOutlined } from "@ant-design/icons";
 import { CodeEditor } from "./CodeEditor";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { SupportMaterialsForLab } from "./SupportMaterialsForLab";
+import { useLabContext } from "../../provider/lab/LabContext";
 const { Content } = Layout;
 const { TextArea } = Input;
 
@@ -22,6 +23,8 @@ export default function QuestionCardForLab() {
     goToNextQuestion,
     isLabCompleted,
   } = useLabSessionContext();
+
+  const {isGenerationError} = useLabContext();
 
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
   // const [showHint, setShowHint] = useState<boolean>(false);
@@ -66,11 +69,24 @@ export default function QuestionCardForLab() {
 
   if (!questions || questions.length === 0) {
     return (
-      <Content>
-        <div className="flex items-center justify-center h-screen">
-          <p>No questions available</p>
-        </div>
-      </Content>
+      <Result
+        status="404"
+        title="404"
+        subTitle="Sorry, the lab sheet is not found."
+        extra={<Button type="primary">Back Home</Button>}
+      />
+    );
+  }
+
+
+  if (isGenerationError) {
+    return (
+      <Result
+        status="500"
+        title="500"
+        subTitle="Sorry, something went wrong."
+        extra={<Button type="primary">Back Home</Button>}
+      />
     );
   }
 
@@ -79,12 +95,7 @@ export default function QuestionCardForLab() {
     <Content>
       <div className="bg-white flex flex-col mx-auto p-8 w-full max-w-[1200px] max-h-[800] h-max rounded-2xl">
         <Modal open={open} onCancel={() => setOpen(false)} width={1000} footer={[]}>
-          <Link to={`../${labSheetId}/support-material`} relative={"path"} target="_blank">
-            <div className="text-base font-bold py-2 px-4 border-2 border-solid border-blue-600 w-max text-blue-600 rounded-xl">
-              <ExportOutlined />
-            </div>
-          </Link>
-          <SupportMaterialsForLab />
+          <SupportMaterialsForLab isNewTab={false} labSheetId={labSheetId!} />
         </Modal>
         {!isLabCompleted ? (
           <form className="" onSubmit={handleNextQuestion}>
