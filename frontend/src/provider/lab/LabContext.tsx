@@ -16,6 +16,8 @@ interface LabSheetDataSummary {
 interface LabContextType {
     previousLabSheetSummary: LabSheetDataSummary[] | null;
     isLoading: boolean;
+    isGenerationError: boolean;
+    setIsGenerationError: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 
@@ -33,6 +35,8 @@ export function useLabContext() {
 export function LabProvider({ children }: LabProviderProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [previousLabSheetSummary, setPreviousLabSheetSummary] = useState<LabSheetDataSummary[]>([]);
+    const [isGenerationError, setIsGenerationError] = useState<boolean>(false);
+
 
     const { module, lesson } = useParams();
 
@@ -56,7 +60,7 @@ export function LabProvider({ children }: LabProviderProps) {
             );
     }, [lesson, module]);
 
-    const contextValue = useMemo(() => ({ previousLabSheetSummary, isLoading }), [previousLabSheetSummary, isLoading]);
+    const contextValue = useMemo(() => ({ previousLabSheetSummary, isLoading, isGenerationError, setIsGenerationError }), [previousLabSheetSummary, isLoading, isGenerationError]);
 
     return <LabContext.Provider value={contextValue}>{children}</LabContext.Provider>;
 }

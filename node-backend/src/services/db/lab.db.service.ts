@@ -155,7 +155,7 @@ export async function getLearningMaterialDetailsByLearnerIdAndLessonId(lessonId:
     })
 
     return labsSheets.map(labSheet => omit({
-        createdAt: labSheet.learning_material.create_at,
+        createdAt: labSheet.learning_material.created_at,
         learningLevel: labSheet.learning_material.learning_level,
         status: labSheet.status,
         id: labSheet.id,
@@ -176,6 +176,10 @@ export async function updateLabSheetAnswers(labSheetId: string, questionId: numb
                 id: labSheetId
             },
             data: {
+                current_question_index: {
+                    increment: isCorrect ? 1 : 0
+                },
+                status: "IN_PROGRESS",
                 labsheet_question: {
                     update: {
                         where: {

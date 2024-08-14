@@ -12,9 +12,7 @@ export default function LabOverview() {
 
     const [generatingNewLabSheet, setGeneratingNewLabSheet] = useState(false);
 
-    const { isLoading, previousLabSheetSummary } = useLabContext();
-
-
+    const { isLoading, previousLabSheetSummary, setIsGenerationError } = useLabContext();
 
     if (isLoading) {
         console.log(isLoading);
@@ -45,7 +43,7 @@ export default function LabOverview() {
             const labSheetId = response.data.id;
             navigate(`./session/${labSheetId}`);
         } catch (error) {
-            console.log("Error generating labSheet:", error);
+            setIsGenerationError(true);
         }
     };
 

@@ -40,6 +40,7 @@ interface LabQuestion {
     example_answer: string;
     isCorrect: boolean | null;
     currentAnswer: string | null;
+    current_question_index: number;
     isAnswered: boolean;
     attempts: number;
     student_answers: {
@@ -74,6 +75,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
     const [isAnsForCurrQuesCorrect, setIsAnsForCurrQuesCorrect] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [totalQuestions, setTotalQuestions] = useState<number>(0);
+    const [isGenerationError, setIsGenerationError] = useState<boolean>(false);
 
     const params = useParams();
 
@@ -99,13 +101,13 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                             exampleQuestion: data.example_question,
                             exampleAnswer: data.example_answer,
                             isCorrect: data.isCorrect,
-                            currentAnswer: data.student_answers.length == 0 ? null :data.student_answers[data.student_answers.length - 1].student_answer,
+                            currentAnswer: data.student_answers.length == 0 ? null : data.student_answers[data.student_answers.length - 1].student_answer,
                             attempts: data.student_answers.length,
                         })
                     }),
                 ]);
-                setIsAnsForCurrQuesCorrect(labSheet.labsheet_question[0].isCorrect);
-
+                setIsAnsForCurrQuesCorrect(labSheet.labsheet_question[labSheet.current_question_index].isCorrect);
+                setCurrentQuestionIndex(labSheet.current_question_index);
                 setTotalQuestions(labSheet.labsheet_question.length);
                 setLabSheetId(labSheetId);
                 setIsLoading(false)
@@ -194,9 +196,11 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             isAnsForCurrQuesCorrect,
             isLabCompleted,
             isEvaluatingAnswer,
+            isGenerationError,
             evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,
+            setIsGenerationError
         }),
         [
             realWorldScenario,
@@ -209,9 +213,11 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             isAnsForCurrQuesCorrect,
             isLabCompleted,
             isEvaluatingAnswer,
+            isGenerationError,
             evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,
+            setIsGenerationError
         ]
     );
 

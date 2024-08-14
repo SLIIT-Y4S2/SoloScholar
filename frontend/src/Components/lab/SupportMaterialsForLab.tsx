@@ -1,6 +1,8 @@
+import { ExportOutlined } from "@ant-design/icons";
 import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
+import { Link } from "react-router-dom";
 
-export function SupportMaterialsForLab() {
+export function SupportMaterialsForLab({ isNewTab, labSheetId }: { isNewTab: boolean, labSheetId: string | undefined }) {
     const { realWorldScenario, supportMaterials, isLoading } = useLabSessionContext();
 
     if (isLoading) {
@@ -8,7 +10,14 @@ export function SupportMaterialsForLab() {
     }
     return (
         <div className="bg-white flex flex-col mx-auto p-8 w-full max-w-[1200px] max-h-[800] h-max rounded-2xl gap-4">
-            <h2 className="text-2xl font-bold">Scenario</h2>
+            <div className="flex gap-4 w-max items-center justify-between">
+                <h2 className="text-2xl font-bold">Scenario</h2>
+                {!isNewTab ?
+                    <Link to={`../${labSheetId}/support-material`} relative={"path"} target="_blank">
+                        <ExportOutlined className="text-2xl text-blue-600" />
+                    </Link>
+                    : null}
+            </div>
             <p className="font-normal text-base">{realWorldScenario && realWorldScenario}</p>
             {supportMaterials && supportMaterials.relationalSchema && (
                 <div className="flex flex-col gap-4">

@@ -54,7 +54,7 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
         }
 
         res.status(500).send({
-            message: "Failed to generate lab sheet",
+            message: "Internal server error",
         });
     }
 
