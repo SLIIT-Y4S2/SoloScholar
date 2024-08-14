@@ -31,9 +31,11 @@ function getChatModel({ model }: GetChatModelInputType = { model: OPENAI_CHAT_MO
           const promptTokens = output?.llmOutput?.tokenUsage.promptTokens;
           const completionTokens =
             output?.llmOutput?.tokenUsage.completionTokens;
+          const inputTokenPrice = 5;
+          const outputTokenPrice = 15;
           const totalCost =
-            (promptTokens / 1000000) * 5 + // gpt-4o
-            (completionTokens / 1000000) * 15;
+            (promptTokens / 1000000) * inputTokenPrice +
+            (completionTokens / 1000000) * outputTokenPrice;
           console.log("tokens cost: $", totalCost);
         },
       },

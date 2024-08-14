@@ -8,7 +8,7 @@ const app = server;
 
 app.listen(PORT, async () => {
   try {
-    await mongoose.connect(MONGO_URI);
+    // await mongoose.connect(MONGO_URI);
     await prisma.$connect();
     logger.info(
       `Connected to database. Server available at http://localhost:${PORT}`

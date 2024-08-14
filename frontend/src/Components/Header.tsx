@@ -22,20 +22,14 @@ const Header = () => {
                 key: "modules",
                 label: <Link to={APP_ROUTES.ds}>Database Systems</Link>,
               },
-              {
-                key: "tutorial",
-                label: <Link to={APP_ROUTES.tute}>Tute (TEMP....)</Link>,
-              },
-              {
-                key: "lab",
-                label: <Link to={APP_ROUTES.lab}>Lab </Link>,
-              },
             ],
           }}
         >
           <div className="">Modules</div>
         </Dropdown>
-        <ProfileIcon student_id={userDetails?.student_id || ""} />
+        <ProfileIcon
+          student_id={`${userDetails?.first_name} ${userDetails?.last_name}`}
+        />
       </div>
     </div>
   );
@@ -44,11 +38,11 @@ const Header = () => {
 export default Header;
 
 const items: MenuProps["items"] = [
-  {
-    key: "profile",
-    icon: <UserOutlined />,
-    label: <Link to={APP_ROUTES.PROFILE}>Profile</Link>,
-  },
+  // {
+  //   key: "profile",
+  //   icon: <UserOutlined />,
+  //   label: <Link to={APP_ROUTES.PROFILE}>Profile</Link>,
+  // },
   {
     key: "logout",
     icon: <LogoutOutlined />,

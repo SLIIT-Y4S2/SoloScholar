@@ -30,3 +30,21 @@ export const submitTutorial = async (
   );
   return response.data.data;
 };
+
+export const requestFeedbackService = async (
+  tutorialId: string,
+  feedback: { [key: string]: string }[]
+) => {
+  const response = await axiosInstance.post(
+    `/tutorial/${tutorialId}/feedback`,
+    {
+      ...feedback,
+    }
+  );
+  return response.data.data;
+};
+
+export const completeTutorialService = async (tutorialId: string) => {
+  const response = await axiosInstance.post(`/tutorial/${tutorialId}/complete`);
+  return response.data.data;
+};

@@ -22,7 +22,7 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
 
         const lessonOutline = await getLessonOutlineByModuleAndLessonName(moduleName, lessonTitle);
 
-        const subTopics = lessonOutline.lesson_subtopics.reduce((acc, subtopic) => {
+        const subTopics = lessonOutline.sub_lessons.reduce((acc, subtopic) => {
             return acc + `${subtopic.topic}:\n${subtopic.description}\n\n`;
         }, '');
 

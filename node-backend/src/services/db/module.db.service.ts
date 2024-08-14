@@ -45,8 +45,8 @@ export const createModule = async (module: Module) => {
         create: module.lessons.map((lesson) => ({
           title: lesson.title,
           description: lesson.description,
-          lesson_subtopics: {
-            create: lesson.lesson_subtopics.map((subtopic) => ({
+          sub_lessons: {
+            create: lesson.sub_lessons.map((subtopic) => ({
               topic: subtopic.topic,
               description: subtopic.description,
             })),
@@ -66,7 +66,7 @@ export const createModule = async (module: Module) => {
     include: {
       lessons: {
         include: {
-          lesson_subtopics: true,
+          sub_lessons: true,
           lesson_learning_outcomes: {
             include: {
               learning_outcome: {
@@ -97,7 +97,7 @@ export const createModule = async (module: Module) => {
 export const getLessonOutlineByModuleAndLessonName = async (
   moduleName: string,
   lessonTitle: string
-): Promise<Lesson> => {
+) => {
   const module = await prisma.module.findFirst({
     where: { name: moduleName },
     include: {
@@ -121,7 +121,7 @@ export const getLessonOutlineByModuleAndLessonName = async (
               },
             },
           },
-          lesson_subtopics: true,
+          sub_lessons: true,
         },
       },
     },
@@ -156,6 +156,13 @@ export const getLessonOutlineByModuleAndLessonName = async (
 export const getModuleByName = async (moduleName: string) => {
   const module = await prisma.module.findFirst({
     where: { name: moduleName },
+    include: {
+      lessons: {
+        include: {
+          sub_lessons: true,
+        },
+      },
+    },
   });
 
   return module;
@@ -239,7 +246,7 @@ export const deleteModule = async (id: number) => {
     });
 
     // 5. Delete lesson_subtopics
-    await prisma.lesson_subtopic.deleteMany({
+    await prisma.sub_lesson.deleteMany({
       where: {
         lesson: {
           module_id: id,
@@ -288,4 +295,25 @@ export const deleteModule = async (id: number) => {
   return deletedModule;
 };
 
-// deleteModule(3);
+// deleteModule(1);
+
+/**
+ * Find subtopic by id
+ * @param id
+ * @returns
+ * @async
+ */
+export const findSubtopicById = async (sub_lesson_id: number) => {
+  const subtopic = await prisma.sub_lesson.findFirst({
+    where: { id: sub_lesson_id },
+    include: {
+      lesson: {
+        include: {
+          module: true,
+        },
+      },
+    },
+  });
+
+  return subtopic;
+};

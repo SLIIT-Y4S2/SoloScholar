@@ -1,11 +1,15 @@
 import {
+  Link,
   Navigate,
   RouteObject,
   RouterProvider,
   createBrowserRouter,
 } from "react-router-dom";
 import { useAuth } from "../provider/authProvider";
-import { ProtectedRoute } from "../utils/ProtectRoutes";
+import {
+  ProtectedRouteInstructor,
+  ProtectedRouteLearner,
+} from "../utils/ProtectRoutes";
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Home from "../pages/Home";
@@ -23,6 +27,8 @@ import { LabLayout } from "../pages/[module]/[lesson]/lab/LabLayout";
 import { SupportMaterialsForLab } from "../Components/lab/SupportMaterialsForLab";
 import LabOverview from "../pages/[module]/[lesson]/lab";
 import LabSession from "../pages/[module]/[lesson]/lab/[labID]";
+import Module from "../pages/[module]";
+import { Button } from "antd";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -37,13 +43,25 @@ const Routes = () => {
       path: "/about-us",
       element: <div>About Us</div>,
     },
+    {
+      path: "/unauthorized",
+      element: (
+        <div>
+          <h1>Unauthorized</h1>
+          <p>You are not authorized to view this page.</p>
+          <Link to="/">
+            <Button type="primary">Go back to home</Button>
+          </Link>
+        </div>
+      ),
+    },
   ];
 
   // Define routes accessible only to authenticated users
   const routesForAuthenticatedOnly: RouteObject[] = [
     {
       path: "/",
-      element: <ProtectedRoute />, // Wrap the component in ProtectedRoute
+      element: <ProtectedRouteLearner />, // Wrap the component in ProtectedRoute
       children: [
         {
           path: "",
@@ -60,6 +78,44 @@ const Routes = () => {
         {
           path: "/login",
           element: <Navigate to="/" />,
+        },
+        {
+          path: "/dashboard",
+          element: (
+            <ProtectedRouteInstructor>
+              <Dashboard />
+            </ProtectedRouteInstructor>
+          ),
+          children: [
+            {
+              path: "/dashboard",
+              element: <Main />,
+            },
+            {
+              path: "/dashboard/lectures-overview",
+              element: <LecturesOverview />,
+            },
+            {
+              path: "/dashboard/tutorials-overview",
+              element: <TutorialsOverview />,
+            },
+            {
+              path: "/dashboard/labs-overview",
+              element: <LabsOverview />,
+            },
+            {
+              path: "/dashboard/custom-analytical-indicator",
+              element: <CustomAnalyticalIndicator />,
+            },
+            {
+              path: "/dashboard/my-indicators",
+              element: <MyIndicators />,
+            },
+          ],
+        },
+        {
+          path: "/:module",
+          element: <Module />,
         },
         {
           path: "/:module/:lesson",
@@ -96,36 +152,6 @@ const Routes = () => {
                 },
 
               ]
-            },
-          ],
-        },
-        {
-          path: "/dashboard",
-          element: <Dashboard />,
-          children: [
-            {
-              path: "/dashboard",
-              element: <Main />,
-            },
-            {
-              path: "/dashboard/lectures-overview",
-              element: <LecturesOverview />,
-            },
-            {
-              path: "/dashboard/tutorials-overview",
-              element: <TutorialsOverview />,
-            },
-            {
-              path: "/dashboard/labs-overview",
-              element: <LabsOverview />,
-            },
-            {
-              path: "/dashboard/custom-analytical-indicator",
-              element: <CustomAnalyticalIndicator />,
-            },
-            {
-              path: "/dashboard/my-indicators",
-              element: <MyIndicators />,
             },
           ],
         },

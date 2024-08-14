@@ -1,18 +1,13 @@
+import { User } from "../types/auth-user";
 import { API_URLS } from "../utils/api_routes";
 import axiosInstance from "../utils/axiosInstance";
 
-export const login = async (student_id: string, password: string) => {
+export const login = async (email: string, password: string) => {
   // Send a request to the server to login
-  const response = await axiosInstance.post(
-    API_URLS.LOGIN,
-    {
-      student_id,
-      password,
-    },
-    {
-      withCredentials: true,
-    }
-  );
+  const response = await axiosInstance.post<User>(API_URLS.LOGIN, {
+    email,
+    password,
+  });
 
   return response.data;
 };
