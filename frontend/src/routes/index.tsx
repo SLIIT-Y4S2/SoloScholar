@@ -15,6 +15,8 @@ import Logout from "../pages/Logout";
 import Home from "../pages/Home";
 import Lab from "../pages/[module]/[lesson]/lab";
 import Dashboard from "../pages/dashboard/Dashboard";
+import Lecture from "../pages/[module]/[lesson]/lecture";
+import Lectureview from "../pages/[module]/[lesson]/lecture/lectureView";
 import CustomAnalyticalIndicator from "../pages/dashboard/CustomAnalyticalIndicator";
 import LecturesOverview from "../pages/dashboard/LecturesOverview";
 import TutorialsOverview from "../pages/dashboard/TutorialsOverview";
@@ -136,6 +138,14 @@ const Routes = () => {
             {
               path: "lab/:labId",
               element: <div>Lab</div>,
+            },
+            {
+              path: "lecture",
+              element: <Lecture />,
+            },
+            {
+              path: "lecture/view",
+              element: <Lectureview />,
             },
           ],
         },
