@@ -99,12 +99,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                             exampleQuestion: data.example_question,
                             exampleAnswer: data.example_answer,
                             isCorrect: data.isCorrect,
-                            currentAnswer: data.student_answers.length == 0 ? null : data.student_answers.find((answer) => {
-                                if (answer.labsheet_questionId === data.id) {
-                                    return data.student_answers[data.student_answers.length - 1].student_answer;
-                                }
-                                return null
-                            })?.student_answer,
+                            currentAnswer: data.student_answers.length == 0 ? null :data.student_answers[data.student_answers.length - 1].student_answer,
                             attempts: data.student_answers.length,
                         })
                     }),
@@ -168,7 +163,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             if (!labSheetId) {
                 return;
             }
-            getHintForQuestion(labSheetId, questions[currentQuestionIndex].id).then((response) => {
+            getHintForQuestion(labSheetId, questions[currentQuestionIndex].question_number).then((response) => {
                 console.log("Hint for current question", response.data);
                 setHintForCurrentQuestion(JSON.stringify(response.data));
             });

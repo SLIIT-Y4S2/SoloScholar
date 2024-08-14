@@ -211,7 +211,7 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
 
 export async function generateHintForQuestionHandler(req: Request, res: Response) {
     try {
-        const { labSheetId, questionId: questionNumber } = req.params;
+        const { labSheetId, questionNumber } = req.params;
 
         if (!labSheetId || !questionNumber) {
             return res.status(400).json({

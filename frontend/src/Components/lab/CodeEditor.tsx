@@ -6,8 +6,6 @@ import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 
 interface CodeEditorProps {
     handleCodeOnChange: (codeSnippet: string) => void;
-    // isCorrect: boolean | null;
-    // correctAnswer: string | null;
 }
 
 

@@ -52,8 +52,8 @@ export async function getLabExerciseByModuleAndLessonName(moduleName: string, le
     return response;
 }
 
-export async function getHintForQuestion(labSheetId: string, questionId: number) {
-    const response = axiosInstance.get(`${LAB_API_URLS.GET_HINT}/${labSheetId}/${questionId}`);
+export async function getHintForQuestion(labSheetId: string, questionNumber: number) {
+    const response = axiosInstance.get(`${LAB_API_URLS.GET_HINT}/${labSheetId}/${questionNumber}`);
 
     return response;
 }

@@ -31,8 +31,6 @@ export default function QuestionCardForLab() {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
-    console.log(currentAnswer);
-
     if (currentAnswer && currentAnswer.trim() !== "") {
       evaluateStudentAnswerHandler(currentAnswer);
     } else {
@@ -115,7 +113,7 @@ export default function QuestionCardForLab() {
                     <Button
                       type="primary"
                       htmlType="button"
-                      onClick={() => getHintForCurrentQuestion}
+                      onClick={() => getHintForCurrentQuestion()}
                     >
                       Hint
                     </Button>
