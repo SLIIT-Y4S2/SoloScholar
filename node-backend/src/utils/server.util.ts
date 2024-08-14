@@ -12,6 +12,7 @@ import tutorialsRouter from "../routes/tutorials.routes";
 import labRouter from "../routes/lab.routes";
 import dashboardRouter from "../routes/dashboard.routes";
 import moduleRouter from "../routes/module.routes";
+import requireInstructor from "../middlewares/requireInstructor.middleware";
 
 const server = express();
 
@@ -41,8 +42,12 @@ server.use("/api/v1/auth", authRouter);
 server.use("/api/v1/rag", ragRouter);
 server.use("/api/v1/tutorial", requireUser, tutorialsRouter);
 server.use("/api/v1/labs", labRouter);
-server.use("/api/v1/dashboard", dashboardRouter);
-server.use("/api/v1/module", moduleRouter);
+server.use("/api/v1/dashboard", dashboardRouter); // TODO add requireInstructor middleware
+server.use(
+  "/api/v1/module",
+  // requireInstructor,
+  moduleRouter
+); // TODO add requireInstructor middleware
 server.get("/api/v1/protected", requireUser, (req: Request, res: Response) => {
   res.json({ message: "Hello from protected route", user: res.locals.user });
 });
