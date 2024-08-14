@@ -7,8 +7,10 @@ import {
 } from "react";
 import {
   getTutorialByIndex,
+  requestFeedbackService,
   submitAnswerByQuestionId,
   submitTutorial,
+  completeTutorialService,
 } from "../services/tutorial.service";
 import { useParams } from "react-router-dom";
 import { AxiosError } from "axios";
@@ -20,20 +22,22 @@ export interface TutorialQuestion {
   question_number: number;
   question: string;
   options: string[];
-  type: "essay" | "mcq";
+  type: "short-answer" | "mcq";
   answer: string;
   student_answer: string | null;
-  feedbackType?: "skip" | "basic" | "detailed";
-  isStudentAnswerCorrect?: boolean;
+  feedback_type?: "skip" | "basic" | "detailed";
+  feedback?: string;
+  is_student_answer_correct?: boolean;
 }
-type TutorialStatus =
+export type TutorialStatus =
   | "generating"
   | "generated"
   | "in-progress"
+  | "submitting"
   | "submitted"
   | "feedback-generating"
   | "feedback-generated"
-  | "ended";
+  | "completed";
 
 interface TutorialContextType {
   questions: TutorialQuestion[];
@@ -45,12 +49,8 @@ interface TutorialContextType {
 
   setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
   submitAnswer: (current: number, next: number | null) => void;
-  requestFeedback: (
-    questionFeedback: {
-      questionNumber: number;
-      feedbackType: string;
-    }[]
-  ) => void;
+  requestFeedback: (questionFeedback: { [key: string]: string }[]) => void;
+  completeTutorial: () => void;
 }
 
 const TutorialProviderContext = createContext<TutorialContextType | null>(null);
@@ -104,8 +104,11 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         if ((error as AxiosError).response?.status === 403) {
           setError("You are not authorized to view this tutorial");
         }
-        if ((error as AxiosError).response?.status === 500) {
-          setError("Server error");
+        if ((error as AxiosError).response?.data) {
+          const data = (error as AxiosError).response?.data as {
+            message: string;
+          };
+          setError(data.message);
         }
 
         setIsLoading(false);
@@ -121,14 +124,18 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   const submitAnswer = async (current: number, next: number | null) => {
     const currentQuestionId = questions[current - 1].id;
     if (next === null) {
-      const result = await submitTutorial(
+      // If next is null, it means the user is submitting the tutorial
+      setStatus("submitting");
+      const tutorial = await submitTutorial(
         tutorialId,
         currentQuestionId,
         studentsAnswerForTheCurrentQuestion
       );
-      updateQuestionAnswer(current);
-      set_current_question(result.current_question);
-      setStatus(result.status);
+      setQuestions(tutorial.questions);
+      set_current_question(1);
+      setStatus(tutorial.status);
+      setStudentsAnswerForTheCurrentQuestion(null);
+
       return;
     }
 
@@ -151,10 +158,9 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         console.error(error);
         return;
       }
+    } else {
+      set_current_question(next);
     }
-    set_current_question(next);
-
-    // TODO: Change question only if submission is successful
   };
 
   const updateQuestionAnswer = (questionNumber: number) => {
@@ -168,13 +174,18 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   };
 
   const requestFeedback = async (
-    questionFeedback: { questionNumber: number; feedbackType: string }[]
+    questionFeedback: { [key: string]: string }[]
   ) => {
     setStatus("feedback-generating");
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Request feedback from backend
-    console.log(questionFeedback);
+    const tutorial = await requestFeedbackService(tutorialId, questionFeedback);
+    setQuestions(tutorial.questions);
+    setStatus(tutorial.status);
+  };
 
-    setStatus("feedback-generated");
+  const completeTutorial = async () => {
+    setIsLoading(true);
+    const tutorial = await completeTutorialService(tutorialId);
+    setStatus(tutorial.status);
   };
 
   return (
@@ -189,6 +200,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         status,
         requestFeedback,
         error,
+        completeTutorial,
       }}
     >
       {children}

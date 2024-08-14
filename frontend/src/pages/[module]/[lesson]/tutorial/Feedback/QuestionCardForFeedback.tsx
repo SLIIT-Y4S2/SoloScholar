@@ -2,7 +2,7 @@ import { TutorialQuestion } from "../../../../../provider/TutorialContext";
 // import { CheckCircleTwoTone, CloseCircleOutlined } from "@ant-design/icons";
 import CheckCircleTwoTone from "@ant-design/icons/CheckCircleTwoTone";
 import CloseCircleOutlined from "@ant-design/icons/CloseCircleOutlined";
-const QuestionCardForTutorialFeedback = ({
+const QuestionCardForFeedback = ({
   question: {
     question_number,
     question,
@@ -11,6 +11,7 @@ const QuestionCardForTutorialFeedback = ({
     student_answer,
     answer,
     is_student_answer_correct: isStudentAnswerCorrect,
+    feedback,
   },
 }: {
   question: TutorialQuestion;
@@ -53,12 +54,19 @@ const QuestionCardForTutorialFeedback = ({
             <CloseCircleOutlined /> Incorrect
           </span>
         )}
+        {feedback && (
+          <>
+            <br />
+            <strong>Feedback for your answer:</strong> <br />
+            {feedback}
+          </>
+        )}
         <br />
-        <strong>Answer:</strong> <br />
+        <strong>Example answer:</strong> <br />
         {answer}
       </p>
     </div>
   );
 };
 
-export default QuestionCardForTutorialFeedback;
+export default QuestionCardForFeedback;

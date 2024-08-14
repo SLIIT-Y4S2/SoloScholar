@@ -3,8 +3,8 @@ export const APP_ROUTES = {
   MODULES: "/modules",
   PROFILE: "/profile",
   LOGOUT: "/logout",
+  LOGIN: "/login",
   //TODO: TEMPORARY
   ds: "database-systems",
-  tute: "database-systems/transactions-and-concurrency-control/tutorial",
   lab: "database-systems/xml/lab",
 };
