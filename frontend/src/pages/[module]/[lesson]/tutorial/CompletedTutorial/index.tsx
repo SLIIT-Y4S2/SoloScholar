@@ -3,7 +3,7 @@ import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import QuestionCardForFeedback from "../Feedback/QuestionCardForFeedback";
 
 const CompletedTutorial = () => {
-  const { questions, isLoading } = useTutorialContext();
+  const { questions, isFetching: isLoading } = useTutorialContext();
 
   if (isLoading) {
     return <>Loading...</>;

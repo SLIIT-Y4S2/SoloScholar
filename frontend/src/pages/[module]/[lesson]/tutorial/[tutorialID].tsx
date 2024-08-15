@@ -1,5 +1,4 @@
-import { DynamicBreadcrumbComponent } from ".";
-import { Layout } from "antd";
+import { Layout, Spin } from "antd";
 import {
   TutorialProvider,
   useTutorialContext,
@@ -8,18 +7,19 @@ import RequestFeedback from "./RequestFeedback";
 import TutorialFeedback from "./Feedback";
 import TutorialQuestionView from "./TutorialQuestionView";
 import CompletedTutorial from "./CompletedTutorial";
-
-//TODO: If tutorial complete forward to feedback page
+import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
+import Error from "../../../../Components/Error";
+import GeneratingView from "../../../../Components/tutorial/GeneratingView";
 
 const TutorialView = () => {
-  const { isLoading, status, error } = useTutorialContext();
+  const { isFetching, status, error } = useTutorialContext();
 
-  if (isLoading) {
-    return <>Loading...</>;
+  if (isFetching) {
+    return <Spin fullscreen />;
   }
 
   if (error) {
-    return <>{error}</>;
+    return <Error title="Error occurred" subTitle={error} />;
   }
 
   if (
@@ -27,7 +27,7 @@ const TutorialView = () => {
     status === "submitting" ||
     status === "feedback-generating"
   ) {
-    return <>Generating...</>;
+    return <GeneratingView />;
   }
 
   if (status === "generated" || status === "in-progress") {
@@ -46,14 +46,19 @@ const TutorialView = () => {
     return <CompletedTutorial />;
   }
 
-  return <>ERROR.</>;
+  return (
+    <Error
+      title="Error occurred"
+      subTitle="An error occurred while fetching the tutorial."
+    />
+  );
 };
 
 const TutorialViewWithProvider = () => {
   return (
     <TutorialProvider>
       <Layout style={{ padding: "0 24px 24px" }}>
-        <DynamicBreadcrumbComponent />
+        <CustomBreadcrumb />
         <TutorialView />
       </Layout>
     </TutorialProvider>

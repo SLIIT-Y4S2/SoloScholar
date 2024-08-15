@@ -1,5 +1,13 @@
 import { Tutorial } from "./../types/tutorial.types";
 import { Request, Response } from "express";
+import { logger } from "../utils/logger.utils";
+import { groupBy } from "lodash";
+import { StatusCodes } from "http-status-codes";
+import {
+  GetTutorialByIdSchema,
+  GetTutorialsByLearnerSchema,
+  TutorialGenerationSchema,
+} from "../models/tutorial.schema";
 import {
   synthesizeQuestionsForSubtopic,
   markStudentAnswerCorrectOrIncorrect,
@@ -14,6 +22,7 @@ import {
   updateTutorialQuestionResult,
   updateQuestionWithFeedback,
   updateTutorialStatus,
+  deleteTutorial,
 } from "../services/db/tutorial.db.service";
 import {
   getLessonOutlineByModuleAndLessonName,
@@ -21,32 +30,49 @@ import {
   getLessonByModuleIdAndTitle,
   findSubtopicById,
 } from "../services/db/module.db.service";
-import { logger } from "../utils/logger.utils";
-import { groupBy } from "lodash";
 
-export const generateTutorialHandler = async (req: Request, res: Response) => {
+export const generateTutorialHandler = async (
+  req: Request<{}, {}, TutorialGenerationSchema["body"]>,
+  res: Response
+) => {
+  // const { moduleName, lessonTitle, learningLevel } = req.body;
+  const { moduleName, lessonTitle, learningLevel } = req.body;
+  const { id: learner_id } = res.locals.user;
+
+  let createdTutorial: {
+    id: string;
+    lessonId: number;
+    learnerId: string;
+  } | null = null;
+
   try {
-    // MARK: pre-requisite
-    // we need check if the student has already generated the tutorial for the lesson for the given learning rate
-    // if the tutorial has already been generated return the tutorial to the student
-
     // MARK: STEP 1
     // get the lesson outline from the database
+    // we need check if the student has already generated the tutorial for the lesson for the given learning rate
 
-    const { moduleName, lessonTitle, learningLevel } = req.body;
-    const { id: learner_id } = res.locals.user;
-
-    if (!moduleName || !lessonTitle || !learningLevel) {
-      return res.status(400).json({
-        message: "Invalid request body",
-      });
-    }
     const lessonOutline = await getLessonOutlineByModuleAndLessonName(
       moduleName,
       lessonTitle
     );
+
+    const existingTutorials = await getTutorialByLearnerId(
+      learner_id,
+      lessonOutline.module_id,
+      lessonOutline.id
+    );
+
+    const tutorialForLearningLevel = existingTutorials.find(
+      (tutorial) => tutorial.learning_level === learningLevel
+    );
+
+    if (tutorialForLearningLevel) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: "Only one tutorial can be generated per learning level",
+      });
+    }
+
     // create a tutorial for the student
-    const tutorial = await createTutorial(
+    createdTutorial = await createTutorial(
       lessonOutline.id,
       learner_id,
       learningLevel
@@ -127,7 +153,7 @@ export const generateTutorialHandler = async (req: Request, res: Response) => {
     const questions = [...mcqQuestions, ...essayQuestions];
 
     const updatedTutorialWithQuestions = await addQuestionsToTheTutorial(
-      tutorial.id,
+      createdTutorial.id,
       questions
     );
 
@@ -135,7 +161,7 @@ export const generateTutorialHandler = async (req: Request, res: Response) => {
     // save the tutorial to the database
     // change the status of the tutorial to generated
     // return the tutorial to the student
-    res.status(200).json({
+    res.status(StatusCodes.CREATED).json({
       message: "Tutorial generated successfully",
       data: {
         id: updatedTutorialWithQuestions.id,
@@ -144,31 +170,37 @@ export const generateTutorialHandler = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    if (createdTutorial) {
+      try {
+        await deleteTutorial(createdTutorial.id);
+        logger.info(
+          `Deleted tutorial with id ${createdTutorial.id} due to generation failure`
+        );
+      } catch (deleteError) {
+        logger.error(
+          `Failed to delete tutorial with id ${createdTutorial.id}: ${
+            (deleteError as Error).message
+          }`
+        );
+      }
+    }
+
     const message = (error as Error).message;
-    res.status(500).json({ message });
-    // logger.error({ message });
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal server error", error });
+    logger.error({ message });
     console.log(error);
   }
 };
 
 export const getTutorialsByLearnerHandler = async (
-  req: Request,
+  req: Request<{}, {}, {}, GetTutorialsByLearnerSchema["query"]>,
   res: Response
 ) => {
   try {
     const { id: learner_id } = res.locals.user;
     const { moduleName, lessonTitle } = req.query;
-
-    if (
-      !moduleName ||
-      !lessonTitle ||
-      typeof moduleName !== "string" ||
-      typeof lessonTitle !== "string"
-    ) {
-      return res.status(400).json({
-        message: "Invalid request body",
-      });
-    }
 
     const module = await getModuleByName(moduleName);
 
@@ -198,23 +230,25 @@ export const getTutorialsByLearnerHandler = async (
     });
   } catch (error) {
     const message = (error as Error).message;
-    res.status(500).json({ message });
+    res.status(500).json({ message: " Internal server error", error });
     logger.error({ message });
   }
 };
 
-export const getTutorialByIdHandler = async (req: Request, res: Response) => {
+export const getTutorialByIdHandler = async (
+  req: Request<GetTutorialByIdSchema["params"], {}, {}>,
+  res: Response
+) => {
   try {
     const { id: learner_id } = res.locals.user; //TODO: verify if the learner is the owner of the tutorial
     const { tutorialId } = req.params;
 
-    if (!tutorialId) {
-      return res.status(400).json({
-        message: "Invalid request body",
-      });
-    }
+    const tutorial = await getTutorialByIdWithQuestions(tutorialId, learner_id);
 
-    const tutorial = await getTutorialByIdWithQuestions(tutorialId);
+    if (tutorial.status === "generating") {
+      // CHECK created time and if it is more than 5 minutes, then delete the tutorial
+      //TODO: loop through the questions until it's generated or delete the tutorial
+    }
 
     const noAnswers =
       tutorial.status === "generated" || tutorial.status === "in-progress";
@@ -295,9 +329,8 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
     }
 
     //MARK: Questions getting marked correct or incorrect
-
     // get all the questions for the tutorial
-    const tutorial = await getTutorialByIdWithQuestions(tutorialId);
+    const tutorial = await getTutorialByIdWithQuestions(tutorialId, learner_id);
 
     // filter out the question with defined student answers
     const answeredQuestions = tutorial.questions.filter(
@@ -355,7 +388,10 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
       )
     );
 
-    const updateTutorial = await getTutorialByIdWithQuestions(tutorialId);
+    const updateTutorial = await getTutorialByIdWithQuestions(
+      tutorialId,
+      learner_id
+    );
 
     res.status(200).json({
       message: "Tutorial submitted successfully",
@@ -383,7 +419,7 @@ export const requestFeedbackHandler = async (
       });
     }
 
-    const tutorial = await getTutorialByIdWithQuestions(tutorialId);
+    const tutorial = await getTutorialByIdWithQuestions(tutorialId, learner_id);
     if (tutorial.status !== "submitted") {
       return res.status(400).json({
         message: "Tutorial not submitted",
@@ -464,6 +500,21 @@ export const requestFeedbackHandler = async (
       data: { ...updatedTutorial },
     });
   } catch (error) {
+    try {
+      const { tutorialId } = req.params;
+      await updateTutorialStatus(tutorialId, "submitted");
+      logger.error(
+        `Failed to update tutorial status to submitted after feedback request failure: ${
+          (error as Error).message
+        }`
+      );
+    } catch (error) {
+      logger.error(
+        `Failed to update tutorial status to submitted after feedback request failure: ${
+          (error as Error).message
+        }`
+      );
+    }
     const message = (error as Error).message;
     res.status(500).json({ message });
     logger.error({ message });
@@ -484,7 +535,7 @@ export const markTutorialAsCompletedHandler = async (
       });
     }
 
-    const tutorial = await getTutorialByIdWithQuestions(tutorialId);
+    const tutorial = await getTutorialByIdWithQuestions(tutorialId, learner_id);
 
     if (tutorial.status !== "feedback-generated") {
       return res.status(400).json({

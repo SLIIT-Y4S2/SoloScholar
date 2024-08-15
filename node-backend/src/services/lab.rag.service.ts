@@ -1,6 +1,6 @@
 import { RunnableSequence } from "@langchain/core/runnables";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getChatModel } from "../utils/openai.util";
+import { getChatModel, highLevelChatModel } from "../utils/openai.util";
 import { AnswerEvaluationPrompt, HintGenerationPrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
 import { StringOutputParser, StructuredOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
 import { zodSchemaForQuestions, zodSchemaForRealWorldScenario, zodSchemaForStudentAnswerEvaluation, zodSchemaForSupportingMaterial } from "../utils/zodSchema.util";
@@ -73,7 +73,7 @@ export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, l
             formatInstructions: (input) => input.formatInstructions
         },
         realWorldScenarioPrompt,
-        () => getChatModel({ model: "gpt-4o" }),
+        () => highLevelChatModel(),
         new StringOutputParser()
     ]);
 
@@ -93,7 +93,7 @@ export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, l
 
     // Fixing parser for the supporting material
     const fixingParserForSupportingMaterial = OutputFixingParser.fromLLM(
-        getChatModel({ model: "gpt-4o" }),
+        highLevelChatModel(),
         outputParserForSupportingMaterial
     );
 
@@ -108,7 +108,7 @@ export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, l
             formatInstructions: (input) => input.formatInstructions
         },
         supportingMaterialPrompt,
-        () => getChatModel({ model: "gpt-4o" }),
+        () => highLevelChatModel(),
         fixingParserForSupportingMaterial,
     ]);
 
@@ -143,7 +143,7 @@ export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, l
             formatInstructions: (input) => input.formatInstructions
         },
         questionGenerationPrompt,
-        () => getChatModel({ model: "gpt-4o" }),
+        () => highLevelChatModel(),
         fixingParserForQuestions,
     ]);
 

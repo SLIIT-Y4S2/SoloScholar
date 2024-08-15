@@ -2,6 +2,8 @@ import { Link, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getModuleByName } from "../../services/module.service";
 import { Module as ModuleType } from "../../types/module.types";
+import { Spin } from "antd";
+import Error from "../../Components/Error";
 
 const Module = () => {
   const { module } = useParams();
@@ -27,11 +29,16 @@ const Module = () => {
   }, [module]);
 
   if (isLoading) {
-    return <>Loading...</>;
+    return <Spin fullscreen />;
   }
 
   if (!moduleData) {
-    return <>Module not found</>;
+    return (
+      <Error
+        title="Module not found"
+        subTitle="The module you are looking for does not exist"
+      />
+    );
   }
 
   return (

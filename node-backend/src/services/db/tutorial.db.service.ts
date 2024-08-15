@@ -141,7 +141,8 @@ export const addQuestionsToTheTutorial = async (
  * /
  */
 export const getTutorialByIdWithQuestions = async (
-  id: string
+  id: string,
+  learner_id: string
 ): Promise<{
   id: string;
   status: string;
@@ -165,7 +166,7 @@ export const getTutorialByIdWithQuestions = async (
   }[];
 }> => {
   const tutorial = await prisma.tutorial.findFirst({
-    where: { id },
+    where: { id, learning_material: { learner_id: learner_id } },
     include: {
       learning_material: true,
       questions: {
@@ -464,3 +465,4 @@ export const deleteTutorial = async (id: string): Promise<void> => {
     }),
   ]);
 };
+// deleteTutorial("clzv3rww0000010g85wci9yvn");
