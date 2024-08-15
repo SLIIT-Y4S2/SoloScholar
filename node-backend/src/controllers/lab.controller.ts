@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import { evaluateStudentAnswers, generateHintsForStudentAnswers, responseSynthesizerForLabs } from "../services/lab.rag.service";
 import { getLessonByModuleIdAndTitle, getLessonOutlineByModuleAndLessonName, getModuleByName } from "../services/db/module.db.service";
-import { createLabMaterials, updateLabMaterial, getLabSheetById, getLearningMaterialDetailsByLearnerIdAndLessonId, getLessonDetailsByLabSheetId, updateLabSheetAnswers, deleteLabSheetById, getStudentAnswersByLabSheetIdAndQuestionNumber } from "../services/db/lab.db.service";
+import { createLabMaterials, updateLabMaterial, getLabSheetById, getLearningMaterialDetailsByLearnerIdAndLessonId, getLessonDetailsByLabSheetId, updateLabSheetAnswers, deleteLabSheetById, getStudentAnswersByLabSheetIdAndQuestionNumber, deleteLabSheetQuestionsByLabSheetId, deleteStudentAnswersByLabSheetId, updateLabSheetQuestionAnswerSubmissionStatus } from "../services/db/lab.db.service";
 
 /**
  * 
@@ -209,6 +209,12 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
     }
 }
 
+/**
+ * 
+ * @param req 
+ * @param res 
+ * @returns 
+ */
 export async function generateHintForQuestionHandler(req: Request, res: Response) {
     try {
         const { labSheetId, questionNumber } = req.params;
@@ -249,9 +255,9 @@ export async function generateHintForQuestionHandler(req: Request, res: Response
             question: labSheet.labsheet_question.find((question) => question.question_number === Number(questionNumber))!.question,
         });
 
-        return res.status(200).json({
-            hint
-        });
+        return res.status(200).json(
+            { ...hint }
+        );
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);
@@ -264,6 +270,84 @@ export async function generateHintForQuestionHandler(req: Request, res: Response
 
         res.status(500).send({
             message: "Failed to generate hint",
+        });
+    }
+}
+
+/**
+ * 
+ * @param req 
+ * @param res 
+ * @returns 
+ */
+export async function deleteLabSheetByIdHandler(req: Request, res: Response) {
+    try {
+        const { labSheetId } = req.params;
+
+        if (!labSheetId) {
+            return res.status(400).json({
+                message: "Invalid request body",
+            });
+        }
+
+        await deleteStudentAnswersByLabSheetId(labSheetId);
+        await deleteLabSheetQuestionsByLabSheetId(labSheetId);
+        await deleteLabSheetById(labSheetId);
+
+        return res.status(204).json({
+            message: "Lab sheet deleted",
+        });
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error(error.message);
+            error.stack && console.error(error.stack);
+        }
+
+        if (error) {
+            console.error(error);
+        }
+
+        res.status(500).send({
+            message: "Failed to delete lab sheet",
+        });
+    }
+}
+
+/**
+ * 
+ * @param req 
+ * @param res 
+ * @returns 
+ */
+export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(req: Request, res: Response) {
+    try {
+        const { questionId, reflection } = req.body;
+        const { labSheetId } = req.params;
+
+        if (!labSheetId || !questionId || typeof reflection === undefined) {
+            return res.status(400).json({
+                message: "Invalid request body",
+            });
+        }
+
+        const submissionStatus = await updateLabSheetQuestionAnswerSubmissionStatus(labSheetId, questionId, reflection);
+
+        return res.status(200).json({
+            message: "Lab sheet question answer submission status updated",
+            submission_status: submissionStatus.labsheet_question
+        });
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error(error.message);
+            error.stack && console.error(error.stack);
+        }
+
+        if (error) {
+            console.error(error);
+        }
+
+        res.status(500).send({
+            message: "Failed to update lab sheet question answer submission status",
         });
     }
 }

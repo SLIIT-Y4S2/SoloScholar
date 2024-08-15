@@ -78,6 +78,7 @@ export async function updateLabMaterial(labSheetId: string, realWorldScenario: s
                             example_question: question.exampleQuestion,
                             example_answer: question.exampleAnswer,
                             question_number: index + 1,
+                            is_answer_submitted: false,
                         };
                     }),
                 }
@@ -176,9 +177,6 @@ export async function updateLabSheetAnswers(labSheetId: string, questionId: numb
                 id: labSheetId
             },
             data: {
-                current_question_index: {
-                    increment: isCorrect ? 1 : 0
-                },
                 status: "IN_PROGRESS",
                 labsheet_question: {
                     update: {
@@ -186,7 +184,7 @@ export async function updateLabSheetAnswers(labSheetId: string, questionId: numb
                             id: questionId
                         },
                         data: {
-                            isCorrect: isCorrect,
+                            is_correct: isCorrect,
                             student_answers: {
                                 create: {
                                     student_answer: answer
@@ -208,6 +206,44 @@ export async function updateLabSheetAnswers(labSheetId: string, questionId: numb
         ...updatedLabSheet.learning_material,
         supportMaterial: JSON.parse(updatedLabSheet.support_material!),
     }, ["support_material", "learning_material"]);
+}
+
+/**
+ * 
+ * @param labSheetId 
+ * @param questionId 
+ * @returns 
+ */
+export async function updateLabSheetQuestionAnswerSubmissionStatus(labSheetId: string, questionId: number, reflection: string) {
+    const updatedLabSheetQuestionAnswerSubmissionStatus = await prisma.labsheet.update({
+        where: {
+            id: labSheetId
+        },
+        data: {
+            current_question_index: {
+                increment: 1
+            },
+            labsheet_question: {
+                update: {
+                    where: {
+                        id: questionId
+                    },
+                    data: {
+                        reflection_on_answer: reflection,
+                        is_answer_submitted: true,
+                    }
+                }
+            }
+        }, include: {
+            labsheet_question: {
+                select: {
+                    is_answer_submitted: true
+                }
+            }
+        }
+    })
+
+    return pick(updatedLabSheetQuestionAnswerSubmissionStatus, ["labsheet_question"]);
 }
 
 /**
@@ -246,6 +282,32 @@ export async function deleteLabSheetById(labSheetId: string) {
     await prisma.labsheet.delete({
         where: {
             id: labSheetId
+        }
+    });
+}
+
+/**
+ * 
+ * @param labSheetId 
+ */
+export async function deleteLabSheetQuestionsByLabSheetId(labSheetId: string) {
+    await prisma.labsheet_question.deleteMany({
+        where: {
+            labsheet_id: labSheetId
+        }
+    });
+}
+
+/**
+ * 
+ * @param labSheetId 
+ */
+export async function deleteStudentAnswersByLabSheetId(labSheetId: string) {
+    await prisma.student_answer.deleteMany({
+        where: {
+            labsheet_question: {
+                labsheet_id: labSheetId
+            }
         }
     });
 }
