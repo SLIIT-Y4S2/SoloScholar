@@ -21,7 +21,7 @@ function getChatModel(): ChatOpenAI {
     apiKey: OPENAI_API_KEY,
     model: OPENAI_CHAT_MODEL,
     temperature: 0.1,
-    verbose: true,
+    // verbose: true,
     callbacks: [
       {
         handleLLMEnd(output) {

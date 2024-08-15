@@ -91,7 +91,9 @@ export async function synthesizeQuestionsForSubtopic(
 
   const formatInstructions = isNotMcq
     ? "Respond with a valid JSON array, containing object with three fields: 'question', 'answer', and 'difficulty'."
-    : "Respond with a valid JSON array, containing object with four fields: 'question', 'answer', 'distractors', and 'difficulty'.";
+    : `Respond with a valid JSON array, containing object with four fields: 'question', 'answer', 'distractors', and 'difficulty'.
+    'distractors' is an array of strings representing the options for the multiple choice question. with the length of the array being 3.
+    `;
 
   const jsonParser = new JsonOutputParser<SynthesizedQuestions[]>();
 
@@ -311,6 +313,7 @@ export async function synthesizeFeedbackForQuestions(
     `${lesson} ${subtopic} ${subtopic_description}`,
     2
   );
+
   const retrievalChain = RunnableSequence.from([
     {
       context: (input) => input.context,

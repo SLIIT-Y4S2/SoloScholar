@@ -24,7 +24,7 @@ import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
 import Main from "../pages/dashboard/Main";
 import Module from "../pages/[module]";
-import { Button } from "antd";
+import { Button, Result } from "antd";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -154,7 +154,18 @@ const Routes = () => {
   // Define a route for handling errors
   const errorRoute = {
     path: "*",
-    element: <div>404 Not Found</div>,
+    element: (
+      <Result
+        status="404"
+        title="404"
+        subTitle="Sorry, the page you visited does not exist."
+        extra={
+          <Link to="/">
+            <Button type="primary">Back Home</Button>
+          </Link>
+        }
+      />
+    ),
   };
 
   // Combine and conditionally include routes based on authentication status
