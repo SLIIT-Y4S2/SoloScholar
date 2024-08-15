@@ -83,6 +83,12 @@ export const zodSchemaForQuestions = z.array(
 
 // Schema for the student answer evaluation for labs
 export const zodSchemaForStudentAnswerEvaluation = z.object({
-    isCorrect : z.boolean().describe("Whether the student answer is correct or not"),
-    feedback : z.string().describe("Feedback for the student answer"),
+    isCorrect: z.boolean().describe("Whether the student answer is correct or not"),
+    feedback: z.string().describe("Feedback for the student answer"),
+});
+
+
+// Schema for the hint generation
+export const zodSchemaForHintGeneration = z.object({
+    hint: z.string().describe("A hint to help the student answer the question based on the question and previous answers.")
 });

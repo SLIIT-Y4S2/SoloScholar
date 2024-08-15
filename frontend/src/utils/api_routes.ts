@@ -13,6 +13,7 @@ export const LAB_API_URLS = {
   GET_LAB_SHEET: `/labs`,
   EVALUATE_ANSWER: `/labs/evaluate-answer`,
   GET_HINT: `/labs/hint`,
+  UPDATE_SUBMISSION_STATUS: `/labs`,
 };
 
 export const DASHBOARD_API_URLS = {

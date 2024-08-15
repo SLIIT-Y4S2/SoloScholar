@@ -6,13 +6,14 @@ import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 
 interface CodeEditorProps {
     handleCodeOnChange: (codeSnippet: string) => void;
+    currentSnippet: string;
 }
 
 
 const PROGRAMMING_LANGUAGES = ["javascript", "sql"];
 
-export function CodeEditor({ handleCodeOnChange }: CodeEditorProps) {
-    const [code, setCode] = useState(" ");
+export function CodeEditor({ handleCodeOnChange, currentSnippet }: CodeEditorProps) {
+    const [code, setCode] = useState(currentSnippet);
     const [language, setLanguage] = useState("sql");
     const [codeEditorWidth, setCodeEditorWidth] = useState<string | null>("1136px");
     const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -38,7 +39,7 @@ export function CodeEditor({ handleCodeOnChange }: CodeEditorProps) {
 
     useEffect(() => {
         if (isAnsForCurrQuesCorrect !== null) {
-            setCode(questions[currentQuestionIndex].currentAnswer ?? " ");
+            setCode(questions[currentQuestionIndex].current_answer ?? " ");
         } else {
             setCode(" ");
         }
@@ -68,7 +69,12 @@ export function CodeEditor({ handleCodeOnChange }: CodeEditorProps) {
 
     return (
         <div className="flex flex-col gap-4">
-            <LanguageSelector language={language} onLanguageChange={onLanguageChange} />
+            <div className="flex flex-row justify-between">
+                <p className="font-semibold text-base">
+                    Provide your answer in below code editor.
+                </p>
+                <LanguageSelector language={language} onLanguageChange={onLanguageChange} />
+            </div>
             <Editor
                 className="py-4 px-2 bg-zinc-900 rounded-md"
                 height={"300px"}
