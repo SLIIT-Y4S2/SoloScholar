@@ -35,11 +35,13 @@ model labsheet {
 model labsheet_question {
   id                   Int                    @id @default(autoincrement())
   question_number      Int
-  question             String                 @db.VarChar(200)
+  question             String                 @db.VarChar(1000)
   answer               String                 @db.VarChar(2000)
-  example_question     String                 @db.VarChar(200)
-  example_answer       String                 @db.VarChar(200)
-  isCorrect            Boolean?
+  example_question     String                 @db.VarChar(1000)
+  example_answer       String                 @db.VarChar(1000)
+  is_correct           Boolean?
+  is_answer_submitted  Boolean
+  reflection_on_answer String?                @db.VarChar(5000)
   student_answers      student_answer[]
   labsheet_id          String                 @db.VarChar(25)
   labsheet             labsheet               @relation(fields: [labsheet_id], references: [id], onUpdate: NoAction)
@@ -47,10 +49,10 @@ model labsheet_question {
 }
 
 model student_answer {
-  id                  Int               @id @default(autoincrement())
-  student_answer      String            @db.VarChar(500)
-  labsheet_question   labsheet_question @relation(fields: [labsheet_questionId], references: [id])
-  labsheet_questionId Int
+  id                   Int               @id @default(autoincrement())
+  student_answer       String            @db.VarChar(500)
+  labsheet_question    labsheet_question @relation(fields: [labsheet_question_id], references: [id])
+  labsheet_question_id Int
 }
 
 model session {
