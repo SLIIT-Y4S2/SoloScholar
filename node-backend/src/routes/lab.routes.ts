@@ -1,11 +1,15 @@
 import { Router } from "express";
-import { getPracticalLabActivities } from "../controllers/lab.controller";
+import { evaluateStudentAnswersHandler, generateLabMaterialsHandler, getLabSheetByIdHandler, getLearningMaterialSummaryByLessonNameHandler, generateHintForQuestionHandler } from "../controllers/lab.controller";
 
 const labRouter = Router();
 
 /**
  * @route POST /api/v1/labs
  */
-labRouter.get('/', getPracticalLabActivities);
+labRouter.get('/hint/:labSheetId/:questionNumber', generateHintForQuestionHandler);
+labRouter.get('/:labSheetId', getLabSheetByIdHandler);
+labRouter.get('/:moduleName/:lessonName', getLearningMaterialSummaryByLessonNameHandler);
+labRouter.post('/generate', generateLabMaterialsHandler);
+labRouter.post('/evaluate-answer', evaluateStudentAnswersHandler);
 
 export default labRouter;
