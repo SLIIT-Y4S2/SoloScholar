@@ -8,11 +8,11 @@ interface Lesson {
   id: number;
   title: string;
   description: string;
-  lesson_subtopics: LessonSubtopic[];
+  sub_lessons: SubLesson[];
   lesson_learning_outcomes: LearningOutcome[];
 }
 
-interface LessonSubtopic {
+interface SubLesson {
   topic: string;
   description: string;
 }
@@ -30,10 +30,10 @@ type CognitiveLevel =
   | "Evaluate"
   | "Create";
 
-type SubtopicWithoutDescription = Omit<LessonSubtopic, "description">;
+type SubtopicWithoutDescription = Omit<SubLesson, "description">;
 
-type InputLesson = Omit<Lesson, "lesson_subtopics"> & {
-  lesson_subtopics: SubtopicWithoutDescription[];
+type InputLesson = Omit<Lesson, "sub_lessons"> & {
+  sub_lessons: string[];
 };
 
 type InputModule = Omit<Module, "lessons"> & {
@@ -43,7 +43,7 @@ type InputModule = Omit<Module, "lessons"> & {
 export type {
   Module,
   Lesson,
-  LessonSubtopic,
+  SubLesson,
   LearningOutcome,
   CognitiveLevel,
   InputModule,

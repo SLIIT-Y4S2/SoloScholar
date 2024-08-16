@@ -7,50 +7,61 @@ import {
 } from "react";
 import {
   getTutorialByIndex,
+  requestFeedbackService,
   submitAnswerByQuestionId,
   submitTutorial,
+  completeTutorialService,
 } from "../services/tutorial.service";
 import { useParams } from "react-router-dom";
 import { AxiosError } from "axios";
+import { message } from "antd";
 interface TutorialProviderProps {
   children: ReactNode;
 }
+
+export interface Tutorial {
+  id: number;
+  status: TutorialStatus;
+  current_question: number;
+  created_at: string;
+  learning_level: "beginner" | "intermediate" | "advanced";
+}
+
 export interface TutorialQuestion {
   id: number;
   question_number: number;
   question: string;
   options: string[];
-  type: "essay" | "mcq";
+  type: "short-answer" | "mcq";
   answer: string;
   student_answer: string | null;
-  feedbackType?: "skip" | "basic" | "detailed";
-  isStudentAnswerCorrect?: boolean;
+  feedback_type?: "skip" | "basic" | "detailed";
+  feedback?: string;
+  is_student_answer_correct?: boolean;
 }
-type TutorialStatus =
+export type TutorialStatus =
   | "generating"
   | "generated"
   | "in-progress"
+  | "submitting"
   | "submitted"
   | "feedback-generating"
   | "feedback-generated"
-  | "ended";
+  | "completed";
 
 interface TutorialContextType {
   questions: TutorialQuestion[];
   status?: TutorialStatus;
   current_question: number;
+  isFetching: boolean;
   isLoading: boolean;
   error: string | null;
   studentsAnswerForTheCurrentQuestion: string | null;
 
   setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
   submitAnswer: (current: number, next: number | null) => void;
-  requestFeedback: (
-    questionFeedback: {
-      questionNumber: number;
-      feedbackType: string;
-    }[]
-  ) => void;
+  requestFeedback: (questionFeedback: { [key: string]: string }[]) => void;
+  completeTutorial: () => void;
 }
 
 const TutorialProviderContext = createContext<TutorialContextType | null>(null);
@@ -75,9 +86,10 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     studentsAnswerForTheCurrentQuestion,
     setStudentsAnswerForTheCurrentQuestion,
   ] = useState<string | null>(null);
-
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isFetching, setIsFetching] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const displayedQuestion = questions[current_question - 1];
 
@@ -87,7 +99,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   }, [displayedQuestion?.student_answer, current_question, questions]);
 
   useEffect(() => {
-    setIsLoading(true);
+    setIsFetching(true);
     // fetch the questions from the backend
     if (!tutorialId) return;
     const fetchQuestions = async () => {
@@ -96,7 +108,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         setQuestions(tutorial.questions);
         setStatus(tutorial.status);
         set_current_question(tutorial.current_question);
-        setIsLoading(false);
+        setIsFetching(false);
       } catch (error) {
         if ((error as AxiosError).response?.status === 404) {
           setError("Tutorial not found");
@@ -104,11 +116,14 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         if ((error as AxiosError).response?.status === 403) {
           setError("You are not authorized to view this tutorial");
         }
-        if ((error as AxiosError).response?.status === 500) {
-          setError("Server error");
+        if ((error as AxiosError).response?.data) {
+          const data = (error as AxiosError).response?.data as {
+            message: string;
+          };
+          setError(data.message);
         }
 
-        setIsLoading(false);
+        setIsFetching(false);
       }
     };
     fetchQuestions();
@@ -119,25 +134,31 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   }
 
   const submitAnswer = async (current: number, next: number | null) => {
-    const currentQuestionId = questions[current - 1].id;
-    if (next === null) {
-      const result = await submitTutorial(
-        tutorialId,
-        currentQuestionId,
-        studentsAnswerForTheCurrentQuestion
-      );
-      updateQuestionAnswer(current);
-      set_current_question(result.current_question);
-      setStatus(result.status);
-      return;
-    }
+    try {
+      setIsLoading(true);
+      const currentQuestionId = questions[current - 1].id;
+      if (next === null) {
+        // If next is null, it means the user is submitting the tutorial
+        setStatus("submitting"); //TODO: check on this
+        const tutorial = await submitTutorial(
+          tutorialId,
+          currentQuestionId,
+          studentsAnswerForTheCurrentQuestion
+        );
+        setQuestions(tutorial.questions);
+        set_current_question(1);
+        setStatus(tutorial.status);
+        setStudentsAnswerForTheCurrentQuestion(null);
+        setIsLoading(false);
+        return;
+      }
 
-    if (next < 1 || next > questions.length) return;
+      if (next < 1 || next > questions.length) return;
 
-    if (
-      studentsAnswerForTheCurrentQuestion !== displayedQuestion?.student_answer
-    ) {
-      try {
+      if (
+        studentsAnswerForTheCurrentQuestion !==
+        displayedQuestion?.student_answer
+      ) {
         const result = await submitAnswerByQuestionId(
           tutorialId,
           currentQuestionId,
@@ -146,15 +167,19 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         );
         updateQuestionAnswer(current);
         set_current_question(result.current_question);
+        setStatus(result.status);
+        setIsLoading(false);
         return;
-      } catch (error) {
-        console.error(error);
-        return;
+      } else {
+        set_current_question(next);
       }
+      setIsLoading(false);
+    } catch (error) {
+      setIsLoading(false);
+      console.error(error);
+      messageApi.error("An error occurred while submitting your answer");
+      return;
     }
-    set_current_question(next);
-
-    // TODO: Change question only if submission is successful
   };
 
   const updateQuestionAnswer = (questionNumber: number) => {
@@ -168,19 +193,40 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   };
 
   const requestFeedback = async (
-    questionFeedback: { questionNumber: number; feedbackType: string }[]
+    questionFeedback: { [key: string]: string }[]
   ) => {
-    setStatus("feedback-generating");
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // TODO: Request feedback from backend
-    console.log(questionFeedback);
+    try {
+      setStatus("feedback-generating");
+      const tutorial = await requestFeedbackService(
+        tutorialId,
+        questionFeedback
+      );
+      setQuestions(tutorial.questions);
+      setStatus(tutorial.status);
+    } catch (error) {
+      messageApi.error("An error occurred while requesting feedback");
+      console.error(error);
+    }
+  };
 
-    setStatus("feedback-generated");
+  const completeTutorial = async () => {
+    try {
+      setIsFetching(true);
+      const tutorial = await completeTutorialService(tutorialId);
+      setStatus(tutorial.status);
+      setIsFetching(false);
+    } catch (error) {
+      setIsFetching(false);
+      messageApi.error("An error occurred while completing the tutorial");
+      console.error(error);
+    }
   };
 
   return (
     <TutorialProviderContext.Provider
       value={{
         questions,
+        isFetching,
         isLoading,
         current_question,
         studentsAnswerForTheCurrentQuestion,
@@ -189,8 +235,10 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         status,
         requestFeedback,
         error,
+        completeTutorial,
       }}
     >
+      {contextHolder}
       {children}
     </TutorialProviderContext.Provider>
   );

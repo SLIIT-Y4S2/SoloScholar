@@ -1,11 +1,14 @@
 import { Content } from "antd/es/layout/layout";
-import React from "react";
 import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import QuestionCardForTutorialFeedback from "./QuestionCardForTutorialFeedback";
 import { Button, Form, Radio } from "antd";
 
 const RequestFeedback = () => {
-  const { questions, isLoading, requestFeedback } = useTutorialContext();
+  const {
+    questions,
+    isFetching: isLoading,
+    requestFeedback,
+  } = useTutorialContext();
 
   if (isLoading || questions.length === 0) {
     return <>Loading...</>;
@@ -41,31 +44,24 @@ const RequestFeedback = () => {
       </p>
 
       <Form
-        onFinish={(values) => {
-          console.log(values);
-          requestFeedback(
-            questions.map((question) => ({
-              questionNumber: question.question_number,
-              feedbackType: values[question.question_number],
-            }))
-          );
+        onFinish={async (values) => {
+          // console.log(values);
+          requestFeedback(values);
         }}
         className="flex flex-col gap-4"
       >
         {questions.map((question) => (
           <div
-            key={question.question_number}
-            className="flex justify-between 
-        items-center gap-4 p-4 border rounded-lg bg-white shadow-md
-        "
+            key={question.id}
+            className="flex justify-between items-start gap-4 p-4 border rounded-lg bg-white shadow-md md:flex-row md:items-center flex-col"
           >
             <QuestionCardForTutorialFeedback question={question} />
             <div className="flex flex-col">
               Explanation
               <Form.Item
-                name={`${question.question_number}`}
+                name={`${question.id}`}
                 initialValue={
-                  question.isStudentAnswerCorrect ? "skip" : "basic"
+                  question.is_student_answer_correct ? "skip" : "basic"
                 }
               >
                 <Radio.Group
@@ -75,7 +71,7 @@ const RequestFeedback = () => {
                 >
                   <Radio
                     value={"skip"}
-                    disabled={!question.isStudentAnswerCorrect}
+                    disabled={!question.is_student_answer_correct}
                   >
                     Skip
                   </Radio>

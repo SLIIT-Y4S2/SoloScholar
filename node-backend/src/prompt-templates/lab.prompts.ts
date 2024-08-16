@@ -1,8 +1,3 @@
-
-/**
- * This prompt act as a Setter, who is responsible for write the assessment covering the learning outcomes associated with the given lab.
- */
-
 const PracticalLabOutlinePrompt = `
 You are an experienced lecturer at a University. As the lecturer you are responsible for writing an outline for a practical lab activity for the Database Systems module.
 
@@ -27,7 +22,9 @@ Be verbose and provide as much detail as possible.
     {learningOutcomes}
 </LearningOutcomes>
 
-You must provide the output in following JSON format (Replace the placeholders with the actual values). You must not provide the output in markdown format or any other format.:
+Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
+You must provide the output in following Structure (Replace the placeholders with the actual values).
+
 {formatInstructions}
 `;
 
@@ -42,10 +39,16 @@ This practical lab is a self-guided coding lab, where students will be required 
 To complete this task you must use the context inside the <RelatedContext> tag.
 The learning outcomes associated with the given lab are provided within the <LearningOutcomes> tag.
 Detailed Outline of the lab is provided within the <DetailedOutline> tag.
+The topic of the lab is provided within the <TopicOfTheLab> tag.
+Supporting material is provided within the <SupportingMaterial> tag.
 
 <RelatedContext>
     {context}
 </RelatedContext>
+
+<TopicOfTheLab>
+    {topicOfTheLab}
+</TopicOfTheLab>    
 
 <DetailedOutline>
     {detailedOutline}
@@ -65,7 +68,7 @@ You do not need to provide both tables and JSON documents, you can provide eithe
 
 - You need to analyze the subtopics of the lab, real-world scenario, and the learning outcomes associated with the given lab.
 - Then based on the real-world scenario, you need to write supporting material covering the given sub-topics and learning outcomes.
-- You can create support materials as required.
+- You can create support materials as required. There must be at least 4 records in each table if SQL is used. If NoSQL is used, there must be at least 4 documents in the JSON document.
 - Only generate support materials using the given real-world scenario under the <RealWorldScenario> tag and must not repeat the given real-world scenario again in the output.
 
 The related context is provided within the <RelatedContext> tag.
@@ -95,7 +98,9 @@ The real-world scenario is provided within the <RealWorldScenario> tag.
 </RealWorldScenario>
 
 
-You must provide the output in the following JSON format (Replace the placeholders with the actual values). You must not provide the output in markdown format or any other format.: 
+Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
+You must provide the output in following Structure (Replace the placeholders with the actual values).
+
 {formatInstructions}
 
 `;
@@ -108,9 +113,11 @@ You are a experienced lecturer at a University. As the lecturer you are responsi
 - Use the supporting materials provided to generate the questions.
 - All the questions must be coding questions.
 - Assessment must contain at least 10 questions.
-- You must generate a sample answer for each question.
-- Also you must generate a example question and answer pair for each question. 
-These example question and answer pairs must be similar but not related to the original question and answer pair. But they must cover the same learning outcomes detailed outline and real-world scenario.
+- You must generate a sample answer for each question. The sample answer must be a valid and a complete answer for the given question. Don't provide part of the answer. 
+- Also you must generate a example question and answer pair for each question.These example question and answer pairs must be similar but not related to the original question and answer pair. But they must cover the same learning outcomes detailed outline and real-world scenario.
+- [IMPORTANT] You must generate questions based on only the given real-world scenario and supporting materials (Or else student will not be able to answer the questions based on the scenario).
+- [IMPORTANT] Entities and attributes in the questions must be based on the given real-world scenario and supporting materials.
+
 
 The related context is provided within the <RelatedContext> tag.
 The learning outcomes associated with the given lab are provided within the <LearningOutcomes> tag.
@@ -118,10 +125,6 @@ The real-world scenario is provided within the <RealWorldScenario> tag.
 The topic of the lab is provided within the <TopicOfTheLab> tag.
 Supporting material is provided within the <SupportingMaterial> tag.
 The detailed outline of the lab is provided within the <DetailedOutline> tag.
-
-<RelatedContext>
-    {context}
-</RelatedContext>
 
 <TopicOfTheLab>
     {topicOfTheLab}
@@ -143,10 +146,84 @@ The detailed outline of the lab is provided within the <DetailedOutline> tag.
     {supportingMaterial}
 </SupportingMaterial>
 
-You must provide the output in the following JSON format (Replace the placeholders with the actual values). You must not provide the output in markdown format or any other format.: 
+Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
+You must provide the output in following Structure (Replace the placeholders with the actual values).
+
 {formatInstructions}
 
 `;
 
-export { PracticalLabOutlinePrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt };
+
+const AnswerEvaluationPrompt = `
+You are an experienced lecturer at a University. As the lecturer, you are responsible for evaluating the answers provided by the students for a self-guided practical lab activity for the Database Systems module.
+- You need to analyze the topic of the lab, real-world scenario, supporting materials(relational schema, tables, JSON documents, etc.) associated with the given lab to evaluate the answers.
+
+Topic of the lab is provided within the <TopicOfTheLab> tag.
+The real-world scenario is provided within the <RealWorldScenario> tag.
+Supporting material is provided within the <SupportingMaterial> tag.
+The question is provided within the <Question> tag.
+Student's answer for the given question is provided within the <StudentAnswer> tag.
+
+<TopicOfTheLab>
+    {topicOfTheLab}
+</TopicOfTheLab>
+
+<RealWorldScenario>
+    {realWorldScenario}
+</RealWorldScenario>
+
+<SupportingMaterial>
+    {supportingMaterial}
+</SupportingMaterial>
+
+<Question>
+    {question}
+</Question>  
+
+<StudentAnswer>
+    {studentAnswer}
+</StudentAnswer>
+
+
+
+Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
+You must provide the output in following Structure (Replace the placeholders with the actual values).
+
+{formatInstructions}
+`;
+
+const HintGenerationPrompt = `
+You are an experienced lecturer at a University. As the lecturer, your task is to provide hints for the questions provided in the self-guided practical lab activity for the Database Systems module based on student's previous answers.
+You need to analyze the student's previous answers, real-world scenario, and supporting materials associated with the given lab to provide hints for the questions.
+[Important] You must not provide the answer to the question, just provide hints to guide the student to the correct answer.
+
+The real-world scenario is provided within the <RealWorldScenario> tag.
+Supporting material is provided within the <SupportingMaterial> tag.
+The question is provided within the <Question> tag.
+Student's previous answers for the given question are provided within the <PreviousAnswers> tag.
+
+<RealWorldScenario>
+    {realWorldScenario}
+</RealWorldScenario>
+
+<SupportingMaterial>
+    {supportingMaterial}
+</SupportingMaterial>
+
+<Question>
+    {question}
+</Question>
+
+<PreviousAnswers>
+    {previousAnswers}
+</PreviousAnswers>
+
+Provide your answer in JSON ARRAY format so that it can be easily parsed by the system without any formatting. Don't include as a markdown or any other format, just provide the JSON array.
+You must provide the output in following Structure (Replace the placeholders with the actual values).
+
+{formatInstructions}
+
+`;
+
+export { PracticalLabOutlinePrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt, AnswerEvaluationPrompt, HintGenerationPrompt };
 

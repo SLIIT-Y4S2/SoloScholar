@@ -1,22 +1,30 @@
 import { Request, Response } from "express";
-import { createModule } from "../services/db/module.db.service";
+import {
+  createModule,
+  getModuleByName,
+} from "../services/db/module.db.service";
 import {
   convertLessonOutlineToText,
   extractSearchingKeywordsFromLessonOutline,
   synthesizeDetailedLessonOutline,
 } from "../services/detailedOutline.rag.service";
 
-import { InputModule, Lesson, LessonSubtopic } from "../types/module.types";
+import { InputModule, Lesson } from "../types/module.types";
+import { logger } from "../utils/logger.utils";
 
-export const createModuleHandler = async (req: Request, res: Response) => {
+export const createModuleHandler = async (
+  req: Request<{}, {}, InputModule>,
+  res: Response
+) => {
   try {
-    const moduleData: InputModule = req.body;
+    const moduleData = req.body;
 
     if (
       !moduleData ||
       !moduleData.name ||
       !moduleData.description ||
-      !moduleData.lessons
+      !moduleData.lessons ||
+      !moduleData.lessons.filter((lesson) => lesson.sub_lessons.length).length
     ) {
       return res.status(400).json({
         message: "Invalid request body",
@@ -30,23 +38,24 @@ export const createModuleHandler = async (req: Request, res: Response) => {
     const detailedLessons = lessons.map(async (lesson): Promise<Lesson> => {
       const searchingKeywords =
         extractSearchingKeywordsFromLessonOutline(lesson);
-      const lessonOutlineAsAText: string = convertLessonOutlineToText(lesson);
-
-      console.log("lessonOutlineAsAText", lessonOutlineAsAText);
+      const lessonOutlineAsAText: string = convertLessonOutlineToText(
+        moduleData.name,
+        moduleData.description,
+        lesson
+      );
       const detailedLessonOutline = await synthesizeDetailedLessonOutline(
         searchingKeywords,
         lessonOutlineAsAText
       );
-
       return {
         ...lesson,
-        lesson_subtopics: detailedLessonOutline,
+        sub_lessons: detailedLessonOutline,
       };
     });
 
     const detailedLessonOutlines = await Promise.all(detailedLessons);
 
-    const module = await createModule({
+    const createdModule = await createModule({
       ...moduleData,
       lessons: detailedLessonOutlines,
     });
@@ -54,12 +63,43 @@ export const createModuleHandler = async (req: Request, res: Response) => {
     res.status(201).json({
       message: "Module created successfully",
       data: {
-        module,
+        module: createdModule,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+
+    logger.error(error);
+    res.status(500).json((error as Error).message);
+  }
+};
+
+export const getModuleByNameHandler = async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+
+    if (!name) {
+      return res.status(400).json({
+        message: "Invalid request",
+      });
+    }
+
+    const module = await getModuleByName(name);
+
+    if (!module) {
+      return res.status(404).json({
+        message: "Module not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Module found",
+      data: {
+        ...module,
       },
     });
   } catch (error) {
     res.status(500).json((error as Error).message);
-
-    console.error(error);
+    logger.error(error);
   }
 };

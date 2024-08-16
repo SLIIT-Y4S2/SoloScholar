@@ -1,5 +1,3 @@
-import TextArea from "antd/es/input/TextArea";
-import React from "react";
 import { TutorialQuestion } from "../../../../../provider/TutorialContext";
 // import { CheckCircleTwoTone, CloseCircleOutlined } from "@ant-design/icons";
 import CheckCircleTwoTone from "@ant-design/icons/CheckCircleTwoTone";
@@ -12,7 +10,7 @@ const QuestionCardForTutorialFeedback = ({
     options,
     student_answer,
     answer,
-    isStudentAnswerCorrect,
+    is_student_answer_correct: isStudentAnswerCorrect,
   },
 }: {
   question: TutorialQuestion;
@@ -23,8 +21,10 @@ const QuestionCardForTutorialFeedback = ({
         {question_number}. {question}
       </h1>
 
-      {type === "essay" ? (
-        <TextArea value={student_answer || ""} disabled />
+      {type === "short-answer" ? (
+        <div className="min-h-[10em] max-h-[15em] overflow-y-auto p-2 border border-gray-300 rounded bg-white text-gray-900 whitespace-pre-wrap">
+          {student_answer || ""}
+        </div>
       ) : (
         options.map((option, index) => (
           <div

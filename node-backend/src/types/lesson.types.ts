@@ -1,3 +1,5 @@
+//TODO: remove this file
+
 export interface LessonOutlineType {
   title: string;
   lesson_subtopic: string[];

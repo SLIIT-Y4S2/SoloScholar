@@ -1,16 +1,12 @@
 import { Document } from "@langchain/core/documents";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { encoding_for_model } from "tiktoken";
 import { VECTORDIMENSIONS } from "../constants/pinecone.constants";
-import { uploadDocumentToPinecone } from "./pinecone.util";
+import { getPineconeIndex, uploadDocumentToPinecone } from "./pinecone.util";
+import { RunnableSequence } from "@langchain/core/runnables";
+import { PineconeStore } from "@langchain/pinecone";
+import { getEmbeddings } from "./openai.util";
 
-function enc(text: string) {
-    const encoding = encoding_for_model("text-davinci-003");
-    const encodedText = encoding.encode(text);
-
-    return encodedText;
-}
 
 /**
  * 
@@ -48,7 +44,7 @@ async function splitPDFintoChunks(file: Express.Multer.File) {
  * @param textChunks Array of text chunks
  * @returns A PineconeStore object
  */
-async function uploadChunkstoVectorDB(textChunks: Document<Record<string, any>>[]) {
+async function uploadChunksToVectorDB(textChunks: Document<Record<string, any>>[]) {
     const vectorStore = await uploadDocumentToPinecone(textChunks);
 
     return vectorStore;
@@ -67,5 +63,50 @@ async function convertDocsToString(documents: Document[]) {
         .join("\n");
 };
 
-export { convertDocsToString, enc, splitPDFintoChunks, uploadChunkstoVectorDB };
+/**
+ * Document retrieval pipeline
+ * @param keyWords - The user query
+ * @param kValue - The number of similar documents to retrieve
+ * @returns A string of related context
+ */
+async function documentRetrievalPipeline(keyWords: string, kValue: number = 10) {
+    const pineconeIndex = await getPineconeIndex();
+    const embeddingModel = getEmbeddings();
+
+    // Get the PineconeStore object
+    const pineconeStore = await PineconeStore.fromExistingIndex(
+        embeddingModel,
+        { pineconeIndex, },
+    );
+
+    // Fetch the top 10 similar documents.
+    const retriever = pineconeStore.asRetriever(kValue);
+
+    // Create a runnable sequence
+    const runnableSequence = RunnableSequence.from([
+        (input) => input.keyWords,
+        retriever,
+        convertDocsToString,
+    ]);
+
+    const relatedContext = await runnableSequence.invoke({ keyWords: keyWords });
+
+    return relatedContext;
+
+};
+
+/**
+ * Ingestion pipeline
+ * @param file - The PDF file to ingest
+ */
+async function ingestionPipeline(file: Express.Multer.File) {
+    // Split the PDF document into text chunks
+    const textChunks = await splitPDFintoChunks(file);
+
+    // Upload the text chunks to Pinecone
+    await uploadChunksToVectorDB(textChunks);
+}
+
+
+export { convertDocsToString, splitPDFintoChunks, uploadChunksToVectorDB, documentRetrievalPipeline, ingestionPipeline };
 

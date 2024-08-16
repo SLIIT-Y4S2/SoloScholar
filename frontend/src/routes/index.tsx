@@ -1,15 +1,18 @@
 import {
+  Link,
   Navigate,
   RouteObject,
   RouterProvider,
   createBrowserRouter,
 } from "react-router-dom";
 import { useAuth } from "../provider/authProvider";
-import { ProtectedRoute } from "../utils/ProtectRoutes";
+import {
+  ProtectedRouteInstructor,
+  ProtectedRouteLearner,
+} from "../utils/ProtectRoutes";
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Home from "../pages/Home";
-import Lab from "../pages/[module]/[lesson]/lab";
 import Dashboard from "../pages/dashboard/Dashboard";
 import CustomAnalyticalIndicator from "../pages/dashboard/CustomAnalyticalIndicator";
 import LecturesOverview from "../pages/dashboard/LecturesOverview";
@@ -19,6 +22,13 @@ import MyIndicators from "../pages/dashboard/MyIndicators";
 import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
 import Main from "../pages/dashboard/Main";
+import { LabSessionLayout } from "../pages/[module]/[lesson]/lab/LabSessionLayout";
+import { LabLayout } from "../pages/[module]/[lesson]/lab/LabLayout";
+import { SupportMaterialsForLab } from "../Components/lab/SupportMaterialsForLab";
+import LabOverview from "../pages/[module]/[lesson]/lab";
+import LabSession from "../pages/[module]/[lesson]/lab/[labID]";
+import Module from "../pages/[module]";
+import { Button, Result } from "antd";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -33,13 +43,25 @@ const Routes = () => {
       path: "/about-us",
       element: <div>About Us</div>,
     },
+    {
+      path: "/unauthorized",
+      element: (
+        <div>
+          <h1>Unauthorized</h1>
+          <p>You are not authorized to view this page.</p>
+          <Link to="/">
+            <Button type="primary">Go back to home</Button>
+          </Link>
+        </div>
+      ),
+    },
   ];
 
   // Define routes accessible only to authenticated users
   const routesForAuthenticatedOnly: RouteObject[] = [
     {
       path: "/",
-      element: <ProtectedRoute />, // Wrap the component in ProtectedRoute
+      element: <ProtectedRouteLearner />, // Wrap the component in ProtectedRoute
       children: [
         {
           path: "",
@@ -58,33 +80,12 @@ const Routes = () => {
           element: <Navigate to="/" />,
         },
         {
-          path: "/:module/:lesson",
-          children: [
-            {
-              path: "tutorial",
-              element: <Tutorial />,
-            },
-            {
-              path: "tutorial/:tutorialId",
-              element: <TutorialView />,
-            },
-            {
-              path: "lab",
-              element: <Lab />,
-            },
-            {
-              path: "lab/:labId",
-              element: <div>Lab</div>,
-            },
-          ],
-        },
-        {
-          path: "/lab",
-          element: <Lab />,
-        },
-        {
           path: "/dashboard",
-          element: <Dashboard />,
+          element: (
+            <ProtectedRouteInstructor>
+              <Dashboard />
+            </ProtectedRouteInstructor>
+          ),
           children: [
             {
               path: "/dashboard",
@@ -112,6 +113,48 @@ const Routes = () => {
             },
           ],
         },
+        {
+          path: "/:module",
+          element: <Module />,
+        },
+        {
+          path: "/:module/:lesson",
+          children: [
+            {
+              path: "tutorial",
+              element: <Tutorial />,
+            },
+            {
+              path: "tutorial/:tutorialId",
+              element: <TutorialView />,
+            },
+            {
+              path: "lab",
+              element: <LabLayout />,
+              children: [
+                {
+                  path: "",
+                  element: <LabOverview />
+                },
+                {
+                  path: "session",
+                  element: <LabSessionLayout />,
+                  children: [
+                    {
+                      path: ":labSheetId",
+                      element: <LabSession />
+                    },
+                    {
+                      path: ":labSheetId/support-material",
+                      element: <SupportMaterialsForLab isNewTab={true} labSheetId={undefined}/>
+                    }
+                  ]
+                },
+
+              ]
+            },
+          ],
+        },
       ],
     },
   ];
@@ -127,7 +170,18 @@ const Routes = () => {
   // Define a route for handling errors
   const errorRoute = {
     path: "*",
-    element: <div>404 Not Found</div>,
+    element: (
+      <Result
+        status="404"
+        title="404"
+        subTitle="Sorry, the page you visited does not exist."
+        extra={
+          <Link to="/">
+            <Button type="primary">Back Home</Button>
+          </Link>
+        }
+      />
+    ),
   };
 
   // Combine and conditionally include routes based on authentication status

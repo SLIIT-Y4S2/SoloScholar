@@ -1,42 +1,66 @@
-import { DynamicBreadcrumbComponent } from ".";
-import { Layout } from "antd";
+import { Layout, Spin } from "antd";
 import {
   TutorialProvider,
   useTutorialContext,
 } from "../../../../provider/TutorialContext";
 import RequestFeedback from "./RequestFeedback";
-import Feedback from "./Feedback";
+import TutorialFeedback from "./Feedback";
 import TutorialQuestionView from "./TutorialQuestionView";
-
-//TODO: If tutorial complete forward to feedback page
+import CompletedTutorial from "./CompletedTutorial";
+import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
+import Error from "../../../../Components/Error";
+import GeneratingView from "../../../../Components/tutorial/GeneratingView";
 
 const TutorialView = () => {
-  const { isLoading, status, error } = useTutorialContext();
+  const { isFetching, status, error } = useTutorialContext();
 
-  if (isLoading) {
-    return <>Loading...</>;
+  if (isFetching) {
+    return <Spin fullscreen />;
   }
 
   if (error) {
-    return <>{error}</>;
+    return <Error title="Error occurred" subTitle={error} />;
+  }
+
+  if (
+    status === "generating" ||
+    status === "submitting" ||
+    status === "feedback-generating"
+  ) {
+    return <GeneratingView />;
+  }
+
+  if (status === "generated" || status === "in-progress") {
+    return <TutorialQuestionView />;
+  }
+
+  if (status === "submitted") {
+    return <RequestFeedback />;
+  }
+
+  if (status === "feedback-generated") {
+    return <TutorialFeedback />;
+  }
+
+  if (status === "completed") {
+    return <CompletedTutorial />;
   }
 
   return (
-    <Layout style={{ padding: "0 24px 24px" }}>
-      <DynamicBreadcrumbComponent />
-      {(status === "generated" || status === "in-progress") && (
-        <TutorialQuestionView />
-      )}
-      {status === "submitted" && <RequestFeedback />}
-      {status === "feedback-generated" && <Feedback />}
-    </Layout>
+    <Error
+      title="Error occurred"
+      subTitle="An error occurred while fetching the tutorial."
+    />
   );
 };
 
 const TutorialViewWithProvider = () => {
   return (
     <TutorialProvider>
-      <TutorialView />
+      <Layout style={{ padding: "0 24px 24px" }}>
+        <CustomBreadcrumb />
+        <TutorialView />
+      </Layout>
     </TutorialProvider>
   );
 };
