@@ -8,6 +8,7 @@ import { PineconeStore } from "@langchain/pinecone";
 import { getPineconeIndex } from "../utils/pinecone.util";
 import { convertDocsToString } from "../utils/rag.util";
 import { PromptTemplate } from "@langchain/core/prompts";
+import { JsonOutputParser } from "@langchain/core/output_parsers";
 
 // MARK: Detailed Lesson Outline
 /**
@@ -46,7 +47,7 @@ async function documentRetrievalPipeline(keyWords: string, kValue: number = 10) 
 export async function generateIntroForLecture(lesson_title: string, lesson_subtopics: { topic: string; description: string; }[]) {
     const context = await documentRetrievalPipeline(`${lesson_title} ${lesson_subtopics.map(subtopic => `${subtopic.topic} ${subtopic.description}`).join(" ")}`);
 
-    // Generate a real-world scenario for the lab activity using the related context and subtopics
+    // Generate a introduction lecture using generated content
     const lectureIntroductionPrompt = PromptTemplate.fromTemplate(LectureIntroductionPrompt);
 
     // Create a runnable sequence for generating the introduction
@@ -74,7 +75,7 @@ export async function generateIntroForLecture(lesson_title: string, lesson_subto
 export async function generateLectureForSubtopic(lesson_title: string, subtopic: string, description: string, prevSections: string[]) {
     const context = await documentRetrievalPipeline(`${subtopic} ${description}`);
 
-    // Generate a real-world scenario for the lab activity using the related context and subtopics
+    // Generate content for each subtopics
     const lectureSectionPrompt = PromptTemplate.fromTemplate(Lecturesectionprompt);
 
     // Create a runnable sequence for generating
@@ -106,7 +107,7 @@ export async function generateLectureForSubtopic(lesson_title: string, subtopic:
 export async function generateConclusionForLecture(lesson_title: string, generatedContent: string[]) {
     const context = await documentRetrievalPipeline(lesson_title);
 
-    // Generate a real-world scenario for the lab activity using the related context and subtopics
+    // Generate lecture conclusion using generated content
     const lectureConclusionPrompt = PromptTemplate.fromTemplate(LectureConclusionPrompt);
 
     // Create a runnable sequence for generating the conclusion
@@ -130,9 +131,17 @@ export async function generateConclusionForLecture(lesson_title: string, generat
     return conclusionTranscript;
 }
 
-// MARK: generate MCQ questions
+// MARK: generate pre MCQ questions
 export async function generateMCQsForLecture(lesson_title: string, generatedContent: string[]) {
     const context = await documentRetrievalPipeline(lesson_title);
+
+    const formatInstructions = "Respond with a valid JSON array, containing object with four fields: 'question', 'answer' and 'distractors'. field 'distractors' should be an array of strings.";
+
+    const jsonParser = new JsonOutputParser<{
+        question: string;
+        answer: string;
+        distractors: string[];
+    }[]>();
 
     // Generate MCQ questions using the related context and subtopics
     const lectureMCQPrompt = PromptTemplate.fromTemplate(LectureMCQPrompt);
@@ -142,17 +151,20 @@ export async function generateMCQsForLecture(lesson_title: string, generatedCont
         {
             context: (input) => input.context,
             lesson_title: (input) => input.lesson_title,
-            generated_content: (input) => input.generated_content.join("\n")
+            generated_content: (input) => input.generated_content.join("\n"),
+            format_instructions: (input) => input.formatInstructions,
+
         },
         lectureMCQPrompt,
         getChatModel,
-        new StringOutputParser()
+        jsonParser
     ]);
 
     const mcqQuestions = await mcqPipeline.invoke({
         context: context,
         lesson_title: lesson_title,
-        generated_content: generatedContent
+        generated_content: generatedContent,
+        formatInstructions,
     });
 
     return mcqQuestions;

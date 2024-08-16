@@ -24,12 +24,12 @@ export const generateLectureHandler = async (req: Request, res: Response) => {
         );
 
         // Generate the introductory lecture video
-        const introTranscript = await generateIntroForLecture(lessonOutline.title, lessonOutline.lesson_subtopics);
+        const introTranscript = await generateIntroForLecture(lessonOutline.title, lessonOutline.sub_lessons);
 
         // Generate the lecture for each subtopic
         const sectionTranscripts = [];
-        for (let i = 0; i < lessonOutline.lesson_subtopics.length; i++) {
-            const subtopic = lessonOutline.lesson_subtopics[i];
+        for (let i = 0; i < lessonOutline.sub_lessons.length; i++) {
+            const subtopic = lessonOutline.sub_lessons[i];
             const sectionTranscript = await generateLectureForSubtopic(
                 lessonOutline.title,
                 subtopic.topic,
@@ -57,7 +57,7 @@ export const generateLectureHandler = async (req: Request, res: Response) => {
             postAssessmentMCQs
         ].join("\n");
 
-        res.status(200).send(introTranscript);
+        res.status(200).send(fullTranscript);
 
         // TTS Conversion
         const speechKey = process.env.SPEECH_KEY || "";
