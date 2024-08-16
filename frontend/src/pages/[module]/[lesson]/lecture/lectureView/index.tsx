@@ -3,7 +3,7 @@
 import { Experience } from "../../../../../Components/lecture/Experience.jsx";
 // import {ListSection} from "../../../../Components/lecture/ListSection.jsx";
 
-export default function Lab() {
+export default function Lectureview() {
     return (
 
         <>

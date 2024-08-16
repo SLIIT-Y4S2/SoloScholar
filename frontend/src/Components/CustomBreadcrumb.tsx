@@ -27,5 +27,5 @@ export default function CustomBreadcrumb() {
 
     const pathSegments = formatPathForBreadcrumb(pathname);
 
-    return <Breadcrumb items={[{ title: "Module" }, ...pathSegments]} />;
+    return <Breadcrumb style={{ margin: "16px 0" }} items={[{ title: "Module" }, ...pathSegments]} />;
 }
