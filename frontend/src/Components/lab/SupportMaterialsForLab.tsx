@@ -2,8 +2,13 @@ import { ExportOutlined } from "@ant-design/icons";
 import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 import { Link } from "react-router-dom";
 
-export function SupportMaterialsForLab({ isNewTab, labSheetId }: { isNewTab: boolean, labSheetId: string | undefined }) {
-    const { realWorldScenario, supportMaterials, isLoading } = useLabSessionContext();
+interface SupportMaterialsForLabProps {
+    readonly isNewTab: boolean;
+    readonly labSheetId: string | undefined;
+}
+
+export function SupportMaterialsForLab({ isNewTab, labSheetId }: SupportMaterialsForLabProps) {
+    const { realWorldScenario, supportMaterials, isDataFetching: isLoading } = useLabSessionContext();
 
     if (isLoading) {
         return <div>Loading...</div>;
@@ -18,8 +23,8 @@ export function SupportMaterialsForLab({ isNewTab, labSheetId }: { isNewTab: boo
                     </Link>
                     : null}
             </div>
-            <p className="font-normal text-base">{realWorldScenario && realWorldScenario}</p>
-            {supportMaterials && supportMaterials.relationalSchema && (
+            <p className="font-normal text-base">{realWorldScenario}</p>
+            {supportMaterials?.relationalSchema && (
                 <div className="flex flex-col gap-4">
                     <h2 className="text-2xl font-bold">Relational Schema</h2>
                     {Object.keys(supportMaterials.relationalSchema).map((tableName) => {
@@ -34,7 +39,7 @@ export function SupportMaterialsForLab({ isNewTab, labSheetId }: { isNewTab: boo
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {supportMaterials.relationalSchema && supportMaterials.relationalSchema[tableName].map((column) => {
+                                        {supportMaterials.relationalSchema?.[tableName].map((column) => {
                                             return (
                                                 <tr key={column.name} className="border-2">
                                                     <td className="border-2 border-black px-4 py-2">{column.name}</td>
@@ -50,7 +55,7 @@ export function SupportMaterialsForLab({ isNewTab, labSheetId }: { isNewTab: boo
                     )}
                 </div>
             )}
-            {supportMaterials && supportMaterials.tables && (
+            {supportMaterials?.tables && (
                 <div className="flex flex-col gap-4">
                     <h2 className="text-2xl font-bold border-black">Tables</h2>
                     {supportMaterials.tables.map((table) => {

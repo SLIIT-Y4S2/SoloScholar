@@ -66,3 +66,13 @@ export async function updateSubmissionStatus(labSheetId: string, questionId: num
 
     return response;
 }
+
+export async function updateLabSheetStatusAsCompleted(labSheetId: string, questionId: number, reflection: string) {
+    const response = axiosInstance.post(`${LAB_API_URLS.UPDATE_SUBMISSION_STATUS}/${labSheetId}/complete`, {
+        questionId,
+        reflection
+    });
+
+    return response;
+}
+

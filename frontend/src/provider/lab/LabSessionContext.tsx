@@ -7,8 +7,8 @@ import {
     useMemo,
     useState,
 } from "react";
-import { evaluateStudentsAnswer, getLabExerciseById, getHintForQuestion, updateSubmissionStatus } from "../../services/lab.service";
-import { SupportingMaterial } from "../../types/lab.types";
+import { evaluateStudentsAnswer, getLabExerciseById, getHintForQuestion, updateSubmissionStatus, updateLabSheetStatusAsCompleted } from "../../services/lab.service";
+import { LabStatus, SupportingMaterial } from "../../types/lab.types";
 import { useParams } from "react-router-dom";
 
 interface LabSessionProviderProps {
@@ -16,12 +16,13 @@ interface LabSessionProviderProps {
 }
 
 interface LabSessionContextType {
+    status?: LabStatus;
     realWorldScenario: string;
     supportMaterials: SupportingMaterial;
     questions: LabQuestion[];
     currentQuestionIndex: number;
     totalQuestions: number;
-    isLoading: boolean;
+    isDataFetching: boolean;
     isEvaluatingAnswer: boolean;
     hintForCurrentQuestion: string;
     isAnsForCurrQuesCorrect: boolean | null;
@@ -29,6 +30,7 @@ interface LabSessionContextType {
     evaluateStudentAnswerHandler: (answer: string) => void;
     getHintForCurrentQuestion: () => void;
     goToNextQuestion: (reflection: string) => void;
+    submitLabSheet: (reflection: string) => void;
 }
 
 interface LabQuestion {
@@ -66,6 +68,7 @@ export function useLabSessionContext() {
 
 export function LabSessionProvider({ children }: Readonly<LabSessionProviderProps>) {
 
+    const [status, setStatus] = useState<LabStatus>();
     const [questions, setQuestions] = useState<LabQuestion[]>([]);
     const [realWorldScenario, setRealWorldScenario] = useState<string>("");
     const [supportMaterials, setSupportMaterials] = useState<SupportingMaterial>({});
@@ -91,6 +94,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
         getLabExerciseById(labSheetId)
             .then((response) => {
                 const labSheet = response.data;
+                setStatus(labSheet.status);
                 setRealWorldScenario(labSheet.real_world_scenario);
                 setSupportMaterials(labSheet.supportMaterial);
                 setQuestions([
@@ -152,7 +156,6 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                     setIsAnsForCurrQuesCorrect(response.data.studentAnswerEvaluation.isCorrect);
                     setIsEvaluatingAnswer(false);
 
-                    console.log("Questions", questions[currentQuestionIndex]);
                 }).catch((error) => {
                     console.log("Error evaluating answer", error);
                     setIsEvaluatingAnswer(false);
@@ -191,19 +194,33 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                     console.log("Error updating submission status", error);
                 });
             } else {
+                alert("Lab completed");
                 setIsLabCompleted(true);
             }
-        }, [questions, currentQuestionIndex, totalQuestions, setCurrentQuestionIndex, setHintForCurrentQuestion, setIsLabCompleted]
+        }, [questions, currentQuestionIndex, totalQuestions, setCurrentQuestionIndex, setHintForCurrentQuestion, setIsLabCompleted, labSheetId]
     );
+
+    const submitLabSheet = useCallback(
+        (reflection: string) => {
+            if (!labSheetId) {
+                return;
+            }
+            updateLabSheetStatusAsCompleted(labSheetId, questions[currentQuestionIndex].id, reflection).then(() => {
+                setIsLabCompleted(true);
+            }).catch((error) => {
+                console.log("Error updating submission status", error);
+            });
+        }, [labSheetId, questions, currentQuestionIndex, setIsLabCompleted]);
 
     const contextValues = useMemo<LabSessionContextType>(
         () => ({
+            status,
             realWorldScenario,
             supportMaterials,
             questions,
             currentQuestionIndex,
             totalQuestions,
-            isLoading,
+            isDataFetching: isLoading,
             hintForCurrentQuestion,
             isAnsForCurrQuesCorrect,
             isLabCompleted,
@@ -212,9 +229,11 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,
-            setIsGenerationError
+            setIsGenerationError,
+            submitLabSheet
         }),
         [
+            status,
             realWorldScenario,
             supportMaterials,
             questions,
@@ -229,7 +248,8 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,
-            setIsGenerationError
+            setIsGenerationError,
+            submitLabSheet
         ]
     );
 

@@ -5,10 +5,9 @@ import { Select } from "antd";
 import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 
 interface CodeEditorProps {
-    handleCodeOnChange: (codeSnippet: string) => void;
-    currentSnippet: string;
+    readonly currentSnippet: string;
+    readonly handleCodeOnChange: (codeSnippet: string) => void;
 }
-
 
 const PROGRAMMING_LANGUAGES = ["javascript", "sql"];
 
@@ -38,12 +37,7 @@ export function CodeEditor({ handleCodeOnChange, currentSnippet }: CodeEditorPro
     }, []);
 
     useEffect(() => {
-        if (isAnsForCurrQuesCorrect !== null) {
-            setCode(questions[currentQuestionIndex].current_answer ?? " ");
-        } else {
-            setCode(" ");
-        }
-
+        setCode(questions[currentQuestionIndex].current_answer ?? " ");
     }, [isAnsForCurrQuesCorrect, currentQuestionIndex, questions]);
 
     function handleEditorOnMount(editor: editor.IStandaloneCodeEditor) {
@@ -109,11 +103,11 @@ export function CodeEditor({ handleCodeOnChange, currentSnippet }: CodeEditorPro
     )
 }
 
-function LanguageSelector({ language, onLanguageChange }: { language: string, onLanguageChange: (language: string) => void }) {
+function LanguageSelector({ language, onLanguageChange }: Readonly<{ language: string, onLanguageChange: (language: string) => void }>) {
     return (
-        <Select defaultValue={language} onChange={(selectedLanguage) => onLanguageChange(selectedLanguage)} className="w-max">
+        <Select defaultValue={language} onChange={(selectedLanguage) => onLanguageChange(selectedLanguage)} className="w-max min-w-[100px]">
             {PROGRAMMING_LANGUAGES.map((lang) => (
-                <Select.Option key={lang} value={lang}>{lang}</Select.Option>
+                <Select.Option key={lang} value={lang}>{lang.toUpperCase()}</Select.Option>
             ))}
         </Select>
     )
