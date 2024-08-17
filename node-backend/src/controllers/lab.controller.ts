@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { evaluateStudentAnswers, generateHintsForStudentAnswers, responseSynthesizerForLabs } from "../services/lab.rag.service";
 import { getLessonByModuleIdAndTitle, getLessonOutlineByModuleAndLessonName, getModuleByName } from "../services/db/module.db.service";
-import { createLabMaterials, updateLabMaterial, getLabSheetByLabSheetIdAndLearnerId, getLearningMaterialDetailsByLearnerIdAndLessonId, getLessonDetailsByLabSheetId, updateLabSheetAnswers, deleteLabSheetById, getStudentAnswersByLabSheetIdAndQuestionNumber, updateLabSheetQuestionAnswerSubmissionStatus, updateLabSheetStatusAsCompleted } from "../services/db/lab.db.service";
+import { createLabMaterials, updateLabMaterial, getLabSheetByLabSheetIdAndLearnerId, getLearningMaterialDetailsByLearnerIdAndLessonId, getLessonDetailsByLabSheetId, updateLabSheetAnswersByLearnerIdAndLabSheetId, deleteLabSheetById, getStudentAnswersByLabSheetIdAndQuestionNumberANDLearnerId, updateLabSheetQuestionAnswerSubmissionStatusByLearnerIdAndLabSheetId, updateLabSheetStatusAsCompletedByLearnerIdAndLabSheetId } from "../services/db/lab.db.service";
 import { StatusCodes } from "http-status-codes";
 
 /**
@@ -209,7 +209,7 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
             supportingMaterial: labSheet.supportMaterial
         })
 
-        await updateLabSheetAnswers(labSheetId, questionsId, studentsAnswer, results.studentAnswerEvaluation.isCorrect);
+        await updateLabSheetAnswersByLearnerIdAndLabSheetId(learnerId, labSheetId, questionsId, studentsAnswer, results.studentAnswerEvaluation.isCorrect);
 
         return res.status(200).json(results);
     } catch (error) {
@@ -253,7 +253,7 @@ export async function generateHintForQuestionHandler(req: Request, res: Response
 
         console.log(labSheetId, questionNumber);
 
-        const studentAnswers = await getStudentAnswersByLabSheetIdAndQuestionNumber(labSheetId, Number(questionNumber));
+        const studentAnswers = await getStudentAnswersByLabSheetIdAndQuestionNumberANDLearnerId(labSheetId, Number(questionNumber));
         const labSheet = await getLabSheetByLabSheetIdAndLearnerId(labSheetId, learnerId);
 
         if (!studentAnswers || !labSheet) {
@@ -341,6 +341,7 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(req: R
     try {
         const { questionId, reflection } = req.body;
         const { labSheetId } = req.params;
+        const { learnerId } = res.locals.user;
 
         if (!labSheetId || !questionId || typeof reflection !== "string") {
             return res.status(400).json({
@@ -348,7 +349,7 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(req: R
             });
         }
 
-        const submissionStatus = await updateLabSheetQuestionAnswerSubmissionStatus(labSheetId, questionId, reflection);
+        const submissionStatus = await updateLabSheetQuestionAnswerSubmissionStatusByLearnerIdAndLabSheetId(learnerId, labSheetId, questionId, reflection);
 
         return res.status(200).json({
             message: "Lab sheet question answer submission status updated",
@@ -374,7 +375,7 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(req: R
 export async function updateLabSheetStatusAsCompletedHandler(req: Request, res: Response) {
     const { questionId, reflection } = req.body;
     const { labSheetId } = req.params;
-    const { learnerID } = res.locals.user;
+    const { id: learnerId } = res.locals.user;
 
     try {
         if (!labSheetId) {
@@ -383,7 +384,7 @@ export async function updateLabSheetStatusAsCompletedHandler(req: Request, res: 
             });
         }
 
-        const labSheet = await updateLabSheetStatusAsCompleted(labSheetId, questionId, reflection);
+        const labSheet = await updateLabSheetStatusAsCompletedByLearnerIdAndLabSheetId(learnerId, labSheetId, questionId, reflection);
 
         return res.status(StatusCodes.OK).json({
             message: "Lab sheet status updated",

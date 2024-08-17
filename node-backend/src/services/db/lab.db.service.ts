@@ -175,11 +175,15 @@ export async function getLearningMaterialDetailsByLearnerIdAndLessonId(lessonId:
  * @param answer 
  * @returns 
  */
-export async function updateLabSheetAnswers(labSheetId: string, questionId: number, answer: string, isCorrect: boolean) {
+export async function updateLabSheetAnswersByLearnerIdAndLabSheetId(learnerId: string, labSheetId: string, questionId: number, answer: string, isCorrect: boolean) {
     const updatedLabSheet = await prisma.labsheet.update(
         {
             where: {
-                id: labSheetId
+                id: labSheetId, AND: {
+                    learning_material: {
+                        learner_id: learnerId
+                    }
+                }
             },
             data: {
                 status: "IN_PROGRESS",
@@ -219,10 +223,14 @@ export async function updateLabSheetAnswers(labSheetId: string, questionId: numb
  * @param questionId 
  * @returns 
  */
-export async function updateLabSheetQuestionAnswerSubmissionStatus(labSheetId: string, questionId: number, reflection: string) {
+export async function updateLabSheetQuestionAnswerSubmissionStatusByLearnerIdAndLabSheetId(learnerId: string, labSheetId: string, questionId: number, reflection: string) {
     const updatedLabSheetQuestionAnswerSubmissionStatus = await prisma.labsheet.update({
         where: {
-            id: labSheetId
+            id: labSheetId, AND: {
+                learning_material: {
+                    learner_id: learnerId
+                }
+            }
         },
         data: {
             current_question_index: {
@@ -251,10 +259,15 @@ export async function updateLabSheetQuestionAnswerSubmissionStatus(labSheetId: s
     return pick(updatedLabSheetQuestionAnswerSubmissionStatus, ["labsheet_question"]);
 }
 
-export async function updateLabSheetStatusAsCompleted(labSheetId: string, questionId: number, reflection: string) {
+export async function updateLabSheetStatusAsCompletedByLearnerIdAndLabSheetId(learnerId: string, labSheetId: string, questionId: number, reflection: string) {
     const updatedLabSheet = await prisma.labsheet.update({
         where: {
-            id: labSheetId
+            id: labSheetId,
+            AND: {
+                learning_material: {
+                    learner_id: learnerId
+                }
+            }
         },
         data: {
             status: "COMPLETED",
@@ -343,11 +356,16 @@ export async function deleteLabSheetById(labSheetId: string) {
  * @param questionId 
  * @returns 
  */
-export async function getStudentAnswersByLabSheetIdAndQuestionNumber(labSheetId: string, question_number: number) {
+export async function getStudentAnswersByLabSheetIdAndQuestionNumberANDLearnerId(labSheetId: string, question_number: number) {
     const studentAnswers = await prisma.labsheet_question.findFirst({
         where: {
             labsheet_id: labSheetId, AND: {
-                question_number: question_number
+                question_number: question_number,
+                labsheet: {
+                    learning_material: {
+                        learner_id: labSheetId
+                    }
+                }
             }
         },
         include: {
