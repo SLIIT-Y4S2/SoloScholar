@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
-import { Alert, Button, Layout, Modal, Result, Spin } from "antd";
+import { Alert, Button, Layout, Modal, Spin } from "antd";
 import { FileMarkdownOutlined, LoadingOutlined } from "@ant-design/icons";
 import { CodeEditor } from "./CodeEditor";
 import { useParams } from "react-router-dom";
 import { SupportMaterialsForLab } from "./SupportMaterialsForLab";
-import { useLabContext } from "../../provider/lab/LabContext";
 import ReflectionCardForLab from "./ReflectionCardForLab";
 
 const { Content } = Layout;
@@ -17,26 +16,25 @@ export default function QuestionCardForLab() {
     totalQuestions,
     questions,
     evaluateStudentAnswerHandler,
-    isLoading,
     isEvaluatingAnswer,
     hintForCurrentQuestion,
     getHintForCurrentQuestion,
     goToNextQuestion,
+    submitLabSheet
   } = useLabSessionContext();
 
-  const { isGenerationError } = useLabContext();
-  const [currentAnswer, setCurrentAnswer] = useState<string>(questions?.[currentQuestionIndex]?.current_answer ?? "");
+  const [currentAnswer, setCurrentAnswer] = useState<string>(() => {
+    return questions?.[currentQuestionIndex]?.current_answer ?? "";
+  });
   // const [showHint, setShowHint] = useState<boolean>(false);
   const [showAnswer, setShowAnswer] = useState<boolean>(false);
   const [showEmptyAnswerAlert, setShowEmptyAnswerAlert] = useState<boolean>(false);
   const [showEmptyReflectionAlert, setShowEmptyReflectionAlert] = useState<boolean>(false);
-  const [open, setOpen] = useState<boolean>(false);
+  const [isSupportMaterialModelOpen, setIsSupportMaterialModelOpen] = useState<boolean>(false);
   const [reflection, setReflection] = useState<string>("");
   const { labSheetId } = useParams();
 
-  function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
-
+  function handleEvaluation() {
     if (currentAnswer && currentAnswer.trim() !== "") {
       evaluateStudentAnswerHandler(currentAnswer);
     } else {
@@ -70,47 +68,17 @@ export default function QuestionCardForLab() {
     }
   }
 
+  function handleSubmission() {
+    if (reflection && reflection.trim() !== "") {
+      submitLabSheet(reflection);
+    } else {
+      setShowEmptyReflectionAlert(true);
+    }
+  }
+
   function handleReflectionOnChange(value: string) {
     setReflection(value);
   }
-
-  if (isLoading) {
-    return (
-      <Content>
-        <div className="flex items-center justify-center h-screen">
-          <Spin
-            indicator={<LoadingOutlined spin />}
-            size="large"
-            className="border-white"
-          />
-        </div>
-      </Content>
-    );
-  }
-
-  if (!questions || questions.length === 0) {
-    return (
-      <Result
-        status="404"
-        title="404"
-        subTitle="Sorry, the lab sheet is not found."
-        extra={<Button type="primary">Back Home</Button>}
-      />
-    );
-  }
-
-
-  if (isGenerationError) {
-    return (
-      <Result
-        status="500"
-        title="500"
-        subTitle="Sorry, something went wrong."
-        extra={<Button type="primary">Back Home</Button>}
-      />
-    );
-  }
-
 
   return (
     <>
@@ -126,7 +94,7 @@ export default function QuestionCardForLab() {
           />
         )}
         <div className="bg-white flex flex-col mx-auto p-8 w-full max-w-[1200px] max-h-[800] h-max rounded-2xl">
-          <Modal open={open} onCancel={() => setOpen(false)} width={1000} footer={[]}>
+          <Modal open={isSupportMaterialModelOpen} onCancel={() => setIsSupportMaterialModelOpen(false)} width={1000} footer={[]}>
             <SupportMaterialsForLab isNewTab={false} labSheetId={labSheetId} />
           </Modal>
           <form onSubmit={handleNextQuestion}>
@@ -134,7 +102,7 @@ export default function QuestionCardForLab() {
               <h1 className="text-2xl font-bold my-2">
                 Question {currentQuestionIndex + 1} of {totalQuestions}
               </h1>
-              <Button className="w-max" onClick={() => setOpen(true)}><FileMarkdownOutlined />Support Material</Button>
+              <Button className="w-max" onClick={() => setIsSupportMaterialModelOpen(true)}><FileMarkdownOutlined />Support Material</Button>
             </div>
             <p className="text-lg">{questions?.[currentQuestionIndex]?.question}</p>
             <div className="my-4">
@@ -163,14 +131,21 @@ export default function QuestionCardForLab() {
                 <div className="flex flex-row gap-4">
                   {questions?.[currentQuestionIndex]?.attempts >= 6 && !isAnsForCurrQuesCorrect && <Button type="text" className="text-red-500 flex flex-row gap-4" onClick={() => setShowAnswer(true)}>Show Answer</Button>}
 
-                  <Button
+                  {currentQuestionIndex === totalQuestions - 1 ? <Button
+                    type="primary"
+                    htmlType="button"
+                    onClick={handleSubmission}
+                  >
+                    Submit Lab Sheet
+                  </Button> : <Button
                     type="primary"
                     htmlType="button"
                     onClick={handleNextQuestion}
                   >
                     Next Question
-                  </Button></div>
+                  </Button>}
 
+                </div>
               ) : (
                 <div className="flex flex-row gap-4">
                   {questions?.[currentQuestionIndex]?.attempts >= 3 &&
@@ -178,13 +153,12 @@ export default function QuestionCardForLab() {
                       <Button
                         type="default"
                         htmlType="button"
-
                         onClick={() => getHintForCurrentQuestion()}
                       >
                         Hint
                       </Button>
                     )}
-                  <Button type="primary" htmlType="button" onClick={handleSubmit}>
+                  <Button type="primary" htmlType="button" onClick={handleEvaluation}>
                     Evaluate Answer
                   </Button>
                 </div>

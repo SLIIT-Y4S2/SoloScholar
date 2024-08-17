@@ -143,7 +143,7 @@ export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, l
             formatInstructions: (input) => input.formatInstructions
         },
         questionGenerationPrompt,
-        () => highLevelChatModel(),
+        highLevelChatModel,
         fixingParserForQuestions,
     ]);
 

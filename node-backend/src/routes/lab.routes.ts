@@ -6,7 +6,8 @@ import {
     getLearningMaterialSummaryByLessonNameHandler,
     generateHintForQuestionHandler,
     deleteLabSheetByIdHandler,
-    updateLabSheetQuestionAnswerSubmissionStatusHandler
+    updateLabSheetQuestionAnswerSubmissionStatusHandler,
+    updateLabSheetStatusAsCompletedHandler
 } from "../controllers/lab.controller";
 
 const labRouter = Router();
@@ -40,6 +41,11 @@ labRouter.post('/evaluate-answer', evaluateStudentAnswersHandler);
  * @route POST /api/v1/labs/:labSheetId/update-submission-status
  */
 labRouter.post('/:labSheetId/update-submission-status', updateLabSheetQuestionAnswerSubmissionStatusHandler);
+
+/**
+ * @route POST /api/v1/labs/:labSheetId/complete
+ */
+labRouter.post('/:labSheetId/complete', updateLabSheetStatusAsCompletedHandler);
 
 /**
  * @route DELETE /api/v1/labs/:labSheetId

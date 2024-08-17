@@ -43,3 +43,11 @@ export type LabSheet = {
         exampleAnswer: string;
     }[];
 };
+
+export type LabStatus =
+    | "GENERATING"
+    | "GENERATED"
+    | "IN_PROGRESS"
+    | "EVALUATING"
+    | "EVALUATED"
+    | "COMPLETED";
