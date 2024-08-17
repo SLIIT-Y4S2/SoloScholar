@@ -1,7 +1,8 @@
-import e, { Request, Response } from "express";
+import { Request, Response } from "express";
 import { evaluateStudentAnswers, generateHintsForStudentAnswers, responseSynthesizerForLabs } from "../services/lab.rag.service";
 import { getLessonByModuleIdAndTitle, getLessonOutlineByModuleAndLessonName, getModuleByName } from "../services/db/module.db.service";
-import { createLabMaterials, updateLabMaterial, getLabSheetById, getLearningMaterialDetailsByLearnerIdAndLessonId, getLessonDetailsByLabSheetId, updateLabSheetAnswers, deleteLabSheetById, getStudentAnswersByLabSheetIdAndQuestionNumber, deleteLabSheetQuestionsByLabSheetId, deleteStudentAnswersByLabSheetId, updateLabSheetQuestionAnswerSubmissionStatus } from "../services/db/lab.db.service";
+import { createLabMaterials, updateLabMaterial, getLabSheetByLabSheetIdAndLearnerId, getLearningMaterialDetailsByLearnerIdAndLessonId, getLessonDetailsByLabSheetId, updateLabSheetAnswers, deleteLabSheetById, getStudentAnswersByLabSheetIdAndQuestionNumber, updateLabSheetQuestionAnswerSubmissionStatus, updateLabSheetStatusAsCompleted } from "../services/db/lab.db.service";
+import { StatusCodes } from "http-status-codes";
 
 /**
  * 
@@ -15,7 +16,7 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
         const { id: learnerId } = res.locals.user;
 
         if (!moduleName || !lessonTitle || !learningLevel) {
-            return res.status(400).json({
+            return res.status(StatusCodes.BAD_REQUEST).json({
                 message: "Invalid request body",
             });
         }
@@ -26,13 +27,28 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
             return acc + `${subtopic.topic}:\n${subtopic.description}\n\n`;
         }, '');
 
+        // Get all lab sheets for the learner
+        const existingLabSheets = await getLearningMaterialDetailsByLearnerIdAndLessonId(lessonOutline.id, learnerId);
+
+        // Check if lab sheet already exists for the learning level
+        const labWithSameLearningLevel = existingLabSheets.find(labSheet => labSheet.learningLevel === learningLevel);
+
+        // If lab sheet already exists for the learning level, return conflict
+        if (labWithSameLearningLevel) {
+            return res.status(StatusCodes.CONFLICT).json({
+                message: "Lab sheet already exists for this learning level",
+            });
+        }
+
+
         const labMaterials = await createLabMaterials(lessonOutline.id, learnerId, learningLevel);
+
         const practicalLabData = await responseSynthesizerForLabs({ learningLevel: learningLevel, lessonTitle: lessonTitle, lessonOutline: subTopics, learningOutcomes: lessonOutline.lesson_learning_outcomes })
             .then((practicalLabData) => {
                 return updateLabMaterial(labMaterials.id, practicalLabData.realWorldScenario, JSON.stringify(practicalLabData.supportingMaterial), practicalLabData.questions);
             }).catch((error) => {
                 deleteLabSheetById(labMaterials.id);
-                return res.status(500).json(
+                return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
                     {
                         message: "Failed to generate lab sheet",
                         error: error
@@ -42,7 +58,7 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
 
 
 
-        return res.status(200).send(practicalLabData);
+        return res.status(StatusCodes.CREATED).send(practicalLabData);
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);
@@ -68,7 +84,9 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
 export async function getLabSheetByIdHandler(req: Request, res: Response) {
     try {
         const { labSheetId } = req.params;
-        const labSheet = await getLabSheetById(labSheetId);
+        const { id: learnerId } = res.locals.user;
+
+        const labSheet = await getLabSheetByLabSheetIdAndLearnerId(labSheetId, learnerId);
 
         return res.status(200).send(labSheet);
     } catch (error) {
@@ -158,6 +176,7 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
 
     try {
         const { studentsAnswer, labSheetId, questionsId } = req.body;
+        const { id: learnerId } = res.locals.user;
 
         if (!labSheetId || !studentsAnswer) {
             return res.status(400).json({
@@ -165,7 +184,7 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
             });
         }
 
-        const labSheet = await getLabSheetById(labSheetId);
+        const labSheet = await getLabSheetByLabSheetIdAndLearnerId(labSheetId, learnerId);
         const lesson = await getLessonDetailsByLabSheetId(labSheetId);
 
         if (!labSheet) {
@@ -218,6 +237,7 @@ export async function evaluateStudentAnswersHandler(req: Request, res: Response)
 export async function generateHintForQuestionHandler(req: Request, res: Response) {
     try {
         const { labSheetId, questionNumber } = req.params;
+        const { id: learnerId } = res.locals.user;
 
         if (!labSheetId || !questionNumber) {
             return res.status(400).json({
@@ -234,7 +254,7 @@ export async function generateHintForQuestionHandler(req: Request, res: Response
         console.log(labSheetId, questionNumber);
 
         const studentAnswers = await getStudentAnswersByLabSheetIdAndQuestionNumber(labSheetId, Number(questionNumber));
-        const labSheet = await getLabSheetById(labSheetId);
+        const labSheet = await getLabSheetByLabSheetIdAndLearnerId(labSheetId, learnerId);
 
         if (!studentAnswers || !labSheet) {
             return res.status(404).json({
@@ -290,8 +310,6 @@ export async function deleteLabSheetByIdHandler(req: Request, res: Response) {
             });
         }
 
-        await deleteStudentAnswersByLabSheetId(labSheetId);
-        await deleteLabSheetQuestionsByLabSheetId(labSheetId);
         await deleteLabSheetById(labSheetId);
 
         return res.status(204).json({
@@ -324,7 +342,7 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(req: R
         const { questionId, reflection } = req.body;
         const { labSheetId } = req.params;
 
-        if (!labSheetId || !questionId || typeof reflection === undefined) {
+        if (!labSheetId || !questionId || typeof reflection !== "string") {
             return res.status(400).json({
                 message: "Invalid request body",
             });
@@ -348,6 +366,42 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(req: R
 
         res.status(500).send({
             message: "Failed to update lab sheet question answer submission status",
+        });
+    }
+}
+
+
+export async function updateLabSheetStatusAsCompletedHandler(req: Request, res: Response) {
+    const { questionId, reflection } = req.body;
+    const { labSheetId } = req.params;
+    const { learnerID } = res.locals.user;
+
+    try {
+        if (!labSheetId) {
+            return res.status(400).json({
+                message: "Invalid request body",
+            });
+        }
+
+        const labSheet = await updateLabSheetStatusAsCompleted(labSheetId, questionId, reflection);
+
+        return res.status(StatusCodes.OK).json({
+            message: "Lab sheet status updated",
+            labSheet
+        });
+
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error(error.message);
+            error.stack && console.error(error.stack);
+        }
+
+        if (error) {
+            console.error(error);
+        }
+
+        res.status(500).send({
+            message: "Failed to update lab sheet status",
         });
     }
 }

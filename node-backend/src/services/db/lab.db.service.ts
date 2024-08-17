@@ -1,3 +1,4 @@
+import e from "express";
 import prisma from "../../utils/prisma-client.util";
 import { omit, pick } from "lodash";
 
@@ -106,10 +107,14 @@ export async function updateLabMaterial(labSheetId: string, realWorldScenario: s
  * @param labSheetId 
  * @returns 
  */
-export async function getLabSheetById(labSheetId: string) {
+export async function getLabSheetByLabSheetIdAndLearnerId(labSheetId: string, learnerId: string) {
     const labSheet = await prisma.labsheet.findUnique({
         where: {
-            id: labSheetId
+            id: labSheetId, AND: {
+                learning_material: {
+                    learner_id: learnerId
+                }
+            }
         },
         include: {
             labsheet_question: {
@@ -246,6 +251,37 @@ export async function updateLabSheetQuestionAnswerSubmissionStatus(labSheetId: s
     return pick(updatedLabSheetQuestionAnswerSubmissionStatus, ["labsheet_question"]);
 }
 
+export async function updateLabSheetStatusAsCompleted(labSheetId: string, questionId: number, reflection: string) {
+    const updatedLabSheet = await prisma.labsheet.update({
+        where: {
+            id: labSheetId
+        },
+        data: {
+            status: "COMPLETED",
+            labsheet_question: {
+                update: {
+                    where: {
+                        id: questionId
+                    },
+                    data: {
+                        reflection_on_answer: reflection,
+                        is_answer_submitted: true,
+                    }
+                }
+            }
+        }, include: {
+            labsheet_question: {
+                select: {
+                    is_answer_submitted: true
+                }
+            }
+        }
+    });
+
+    return updatedLabSheet;
+}
+
+
 /**
  * 
  * @param labSheetId 
@@ -279,38 +315,27 @@ export async function getLessonDetailsByLabSheetId(labSheetId: string) {
  * @param labSheetId 
  */
 export async function deleteLabSheetById(labSheetId: string) {
-    await prisma.labsheet.delete({
-        where: {
-            id: labSheetId
-        }
-    });
-}
-
-/**
- * 
- * @param labSheetId 
- */
-export async function deleteLabSheetQuestionsByLabSheetId(labSheetId: string) {
-    await prisma.labsheet_question.deleteMany({
-        where: {
-            labsheet_id: labSheetId
-        }
-    });
-}
-
-/**
- * 
- * @param labSheetId 
- */
-export async function deleteStudentAnswersByLabSheetId(labSheetId: string) {
-    await prisma.student_answer.deleteMany({
-        where: {
-            labsheet_question: {
+    await prisma.$transaction([
+        prisma.labsheet_question.deleteMany({
+            where: {
                 labsheet_id: labSheetId
             }
-        }
-    });
+        }),
+        prisma.student_answer.deleteMany({
+            where: {
+                labsheet_question: {
+                    labsheet_id: labSheetId
+                }
+            }
+        }),
+        prisma.labsheet.delete({
+            where: {
+                id: labSheetId
+            }
+        })
+    ]);
 }
+
 
 /**
  * 
