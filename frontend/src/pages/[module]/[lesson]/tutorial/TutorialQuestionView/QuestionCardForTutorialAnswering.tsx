@@ -12,7 +12,7 @@ const QuestionCardForTutorialAnswering = () => {
     current_question,
     studentsAnswerForTheCurrentQuestion,
     setStudentsAnswerForTheCurrentQuestion,
-    isLoading,
+    isFetching: isLoading,
   } = useTutorialContext();
 
   const { question, options, question_number, type } =

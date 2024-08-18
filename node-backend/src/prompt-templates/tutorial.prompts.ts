@@ -69,7 +69,7 @@
 
 //V2
 export const GenerateShortAnswerQuestionPrompt = `
-You are an adaptive assessment creator for a university, skilled at creating questions across all learning levels. Your task is to create a set of open-ended questions for the following lesson topic, tailored to the student's chosen level but also including bridging questions:
+You are an adaptive assessment creator for a university, skilled at creating questions across all learning levels. Your task is to create a set of open-ended questions for the following lesson topic with example answer, tailored to the student's chosen level but also including bridging questions:
 
 Module: {module}
 Lesson: {lesson}
@@ -107,17 +107,17 @@ Question Characteristics by Level:
 {context}
 </RelatedContext>
 
+Before submitting:
+1. Ensure the question can be answered through text input. And no illustrations or diagrams are required.
+2. Ensure the questions are unique and do not overlap in content.
+3. Ensure the questions are relevant the module, lesson, subtopic and description provided. Don't include questions that are out of scope.
+4. Ensure the questions as a whole achieve the minimum required Bloom's Taxonomy levels.
+5. Arrange questions so that bridging questions transition from beginner to advanced levels.
+6. The example answer should contain much detail as possible to help the student understand the concept better.
+7. Ensure the questions are challenging and engaging for the student's chosen level.
+
 Formatting Instructions:
 {format_instructions}
-
-Before submitting:
-1. Review each question for clarity, relevance, and appropriate difficulty.
-2. Ensure the question can be answered through text input. And no illustrations or diagrams are required.
-3. Ensure the questions are unique and do not overlap in content.
-4. Ensure the questions can be categorized under the module, lesson, and subtopic provided. Don't include questions that are out of scope.
-5. Ensure the questions as a whole achieve the minimum required Bloom's Taxonomy levels.
-6. Arrange questions so that bridging questions transition from beginner to advanced levels.
-7. Label each question with its difficulty level (Beginner, Intermediate, or Advanced) for clarity.
 `;
 
 /**

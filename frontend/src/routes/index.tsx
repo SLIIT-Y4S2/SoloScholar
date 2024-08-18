@@ -13,7 +13,6 @@ import {
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Home from "../pages/Home";
-import Lab from "../pages/[module]/[lesson]/lab";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Lecture from "../pages/[module]/[lesson]/lecture";
 import Lecturesgenerated from "../pages/[module]/[lesson]/lecture/[lectureID]";
@@ -26,8 +25,13 @@ import MyIndicators from "../pages/dashboard/MyIndicators";
 import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
 import Main from "../pages/dashboard/Main";
+import { LabSessionLayout } from "../pages/[module]/[lesson]/lab/LabSessionLayout";
+import { LabLayout } from "../pages/[module]/[lesson]/lab/LabLayout";
+import { SupportMaterialsForLab } from "../Components/lab/SupportMaterialsForLab";
+import LabOverview from "../pages/[module]/[lesson]/lab";
+import LabSession from "../pages/[module]/[lesson]/lab/[labID]";
 import Module from "../pages/[module]";
-import { Button } from "antd";
+import { Button, Result } from "antd";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -79,15 +83,6 @@ const Routes = () => {
           element: <Navigate to="/" />,
         },
         {
-          path: "/:module",
-          element: <Module />,
-        },
-
-        {
-          path: "/lab",
-          element: <Lab />,
-        },
-        {
           path: "/dashboard",
           element: (
             <ProtectedRouteInstructor>
@@ -122,6 +117,10 @@ const Routes = () => {
           ],
         },
         {
+          path: "/:module",
+          element: <Module />,
+        },
+        {
           path: "/:module/:lesson",
           children: [
             {
@@ -134,11 +133,28 @@ const Routes = () => {
             },
             {
               path: "lab",
-              element: <Lab />,
-            },
-            {
-              path: "lab/:labId",
-              element: <div>Lab</div>,
+              element: <LabLayout />,
+              children: [
+                {
+                  path: "",
+                  element: <LabOverview />
+                },
+                {
+                  path: "session",
+                  element: <LabSessionLayout />,
+                  children: [
+                    {
+                      path: ":labSheetId",
+                      element: <LabSession />
+                    },
+                    {
+                      path: ":labSheetId/support-material",
+                      element: <SupportMaterialsForLab isNewTab={true} labSheetId={undefined}/>
+                    }
+                  ]
+                },
+
+              ]
             },
             {
               path: "lecture",
@@ -169,7 +185,18 @@ const Routes = () => {
   // Define a route for handling errors
   const errorRoute = {
     path: "*",
-    element: <div>404 Not Found</div>,
+    element: (
+      <Result
+        status="404"
+        title="404"
+        subTitle="Sorry, the page you visited does not exist."
+        extra={
+          <Link to="/">
+            <Button type="primary">Back Home</Button>
+          </Link>
+        }
+      />
+    ),
   };
 
   // Combine and conditionally include routes based on authentication status

@@ -4,7 +4,11 @@ import QuestionCardForTutorialFeedback from "./QuestionCardForTutorialFeedback";
 import { Button, Form, Radio } from "antd";
 
 const RequestFeedback = () => {
-  const { questions, isLoading, requestFeedback } = useTutorialContext();
+  const {
+    questions,
+    isFetching: isLoading,
+    requestFeedback,
+  } = useTutorialContext();
 
   if (isLoading || questions.length === 0) {
     return <>Loading...</>;

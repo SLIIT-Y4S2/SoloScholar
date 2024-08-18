@@ -131,6 +131,5 @@ export function convertLessonOutlineToText(
     text += `${index + 1}. ${outcome.outcome}\n`;
   });
 
-  console.log(text);
   return text;
 }

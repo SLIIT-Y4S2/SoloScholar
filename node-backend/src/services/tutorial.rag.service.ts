@@ -90,8 +90,15 @@ export async function synthesizeQuestionsForSubtopic(
     : GenerateMultipleChoiceQuestionPrompt;
 
   const formatInstructions = isNotMcq
-    ? "Respond with a valid JSON array, containing object with three fields: 'question', 'answer', and 'difficulty'."
-    : "Respond with a valid JSON array, containing object with four fields: 'question', 'answer', 'distractors', and 'difficulty'.";
+    ? `Respond with a valid JSON array, containing object with three fields: 'question', 'answer', and 'difficulty'.
+      'question' is a string representing the question to be asked,
+      'answer' is a string representing the correct answer to the question,
+      'difficulty' is a string representing the difficulty level of the question. The difficulty level can be 'beginner', 'intermediate', or 'advanced',`
+    : `Respond with a valid JSON array, containing object with four fields: 'question', 'answer', 'distractors', and 'difficulty'.
+      'question' is a string representing the question to be asked,
+      'answer' is a string representing the correct answer to the question,
+      'distractors' is an array of strings representing the options for the multiple choice question. with the length of the array being 3,
+      'difficulty' is a string representing the difficulty level of the question. The difficulty level can be 'beginner', 'intermediate', or 'advanced',`;
 
   const jsonParser = new JsonOutputParser<SynthesizedQuestions[]>();
 
@@ -311,6 +318,7 @@ export async function synthesizeFeedbackForQuestions(
     `${lesson} ${subtopic} ${subtopic_description}`,
     2
   );
+
   const retrievalChain = RunnableSequence.from([
     {
       context: (input) => input.context,

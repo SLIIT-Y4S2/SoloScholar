@@ -22,10 +22,6 @@ const Header = () => {
                 key: "modules",
                 label: <Link to={APP_ROUTES.ds}>Database Systems</Link>,
               },
-              {
-                key: "lab",
-                label: <Link to={APP_ROUTES.lab}>Lab </Link>,
-              },
             ],
           }}
         >
