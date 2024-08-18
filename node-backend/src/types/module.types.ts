@@ -19,7 +19,7 @@ interface SubLesson {
 
 interface LearningOutcome {
   outcome: string;
-  cognitive_levels: CognitiveLevel[];
+  cognitive_level: CognitiveLevel;
 }
 
 type CognitiveLevel =

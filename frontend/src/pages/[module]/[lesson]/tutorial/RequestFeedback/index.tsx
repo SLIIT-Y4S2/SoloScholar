@@ -1,17 +1,13 @@
 import { Content } from "antd/es/layout/layout";
-import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import QuestionCardForTutorialFeedback from "./QuestionCardForTutorialFeedback";
-import { Button, Form, Radio } from "antd";
+import { Button, Form, Radio, Spin } from "antd";
+import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
 
 const RequestFeedback = () => {
-  const {
-    questions,
-    isFetching: isLoading,
-    requestFeedback,
-  } = useTutorialContext();
+  const { questions, isFetching, requestFeedback } = useTutorialContext();
 
-  if (isLoading || questions.length === 0) {
-    return <>Loading...</>;
+  if (isFetching || questions.length === 0) {
+    return <Spin fullscreen />;
   }
   return (
     <Content

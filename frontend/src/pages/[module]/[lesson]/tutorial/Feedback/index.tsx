@@ -1,7 +1,7 @@
 import QuestionCardForFeedback from "./QuestionCardForFeedback";
-import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import { Button } from "antd";
 import { useState } from "react";
+import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
 
 const TutorialFeedback = () => {
   const { questions, completeTutorial } = useTutorialContext();

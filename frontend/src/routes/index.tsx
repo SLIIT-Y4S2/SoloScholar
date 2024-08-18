@@ -29,6 +29,7 @@ import LabOverview from "../pages/[module]/[lesson]/lab";
 import LabSession from "../pages/[module]/[lesson]/lab/[labID]";
 import Module from "../pages/[module]";
 import { Button, Result } from "antd";
+import Lesson from "../pages/[module]/[lesson]";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -120,6 +121,10 @@ const Routes = () => {
         {
           path: "/:module/:lesson",
           children: [
+            {
+              path:"",
+              element: <Lesson />
+            },
             {
               path: "tutorial",
               element: <Tutorial />,

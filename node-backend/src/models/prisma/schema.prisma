@@ -8,9 +8,9 @@ datasource db {
 }
 
 model cognitive_level {
-  id                               Int                                @id @default(autoincrement())
-  level                            String                             @unique @db.VarChar(10)
-  learning_outcome_cognitive_level learning_outcome_cognitive_level[]
+  id               Int                @id @default(autoincrement())
+  level            String             @unique @db.VarChar(10)
+  learning_outcome learning_outcome[]
 }
 
 model interaction {
@@ -80,20 +80,21 @@ model learning_material {
 }
 
 model learning_outcome {
-  id                               Int                                @id @default(autoincrement())
-  description                      String                             @unique @db.VarChar(250)
-  learning_outcome_cognitive_level learning_outcome_cognitive_level[]
-  lesson_learning_outcome          lesson_learning_outcome[]
+  id                      Int                       @id @default(autoincrement())
+  description             String                    @unique @db.VarChar(250)
+  cognitive_level_id      Int
+  cognitive_level         cognitive_level           @relation(fields: [cognitive_level_id], references: [id], onUpdate: NoAction)
+  lesson_learning_outcome lesson_learning_outcome[]
 }
 
-model learning_outcome_cognitive_level {
-  learning_outcome_id Int
-  cognitive_level_id  Int
-  cognitive_level     cognitive_level  @relation(fields: [cognitive_level_id], references: [id], onUpdate: NoAction)
-  learning_outcome    learning_outcome @relation(fields: [learning_outcome_id], references: [id], onUpdate: NoAction)
+// model learning_outcome_cognitive_level {
+//   learning_outcome_id Int
+//   cognitive_level_id  Int
+//   cognitive_level     cognitive_level  @relation(fields: [cognitive_level_id], references: [id], onUpdate: NoAction)
+//   learning_outcome    learning_outcome @relation(fields: [learning_outcome_id], references: [id], onUpdate: NoAction)
 
-  @@id([learning_outcome_id, cognitive_level_id])
-}
+//   @@id([learning_outcome_id, cognitive_level_id])
+// }
 
 model lecture {
   id                  String                @id @db.VarChar(25)

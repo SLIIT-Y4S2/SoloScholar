@@ -1,8 +1,5 @@
-import { TutorialQuestion } from "./../../types/tutorial.types";
-import { logger } from "./../../utils/logger.utils";
 import { Decimal } from "@prisma/client/runtime/library";
 import prisma from "../../utils/prisma-client.util";
-import { Prisma } from "@prisma/client";
 
 /**
  * Create tutorial without questions

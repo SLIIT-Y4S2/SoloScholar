@@ -8,18 +8,18 @@ interface Lesson {
   id: number;
   title: string;
   description: string;
-  lesson_subtopics: lesson_subtopic[];
-  learning_outcomes: LearningOutcome[];
+  sub_lessons: sub_lesson[];
+  lesson_learning_outcomes: LearningOutcome[];
 }
 
-interface lesson_subtopic {
+interface sub_lesson {
   topic: string;
   description: string;
 }
 
 interface LearningOutcome {
   outcome: string;
-  cognitive_level: CognitiveLevel[];
+  cognitive_level: CognitiveLevel;
 }
 
 type CognitiveLevel =

@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, useState } from "react";
 import { LessonOutlineType } from "../types/lesson.types";
-import { MODULE_OUTLINE_LESSON_ARRAY } from "../dummyData/lessonOutline";
+// import { MODULE_OUTLINE_LESSON_ARRAY } from "../dummyData/lessonOutline";
 
 interface ModuleProviderProps {
   children: ReactNode;
@@ -41,7 +41,7 @@ export function ModuleProvider({ children }: ModuleProviderProps) {
   //TODO : Get the module name, module code and lesson outline from the database
   const moduleName = "Introduction to Programming";
   const moduleCode = "SE3020";
-  const lessonOutline: LessonOutlineType[] = MODULE_OUTLINE_LESSON_ARRAY;
+  const lessonOutline: LessonOutlineType[] = [];
 
   return (
     <ModuleContext.Provider
