@@ -7,8 +7,8 @@ import {
     useMemo,
     useState,
 } from "react";
-import { evaluateStudentsAnswer, getLabExerciseById, getHintForQuestion } from "../../services/lab.service";
-import { SupportingMaterial } from "../../types/lab.types";
+import { evaluateStudentsAnswer, getLabExerciseById, getHintForQuestion, updateSubmissionStatus, updateLabSheetStatusAsCompleted } from "../../services/lab.service";
+import { LabStatus, SupportingMaterial } from "../../types/lab.types";
 import { useParams } from "react-router-dom";
 
 interface LabSessionProviderProps {
@@ -16,19 +16,21 @@ interface LabSessionProviderProps {
 }
 
 interface LabSessionContextType {
+    status?: LabStatus;
     realWorldScenario: string;
     supportMaterials: SupportingMaterial;
     questions: LabQuestion[];
     currentQuestionIndex: number;
     totalQuestions: number;
-    isLoading: boolean;
+    isDataFetching: boolean;
     isEvaluatingAnswer: boolean;
     hintForCurrentQuestion: string;
     isAnsForCurrQuesCorrect: boolean | null;
     isLabCompleted: boolean;
     evaluateStudentAnswerHandler: (answer: string) => void;
     getHintForCurrentQuestion: () => void;
-    goToNextQuestion: () => void;
+    goToNextQuestion: (reflection: string) => void;
+    submitLabSheet: (reflection: string) => void;
 }
 
 interface LabQuestion {
@@ -38,16 +40,18 @@ interface LabQuestion {
     answer: string;
     example_question: string;
     example_answer: string;
-    isCorrect: boolean | null;
-    currentAnswer: string | null;
+    is_correct: boolean | null;
+    current_answer: string | null;
     current_question_index: number;
-    isAnswered: boolean;
+    is_answered: boolean;
     attempts: number;
     student_answers: {
         id: number;
         student_answer: string;
         labsheet_questionId: number;
-    }[]
+    }[],
+    is_answer_submitted: boolean;
+    reflection_on_answer: string;
 }
 
 
@@ -64,6 +68,7 @@ export function useLabSessionContext() {
 
 export function LabSessionProvider({ children }: Readonly<LabSessionProviderProps>) {
 
+    const [status, setStatus] = useState<LabStatus>();
     const [questions, setQuestions] = useState<LabQuestion[]>([]);
     const [realWorldScenario, setRealWorldScenario] = useState<string>("");
     const [supportMaterials, setSupportMaterials] = useState<SupportingMaterial>({});
@@ -89,6 +94,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
         getLabExerciseById(labSheetId)
             .then((response) => {
                 const labSheet = response.data;
+                setStatus(labSheet.status);
                 setRealWorldScenario(labSheet.real_world_scenario);
                 setSupportMaterials(labSheet.supportMaterial);
                 setQuestions([
@@ -100,14 +106,16 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                             answer: data.answer,
                             exampleQuestion: data.example_question,
                             exampleAnswer: data.example_answer,
-                            isCorrect: data.isCorrect,
-                            currentAnswer: data.student_answers.length == 0 ? null : data.student_answers[data.student_answers.length - 1].student_answer,
+                            is_correct: data.is_correct,
+                            current_answer: data.student_answers.length == 0 ? null : data.student_answers[data.student_answers.length - 1].student_answer,
                             attempts: data.student_answers.length,
+                            is_answer_submitted: data.is_answer_submitted,
+                            reflection_on_answer: data.reflection_on_answer,
                         })
                     }),
                 ]);
-                setIsAnsForCurrQuesCorrect(labSheet.labsheet_question[labSheet.current_question_index].isCorrect);
-                setCurrentQuestionIndex(labSheet.current_question_index);
+                setIsAnsForCurrQuesCorrect(labSheet.labsheet_question[labSheet.current_question_index - 1].is_correct);
+                setCurrentQuestionIndex(labSheet.current_question_index - 1);
                 setTotalQuestions(labSheet.labsheet_question.length);
                 setLabSheetId(labSheetId);
                 setIsLoading(false)
@@ -140,7 +148,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                                     currentAnswer: answer,
                                     isAnswered: true,
                                     attempts: question.attempts + 1,
-                                    isCorrect: response.data.studentAnswerEvaluation.isCorrect
+                                    isCorrect: response.data.studentAnswerEvaluation.is_correct
                                 }
                                 : question
                         )
@@ -148,7 +156,6 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                     setIsAnsForCurrQuesCorrect(response.data.studentAnswerEvaluation.isCorrect);
                     setIsEvaluatingAnswer(false);
 
-                    console.log("Questions", questions[currentQuestionIndex]);
                 }).catch((error) => {
                     console.log("Error evaluating answer", error);
                     setIsEvaluatingAnswer(false);
@@ -167,31 +174,53 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             }
             getHintForQuestion(labSheetId, questions[currentQuestionIndex].question_number).then((response) => {
                 console.log("Hint for current question", response.data);
-                setHintForCurrentQuestion(JSON.stringify(response.data));
+                setHintForCurrentQuestion(response.data.hint);
             });
 
         }, [setHintForCurrentQuestion, labSheetId, currentQuestionIndex, questions]);
 
     const goToNextQuestion = useCallback(
-        () => {
+        (reflection: string) => {
+            if (!labSheetId) {
+                return;
+            }
+
             if (currentQuestionIndex < totalQuestions - 1) {
-                setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-                setHintForCurrentQuestion("");
-                setIsAnsForCurrQuesCorrect(questions[currentQuestionIndex + 1].isCorrect);
+                updateSubmissionStatus(labSheetId, questions[currentQuestionIndex].id, reflection).then(() => {
+                    setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+                    setHintForCurrentQuestion("");
+                    setIsAnsForCurrQuesCorrect(questions[currentQuestionIndex + 1].is_correct);
+                }).catch((error) => {
+                    console.log("Error updating submission status", error);
+                });
             } else {
+                alert("Lab completed");
                 setIsLabCompleted(true);
             }
-        }, [questions, currentQuestionIndex, totalQuestions, setCurrentQuestionIndex, setHintForCurrentQuestion, setIsLabCompleted]
+        }, [questions, currentQuestionIndex, totalQuestions, setCurrentQuestionIndex, setHintForCurrentQuestion, setIsLabCompleted, labSheetId]
     );
+
+    const submitLabSheet = useCallback(
+        (reflection: string) => {
+            if (!labSheetId) {
+                return;
+            }
+            updateLabSheetStatusAsCompleted(labSheetId, questions[currentQuestionIndex].id, reflection).then(() => {
+                setIsLabCompleted(true);
+            }).catch((error) => {
+                console.log("Error updating submission status", error);
+            });
+        }, [labSheetId, questions, currentQuestionIndex, setIsLabCompleted]);
 
     const contextValues = useMemo<LabSessionContextType>(
         () => ({
+            status,
             realWorldScenario,
             supportMaterials,
             questions,
             currentQuestionIndex,
             totalQuestions,
-            isLoading,
+            isDataFetching: isLoading,
             hintForCurrentQuestion,
             isAnsForCurrQuesCorrect,
             isLabCompleted,
@@ -200,9 +229,11 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,
-            setIsGenerationError
+            setIsGenerationError,
+            submitLabSheet
         }),
         [
+            status,
             realWorldScenario,
             supportMaterials,
             questions,
@@ -217,7 +248,8 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,
-            setIsGenerationError
+            setIsGenerationError,
+            submitLabSheet
         ]
     );
 

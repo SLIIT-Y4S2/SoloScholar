@@ -5,14 +5,14 @@ import { Select } from "antd";
 import { useLabSessionContext } from "../../provider/lab/LabSessionContext";
 
 interface CodeEditorProps {
-    handleCodeOnChange: (codeSnippet: string) => void;
+    readonly currentSnippet: string;
+    readonly handleCodeOnChange: (codeSnippet: string) => void;
 }
-
 
 const PROGRAMMING_LANGUAGES = ["javascript", "sql"];
 
-export function CodeEditor({ handleCodeOnChange }: CodeEditorProps) {
-    const [code, setCode] = useState(" ");
+export function CodeEditor({ handleCodeOnChange, currentSnippet }: CodeEditorProps) {
+    const [code, setCode] = useState(currentSnippet);
     const [language, setLanguage] = useState("sql");
     const [codeEditorWidth, setCodeEditorWidth] = useState<string | null>("1136px");
     const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -37,12 +37,7 @@ export function CodeEditor({ handleCodeOnChange }: CodeEditorProps) {
     }, []);
 
     useEffect(() => {
-        if (isAnsForCurrQuesCorrect !== null) {
-            setCode(questions[currentQuestionIndex].currentAnswer ?? " ");
-        } else {
-            setCode(" ");
-        }
-
+        setCode(questions[currentQuestionIndex].current_answer ?? " ");
     }, [isAnsForCurrQuesCorrect, currentQuestionIndex, questions]);
 
     function handleEditorOnMount(editor: editor.IStandaloneCodeEditor) {
@@ -68,7 +63,12 @@ export function CodeEditor({ handleCodeOnChange }: CodeEditorProps) {
 
     return (
         <div className="flex flex-col gap-4">
-            <LanguageSelector language={language} onLanguageChange={onLanguageChange} />
+            <div className="flex flex-row justify-between">
+                <p className="font-semibold text-base">
+                    Provide your answer in below code editor.
+                </p>
+                <LanguageSelector language={language} onLanguageChange={onLanguageChange} />
+            </div>
             <Editor
                 className="py-4 px-2 bg-zinc-900 rounded-md"
                 height={"300px"}
@@ -103,11 +103,11 @@ export function CodeEditor({ handleCodeOnChange }: CodeEditorProps) {
     )
 }
 
-function LanguageSelector({ language, onLanguageChange }: { language: string, onLanguageChange: (language: string) => void }) {
+function LanguageSelector({ language, onLanguageChange }: Readonly<{ language: string, onLanguageChange: (language: string) => void }>) {
     return (
-        <Select defaultValue={language} onChange={(selectedLanguage) => onLanguageChange(selectedLanguage)} className="w-max">
+        <Select defaultValue={language} onChange={(selectedLanguage) => onLanguageChange(selectedLanguage)} className="w-max min-w-[100px]">
             {PROGRAMMING_LANGUAGES.map((lang) => (
-                <Select.Option key={lang} value={lang}>{lang}</Select.Option>
+                <Select.Option key={lang} value={lang}>{lang.toUpperCase()}</Select.Option>
             ))}
         </Select>
     )

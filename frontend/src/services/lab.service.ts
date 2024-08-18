@@ -57,3 +57,22 @@ export async function getHintForQuestion(labSheetId: string, questionNumber: num
 
     return response;
 }
+
+export async function updateSubmissionStatus(labSheetId: string, questionId: number, reflection: string) {
+    const response = axiosInstance.post(`${LAB_API_URLS.UPDATE_SUBMISSION_STATUS}/${labSheetId}/update-submission-status`, {
+        questionId,
+        reflection
+    });
+
+    return response;
+}
+
+export async function updateLabSheetStatusAsCompleted(labSheetId: string, questionId: number, reflection: string) {
+    const response = axiosInstance.post(`${LAB_API_URLS.UPDATE_SUBMISSION_STATUS}/${labSheetId}/complete`, {
+        questionId,
+        reflection
+    });
+
+    return response;
+}
+

@@ -3,7 +3,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { getChatModel, highLevelChatModel } from "../utils/openai.util";
 import { AnswerEvaluationPrompt, HintGenerationPrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
 import { StringOutputParser, StructuredOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
-import { zodSchemaForQuestions, zodSchemaForRealWorldScenario, zodSchemaForStudentAnswerEvaluation, zodSchemaForSupportingMaterial } from "../utils/zodSchema.util";
+import { zodSchemaForHintGeneration, zodSchemaForQuestions, zodSchemaForRealWorldScenario, zodSchemaForStudentAnswerEvaluation, zodSchemaForSupportingMaterial } from "../utils/zodSchema.util";
 import { documentRetrievalPipeline } from "../utils/rag.util";
 import { OutputFixingParser } from "langchain/output_parsers";
 import { logger } from "../utils/logger.utils";
@@ -143,7 +143,7 @@ export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, l
             formatInstructions: (input) => input.formatInstructions
         },
         questionGenerationPrompt,
-        () => highLevelChatModel(),
+        highLevelChatModel,
         fixingParserForQuestions,
     ]);
 
@@ -226,6 +226,13 @@ export async function evaluateStudentAnswers({ topicOfTheLab, realWorldScenario,
 export async function generateHintsForStudentAnswers({ previousAnswers, realWorldScenario, question, supportingMaterial }: HintGenerationInputType): Promise<HintGenerationOutputType> {
     const hintGenerationPrompt = PromptTemplate.fromTemplate(HintGenerationPrompt);
 
+    const outputParserForHints = StructuredOutputParser.fromZodSchema(zodSchemaForHintGeneration);
+
+    const fixingParserForHints = OutputFixingParser.fromLLM(
+        getChatModel(),
+        outputParserForHints
+    );
+
     const hintGenerationPipeline = RunnableSequence.from([
         {
             previousAnswers: (input) => input.previousAnswers,
@@ -236,22 +243,20 @@ export async function generateHintsForStudentAnswers({ previousAnswers, realWorl
         },
         hintGenerationPrompt,
         getChatModel,
-        new StringOutputParser()
+        fixingParserForHints,
     ]);
 
-    const hints = await hintGenerationPipeline.invoke(
+    const hint = await hintGenerationPipeline.invoke(
         {
             previousAnswers: previousAnswers,
             realWorldScenario: realWorldScenario,
             question: question,
             supportingMaterial: supportingMaterial,
-            formatInstructions: "Provide the hint in string format. Just string will be enough no need to provide 'Hint:'" 
+            formatInstructions: outputParserForHints.getFormatInstructions()
         }
     );
 
-    return {
-        hint: hints
-    };
+    return hint;
 }
 
 
