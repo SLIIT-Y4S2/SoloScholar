@@ -1,4 +1,3 @@
-import { Tutorial } from "./../types/tutorial.types";
 import { Request, Response } from "express";
 import { logger } from "../utils/logger.utils";
 import { groupBy } from "lodash";
@@ -85,16 +84,24 @@ export const generateTutorialHandler = async (
     // MARK: STEP 3
     // loop through the detailed lesson plan and create questions for each subtopic
     const totalNumberOfQuestions = 30; // TEMPORARY
-    const totalNumberOfQuestionsPerSubtopics = Math.floor(
-      totalNumberOfQuestions / lessonOutline.sub_lessons.length
+    const MCQRatio =
+      learningLevel === "beginner"
+        ? 0.5
+        : learningLevel === "intermediate"
+        ? 0.4
+        : 0.3;
+
+    const numberOfMCQQuestions = Math.floor(totalNumberOfQuestions * MCQRatio);
+
+    const numberOfEssayQuestions =
+      totalNumberOfQuestions - numberOfMCQQuestions;
+
+    const numberOfMCQQuestionsPerSubLesson = Math.floor(
+      numberOfMCQQuestions / lessonOutline.sub_lessons.length
     );
 
-    const numberOfMCQQuestionsPerSubtopic = Math.floor(
-      totalNumberOfQuestionsPerSubtopics / 3
-    );
-
-    const numberOfEssayQuestionsPerSubtopic = Math.floor(
-      (totalNumberOfQuestionsPerSubtopics / 3) * 2
+    const numberOfEssayQuestionsPerSubLesson = Math.floor(
+      numberOfEssayQuestions / lessonOutline.sub_lessons.length
     );
 
     const learningOutcomes = lessonOutline.lesson_learning_outcomes.map(
@@ -102,9 +109,11 @@ export const generateTutorialHandler = async (
     );
 
     const combined_cognitive_level =
-      lessonOutline.lesson_learning_outcomes.reduce((acc, outcome) => {
-        return acc.concat(outcome.cognitive_levels);
-      }, [] as string[]);
+      lessonOutline.lesson_learning_outcomes.flatMap(
+        (outcome) => outcome.cognitive_level.level
+      );
+
+    console.log("combined_cognitive_level", combined_cognitive_level); //TODO: remove this
 
     const generateQuestionsForSubtopic = async (subtopic: {
       id: number;
@@ -115,27 +124,29 @@ export const generateTutorialHandler = async (
         synthesizeQuestionsForSubtopic(
           `${subtopic.topic} ${subtopic.description}`,
           moduleName,
-          lessonTitle,
+          lessonOutline.title,
+          lessonOutline.description,
           subtopic.id,
           subtopic.topic,
           subtopic.description,
           learningOutcomes,
           combined_cognitive_level,
           learningLevel,
-          numberOfMCQQuestionsPerSubtopic,
+          numberOfMCQQuestionsPerSubLesson,
           "mcq"
         ),
         synthesizeQuestionsForSubtopic(
           `${subtopic.topic} ${subtopic.description}`,
           moduleName,
-          lessonTitle,
+          lessonOutline.title,
+          lessonOutline.description,
           subtopic.id,
           subtopic.topic,
           subtopic.description,
           learningOutcomes,
           combined_cognitive_level,
           learningLevel,
-          numberOfEssayQuestionsPerSubtopic,
+          numberOfEssayQuestionsPerSubLesson,
           "short-answer"
         ),
       ]);

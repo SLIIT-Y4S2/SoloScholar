@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../../../utils/axiosInstance";
 import { API_URLS } from "../../../../utils/api_routes";
 import { AxiosError, AxiosResponse } from "axios";
-import { Tutorial } from "../../../../provider/TutorialContext";
+import { Tutorial } from "../../../../provider/tutorial/TutorialContext";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import Error from "../../../../Components/Error";
 import GeneratingView from "../../../../Components/tutorial/GeneratingView";

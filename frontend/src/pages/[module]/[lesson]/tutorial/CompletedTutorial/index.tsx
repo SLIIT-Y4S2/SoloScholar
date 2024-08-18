@@ -1,6 +1,6 @@
 import { Content } from "antd/es/layout/layout";
-import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import QuestionCardForFeedback from "../Feedback/QuestionCardForFeedback";
+import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
 
 const CompletedTutorial = () => {
   const { questions, isFetching: isLoading } = useTutorialContext();

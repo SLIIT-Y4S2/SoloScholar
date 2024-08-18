@@ -1,7 +1,7 @@
 import { Content } from "antd/es/layout/layout";
-import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import { Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
+import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
 
 const QuestionCardForTutorialAnswering = () => {
   // const [selectedOption, setSelectedOption] = useState<string | null>(null);

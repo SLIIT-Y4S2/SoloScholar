@@ -1,5 +1,5 @@
 import { Content } from "antd/es/layout/layout";
-import { useTutorialContext } from "../../../../../provider/TutorialContext";
+import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
 
 const TutorialQuestionStatus = ({
   noOfQuestions,
