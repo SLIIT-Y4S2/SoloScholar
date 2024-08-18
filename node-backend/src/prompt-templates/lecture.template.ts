@@ -64,5 +64,8 @@ Lesson Title: {lesson_title}
 Generated Content:
 {generated_content}
 
+Formatting Instructions:
+{format_instructions}
+
 Generate the questions without adding introductory phrases or transitions. Focus on assessing the student's understanding of the main points covered in the lecture.
 `;

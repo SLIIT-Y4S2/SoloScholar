@@ -49,3 +49,44 @@ export const createLecture = async (
     learnerId: lecture.learning_material.learner_id,
   };
 };
+
+export const saveLectureContenttoDB =  (
+  lectureId: string,
+  sub_lecture: { content: string; topic: string }[],
+  assestment_questions: {
+    question: string;
+    answer: string;
+    type: string;
+    question_number: number;
+    options: string[];
+  }[]
+) => {
+  return  prisma.lecture.update({
+    where: {
+      id: lectureId,
+    },
+    data: {
+      status: "generated",
+      sub_lecture: {
+        create: sub_lecture,
+      },
+      assessment_question: {
+        create: assestment_questions.map((question) => {
+          return {
+            question: question.question,
+            answer: question.answer,
+            type: question.type,
+            question_number: question.question_number,
+            options: {
+              create: question.options.map((option) => {
+                return {
+                  answer_option:option,
+                };
+              }),
+            },
+          };
+        }),
+      },
+    },
+  });
+};

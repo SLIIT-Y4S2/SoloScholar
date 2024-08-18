@@ -85,27 +85,27 @@ model lecture {
   learning_material   learning_material     @relation(fields: [id], references: [id], onUpdate: NoAction)
   lecture_interaction lecture_interaction[]
   sub_lecture         sub_lecture[]
-  assessment_question assestment_question[]
+  assessment_question lecture_assesstment_question[]
 }
 
 model sub_lecture {
   id         Int     @id @default(autoincrement())
   topic      String  @db.VarChar(50)
-  content    String? @db.VarChar(Max)
-  status     String  @db.VarChar(30)
+  content    String @db.VarChar(Max)
+  is_completed     Boolean @default(false)
   lecture_id String  @db.VarChar(25)
   lecture    lecture @relation(fields: [lecture_id], references: [id], onUpdate: NoAction)
 }
 
-model lecture_assestment_question_option {
+model lecture_assesstment_question_option {
   id            Int    @id @default(autoincrement())
   answer_option String @db.VarChar(300)
   lecture_question_id Int?
-  lecture_question     assestment_question? @relation(fields: [lecture_question_id], references: [id], onUpdate: NoAction)
+  lecture_question     lecture_assesstment_question? @relation(fields: [lecture_question_id], references: [id], onUpdate: NoAction)
   
 }
 
-model assestment_question {
+model lecture_assesstment_question {
   id              Int     @id @default(autoincrement())
   type            String  @db.VarChar(5)
   question        String  @db.VarChar(MAX)
@@ -113,8 +113,7 @@ model assestment_question {
   answer          String  @db.VarChar(MAX)
   student_answer  String? @db.VarChar(MAX)
   lecture_id      String  @db.VarChar(25)
-  options        lecture_assestment_question_option[]
-
+  options        lecture_assesstment_question_option[]
   lecture         lecture @relation(fields: [lecture_id], references: [id], onUpdate: NoAction)
 }
 
