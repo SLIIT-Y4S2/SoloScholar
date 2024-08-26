@@ -36,7 +36,7 @@ export async function synthesizeQuestionsForSubtopic(
   subtopic: string,
   subtopic_description: string,
   lesson_learning_outcome: string[],
-  cognitive_level: string[],
+  highest_cognitive_level: string,
   learning_level: LearningLevel,
   totalNumberOfQuestions: number,
   questionType: "short-answer" | "mcq"
@@ -90,7 +90,7 @@ export async function synthesizeQuestionsForSubtopic(
       subtopic: (input) => input.subtopic,
       subtopic_description: (input) => input.subtopic_description,
       lesson_learning_outcome: (input) => input.lesson_learning_outcome,
-      cognitive_level: (input) => input.cognitive_level,
+      highest_cognitive_level: (input) => input.highest_cognitive_level,
       learning_level: (input) => input.learning_level,
       totalNumberOfQuestions: (input) => input.totalNumberOfQuestions,
       beginnerQuestions: (input) => input.questionDistribution.beginner,
@@ -117,7 +117,7 @@ export async function synthesizeQuestionsForSubtopic(
     subtopic,
     subtopic_description,
     lesson_learning_outcome,
-    cognitive_level,
+    highest_cognitive_level,
     learning_level,
     totalNumberOfQuestions,
     questionDistribution: distributeQuestions(

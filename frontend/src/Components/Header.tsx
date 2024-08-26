@@ -8,28 +8,30 @@ import { useAuth } from "../provider/authProvider";
 const Header = () => {
   const { userDetails } = useAuth();
   return (
-    <div className="flex justify-between items-center text-base bg-white h-16 px-6 shadow-md">
-      <Link to={APP_ROUTES.HOME}>
-        <img src="/assets/soloscholar-logo.svg" alt="logo" className="h-12" />
-      </Link>
-      <div className="flex justify-center items-center gap-4">
-        <Link to={APP_ROUTES.HOME}>Home</Link>
-        {/* <Link to={APP_ROUTES.MODULES}>Modules</Link> */}
-        <Dropdown
-          menu={{
-            items: [
-              {
-                key: "modules",
-                label: <Link to={APP_ROUTES.ds}>Database Systems</Link>,
-              },
-            ],
-          }}
-        >
-          <div className="">Modules</div>
-        </Dropdown>
-        <ProfileIcon
-          student_id={`${userDetails?.first_name} ${userDetails?.last_name}`}
-        />
+    <div className="text-base bg-white h-20 px-6 py-3 shadow-md">
+      <div className="container flex justify-between items-center h-full mx-auto">
+        <Link to={APP_ROUTES.HOME}>
+          <img src="/assets/soloscholar-logo.svg" alt="logo" className="h-12" />
+        </Link>
+        <div className="flex justify-center items-center gap-4">
+          {/* <Link to={APP_ROUTES.HOME}>Home</Link> */}
+          {/* <Link to={APP_ROUTES.MODULES}>Modules</Link> */}
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "modules",
+                  label: <Link to={APP_ROUTES.ds}>Database Systems</Link>,
+                },
+              ],
+            }}
+          >
+            <div className="">Modules</div>
+          </Dropdown>
+          <ProfileIcon
+            student_id={`${userDetails?.first_name} ${userDetails?.last_name}`}
+          />
+        </div>
       </div>
     </div>
   );

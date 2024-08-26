@@ -56,8 +56,10 @@ const TutorialViewWithProvider = () => {
   return (
     <TutorialProvider>
       <Layout style={{ padding: "0 24px 24px" }}>
-        <CustomBreadcrumb />
-        <TutorialView />
+        <Layout className="container mx-auto">
+          <CustomBreadcrumb />
+          <TutorialView />
+        </Layout>
       </Layout>
     </TutorialProvider>
   );

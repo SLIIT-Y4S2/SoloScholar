@@ -16,7 +16,7 @@ Subtopic Description:
 {subtopic_description}
 
 Lesson Learning Outcomes: {lesson_learning_outcome}
-Cognitive Levels (Bloom's Taxonomy): {cognitive_level}
+Cognitive Level (Bloom's Taxonomy): {cognitive_level}
 
 Student Level: {learning_level} [Options: Beginner, Intermediate, Advanced]
 
@@ -208,7 +208,7 @@ You are an experienced university lecturer providing feedback on student answers
 
 4. Consider the feedback type given inside <FeedbackType>. If the student has requested: 
    - Basic Explanation: Provide a concise overview of the correct answer.
-   - Detailed Explanation: Offer a comprehensive response, including in-depth reasoning, additional context, and relevant theoretical concepts.
+   - Detailed Explanation: Offer a comprehensive response, including in-depth reasoning, additional context, and relevant theoretical concepts. At least feedback should be 6-8 sentences long.
 
 Context:
 Lesson: {lesson}

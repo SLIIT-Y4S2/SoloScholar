@@ -29,6 +29,9 @@ import {
   getLessonByModuleIdAndTitle,
   findSubtopicById,
 } from "../services/db/module.db.service";
+import { getHighestCognitiveLevel } from "../utils/tutorial.util";
+import { LearningLevel } from "../types/learning-material.types";
+import { CognitiveLevel } from "../types/module.types";
 
 export const generateTutorialHandler = async (
   req: Request<{}, {}, TutorialGenerationSchema["body"]>,
@@ -47,7 +50,6 @@ export const generateTutorialHandler = async (
   try {
     // MARK: STEP 1
     // get the lesson outline from the database
-    // we need check if the student has already generated the tutorial for the lesson for the given learning rate
 
     const lessonOutline = await getLessonOutlineByModuleAndLessonName(
       moduleName,
@@ -64,10 +66,43 @@ export const generateTutorialHandler = async (
       (tutorial) => tutorial.learning_level === learningLevel
     );
 
+    // check if the student has already generated the tutorial for the lesson for the given learning rate
     if (tutorialForLearningLevel) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         message: "Only one tutorial can be generated per learning level",
       });
+    }
+
+    // match the learning outcome of the lesson with the learning level of the student
+    // if the cognitive level of the learning outcome is higher than the student's learning level, then the student cannot generate the tutorial
+
+    const combined_cognitive_level =
+      lessonOutline.lesson_learning_outcomes.flatMap(
+        (outcome) => outcome.cognitive_level
+      );
+    // console.log("combined_cognitive_level", combined_cognitive_level); //TODO: remove this
+    const highest_cognitive_level = getHighestCognitiveLevel(
+      combined_cognitive_level
+    );
+
+    if (
+      highest_cognitive_level === "Remember" ||
+      highest_cognitive_level == "Understand"
+    ) {
+      if (learningLevel != "beginner")
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          message: "Learning level is too high for the lesson",
+        });
+    }
+
+    if (
+      highest_cognitive_level === "Apply" ||
+      highest_cognitive_level === "Analyze"
+    ) {
+      if (learningLevel === "advanced")
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          message: "Learning level is too high for the lesson",
+        });
     }
 
     // create a tutorial for the student
@@ -108,13 +143,6 @@ export const generateTutorialHandler = async (
       (outcome) => outcome.outcome
     );
 
-    const combined_cognitive_level =
-      lessonOutline.lesson_learning_outcomes.flatMap(
-        (outcome) => outcome.cognitive_level.level
-      );
-
-    console.log("combined_cognitive_level", combined_cognitive_level); //TODO: remove this
-
     const generateQuestionsForSubtopic = async (subtopic: {
       id: number;
       topic: string;
@@ -130,7 +158,7 @@ export const generateTutorialHandler = async (
           subtopic.topic,
           subtopic.description,
           learningOutcomes,
-          combined_cognitive_level,
+          highest_cognitive_level,
           learningLevel,
           numberOfMCQQuestionsPerSubLesson,
           "mcq"
@@ -144,7 +172,7 @@ export const generateTutorialHandler = async (
           subtopic.topic,
           subtopic.description,
           learningOutcomes,
-          combined_cognitive_level,
+          highest_cognitive_level,
           learningLevel,
           numberOfEssayQuestionsPerSubLesson,
           "short-answer"
@@ -213,6 +241,7 @@ export const getTutorialsByLearnerHandler = async (
     const { id: learner_id } = res.locals.user;
     const { moduleName, lessonTitle } = req.query;
 
+    // TODO: might be better to use the module name and lesson title to get the tutorial in (getTutorialByLearnerId)
     const module = await getModuleByName(moduleName);
 
     if (!module) {
@@ -235,9 +264,50 @@ export const getTutorialsByLearnerHandler = async (
       lesson.id
     );
 
+    const allLearningLevels: ("beginner" | "intermediate" | "advanced")[] = [
+      "beginner",
+      "intermediate",
+      "advanced",
+    ];
+    // filter from generated tutorials
+    const done = tutorials.map((tutorial) => tutorial.learning_level);
+    const remaining = allLearningLevels.filter(
+      (level) => !done.includes(level)
+    );
+
+    const combined_cognitive_level = lesson.lesson_learning_outcomes.flatMap(
+      (outcome) => outcome.learning_outcome.cognitive_level.level
+    );
+
+    console.log("combined_cognitive_level", combined_cognitive_level); //TODO: remove this
+    const highest_cognitive_level = getHighestCognitiveLevel(
+      combined_cognitive_level as CognitiveLevel[]
+    );
+
+    const allowedLearningLevels: LearningLevel[] = remaining.filter((level) => {
+      if (
+        highest_cognitive_level === "Remember" ||
+        highest_cognitive_level == "Understand"
+      ) {
+        return level === "beginner";
+      }
+
+      if (
+        highest_cognitive_level === "Apply" ||
+        highest_cognitive_level === "Analyze"
+      ) {
+        return level !== "advanced";
+      }
+
+      return true;
+    });
+
     res.status(200).json({
       message: "Tutorials fetched successfully",
-      data: tutorials,
+      data: {
+        tutorials,
+        allowedLearningLevels,
+      },
     });
   } catch (error) {
     const message = (error as Error).message;

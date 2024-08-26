@@ -26,24 +26,25 @@ const TutorialView = () => {
 
     const fetchTutorials = async () => {
       try {
-        const response: AxiosResponse<{ data: Tutorial[] }> =
-          await axiosInstance.get(API_URLS.TUTORIAL, {
-            params: {
-              moduleName: module.replace(/-/g, " "),
-              lessonTitle: lesson.replace(/-/g, " "),
-            },
-          });
-        const tutorials = response.data.data;
-        setPastTutorials(tutorials);
+        const response: AxiosResponse<{
+          data: { tutorials: Tutorial[]; allowedLearningLevels: string[] };
+        }> = await axiosInstance.get(API_URLS.TUTORIAL, {
+          params: {
+            moduleName: module.replace(/-/g, " "),
+            lessonTitle: lesson.replace(/-/g, " "),
+          },
+        });
+        const result = response.data.data;
+        setPastTutorials(result.tutorials);
 
-        const allLearningLevels: ("beginner" | "intermediate" | "advanced")[] =
-          ["beginner", "intermediate", "advanced"];
+        // const allLearningLevels: ("beginner" | "intermediate" | "advanced")[] =
+        //   ["beginner", "intermediate", "advanced"];
 
-        const done = tutorials.map((tutorial) => tutorial.learning_level);
-        const remaining = allLearningLevels.filter(
-          (level) => !done.includes(level)
-        );
-        setOptions(remaining);
+        // const done = tutorials.map((tutorial) => tutorial.learning_level);
+        // const remaining = allLearningLevels.filter(
+        //   (level) => !done.includes(level)
+        // );
+        setOptions(result.allowedLearningLevels);
       } catch (error) {
         handleError(error as AxiosError);
       } finally {
@@ -91,46 +92,49 @@ const TutorialView = () => {
 
   return (
     <Layout style={{ padding: "0 24px 24px" }}>
-      <CustomBreadcrumb />
-      <Content
-        style={{
-          padding: 24,
-          margin: 0,
-          minHeight: 280,
-          background: "#fff",
-          borderRadius: "15px",
-        }}
-        className="flex flex-col gap-4"
-      >
-        <h1 className="text-2xl font-bold">Tutorial</h1>
-        <p>
-          Velit aute reprehenderit fugiat occaecat sit aute amet labore laboris
-          occaecat deserunt officia. Aute anim ad aliquip minim eu dolore esse
-          non qui anim. Anim nulla in id eu aute nisi ex laborum ex nulla ea
-          aliquip do. Ex tempor do do labore est deserunt sunt cillum magna in
-          sunt dolor aliquip officia. Pariatur proident pariatur duis aliquip
-          exercitation ea anim aute duis ullamco magna fugiat incididunt mollit.
-          Cillum sit aute commodo occaecat proident laboris commodo. Mollit sit
-          voluptate exercitation adipisicing. Ipsum in quis Lorem in nostrud
-          ipsum. Amet tempor sit enim adipisicing esse esse. Labore qui Lorem
-          deserunt consectetur reprehenderit eu consectetur laboris labore nulla
-          nulla id ullamco nulla. Nulla officia irure voluptate exercitation
-          aute. Aute do cillum et labore. Esse aliquip est irure proident
-          laborum sit eiusmod dolor qui officia mollit nisi. Reprehenderit irure
-          nisi nisi laborum laborum ex duis. Reprehenderit sit amet ut anim
-          laboris eu non sint sunt adipisicing exercitation sunt magna do.
-        </p>
-        <div className="flex justify-end">
-          <Button
-            type="primary"
-            onClick={() => setIsModalVisible(true)}
-            disabled={options.length === 0}
-          >
-            Generate New Tutorial
-          </Button>
-        </div>
-        <PastTutorialsTable pastTutorials={pastTutorials} />
-      </Content>
+      <Layout className="container mx-auto">
+        <CustomBreadcrumb />
+        <Content
+          style={{
+            padding: 24,
+            margin: 0,
+            minHeight: 280,
+            background: "#fff",
+            borderRadius: "15px",
+          }}
+          className="flex flex-col gap-4"
+        >
+          <h1 className="text-2xl font-bold">Tutorial</h1>
+          <p>
+            Velit aute reprehenderit fugiat occaecat sit aute amet labore
+            laboris occaecat deserunt officia. Aute anim ad aliquip minim eu
+            dolore esse non qui anim. Anim nulla in id eu aute nisi ex laborum
+            ex nulla ea aliquip do. Ex tempor do do labore est deserunt sunt
+            cillum magna in sunt dolor aliquip officia. Pariatur proident
+            pariatur duis aliquip exercitation ea anim aute duis ullamco magna
+            fugiat incididunt mollit. Cillum sit aute commodo occaecat proident
+            laboris commodo. Mollit sit voluptate exercitation adipisicing.
+            Ipsum in quis Lorem in nostrud ipsum. Amet tempor sit enim
+            adipisicing esse esse. Labore qui Lorem deserunt consectetur
+            reprehenderit eu consectetur laboris labore nulla nulla id ullamco
+            nulla. Nulla officia irure voluptate exercitation aute. Aute do
+            cillum et labore. Esse aliquip est irure proident laborum sit
+            eiusmod dolor qui officia mollit nisi. Reprehenderit irure nisi nisi
+            laborum laborum ex duis. Reprehenderit sit amet ut anim laboris eu
+            non sint sunt adipisicing exercitation sunt magna do.
+          </p>
+          <div className="flex justify-end">
+            <Button
+              type="primary"
+              onClick={() => setIsModalVisible(true)}
+              disabled={options.length === 0}
+            >
+              Generate New Tutorial
+            </Button>
+          </div>
+          <PastTutorialsTable pastTutorials={pastTutorials} />
+        </Content>
+      </Layout>
       <GenerateTutorialModal
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}

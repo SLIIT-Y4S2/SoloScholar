@@ -1,5 +1,5 @@
 import { uniqBy } from "lodash";
-import { Module } from "../../types/module.types";
+import { CognitiveLevel, Module } from "../../types/module.types";
 import prisma from "../../utils/prisma-client.util";
 
 /**
@@ -117,7 +117,8 @@ export const getLessonOutlineByModuleAndLessonName = async (
     ...lesson,
     lesson_learning_outcomes: lesson.lesson_learning_outcomes.map((lo) => ({
       outcome: lo.learning_outcome.description,
-      cognitive_level: lo.learning_outcome.cognitive_level,
+      cognitive_level: lo.learning_outcome.cognitive_level
+        .level as CognitiveLevel,
     })),
   };
 };
@@ -185,6 +186,17 @@ export const getLessonByModuleIdAndTitle = async (
     where: {
       module_id: moduleId,
       title: lessonTitle,
+    },
+    include: {
+      lesson_learning_outcomes: {
+        include: {
+          learning_outcome: {
+            include: {
+              cognitive_level: true,
+            },
+          },
+        },
+      },
     },
   });
 

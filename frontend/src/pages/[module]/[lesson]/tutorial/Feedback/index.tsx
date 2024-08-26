@@ -46,7 +46,7 @@ const TutorialFeedback = () => {
 
         {question_number === filteredQuestions.length - 1 && (
           <Button type="primary" onClick={completeTutorial}>
-            Finish
+            End Feedback Session
           </Button>
         )}
 
