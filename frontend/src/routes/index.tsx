@@ -29,6 +29,8 @@ import LabOverview from "../pages/[module]/[lesson]/lab";
 import LabSession from "../pages/[module]/[lesson]/lab/[labID]";
 import Module from "../pages/[module]";
 import { Button, Result } from "antd";
+import DiscussionForum from "../pages/[module]/[lesson]/discussionForum";
+import { DiscussionForumProvider } from "../provider/DiscussionForumContext";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -146,13 +148,17 @@ const Routes = () => {
                     },
                     {
                       path: ":labSheetId/support-material",
-                      element: <SupportMaterialsForLab isNewTab={true} labSheetId={undefined}/>
+                      element: <SupportMaterialsForLab isNewTab={true} labSheetId={undefined} />
                     }
                   ]
                 },
 
               ]
             },
+            {
+              path: "discussion-forum",
+              element: <DiscussionForumProvider><DiscussionForum /></DiscussionForumProvider>
+            }
           ],
         },
       ],
