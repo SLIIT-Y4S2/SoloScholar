@@ -1,7 +1,7 @@
 import TutorialQuestionStatus from "./TutorialQuestionStatus";
 import QuestionCardForTutorialAnswering from "./QuestionCardForTutorialAnswering";
-import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import { Spin } from "antd";
+import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
 
 const TutorialQuestionView = () => {
   const { questions, current_question, isLoading } = useTutorialContext();
@@ -12,7 +12,7 @@ const TutorialQuestionView = () => {
 
   return (
     <Spin spinning={isLoading}>
-      <div className="flex flex-col gap-4  lg:flex-row lg:items-start ">
+      <div className="container mx-auto flex flex-col gap-4  lg:flex-row lg:items-start ">
         <TutorialQuestionStatus
           noOfQuestions={questions.length}
           answeredQuestions={questionsWithAnswers.map(

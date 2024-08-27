@@ -1,8 +1,5 @@
 import { Layout, Spin } from "antd";
-import {
-  TutorialProvider,
-  useTutorialContext,
-} from "../../../../provider/TutorialContext";
+import { TutorialProvider } from "../../../../provider/tutorial/TutorialContext";
 import RequestFeedback from "./RequestFeedback";
 import TutorialFeedback from "./Feedback";
 import TutorialQuestionView from "./TutorialQuestionView";
@@ -10,6 +7,7 @@ import CompletedTutorial from "./CompletedTutorial";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import Error from "../../../../Components/Error";
 import GeneratingView from "../../../../Components/tutorial/GeneratingView";
+import { useTutorialContext } from "../../../../provider/tutorial/useTutorialContext";
 
 const TutorialView = () => {
   const { isFetching, status, error } = useTutorialContext();
@@ -58,8 +56,10 @@ const TutorialViewWithProvider = () => {
   return (
     <TutorialProvider>
       <Layout style={{ padding: "0 24px 24px" }}>
-        <CustomBreadcrumb />
-        <TutorialView />
+        <Layout className="container mx-auto">
+          <CustomBreadcrumb />
+          <TutorialView />
+        </Layout>
       </Layout>
     </TutorialProvider>
   );

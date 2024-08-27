@@ -1,8 +1,5 @@
-import { TutorialQuestion } from "./../../types/tutorial.types";
-import { logger } from "./../../utils/logger.utils";
 import { Decimal } from "@prisma/client/runtime/library";
 import prisma from "../../utils/prisma-client.util";
-import { Prisma } from "@prisma/client";
 
 /**
  * Create tutorial without questions
@@ -275,7 +272,7 @@ export const getTutorialByLearnerId = async (
 export const saveTutorialAnswer = async (
   tutorialId: string,
   questionId: number,
-  answer: string | undefined,
+  answer: string | null,
   nextQuestionNumber: number,
   isSubmission: boolean = false
 ): Promise<{
@@ -297,13 +294,13 @@ export const saveTutorialAnswer = async (
     throw new Error("Tutorial not found");
   }
 
-  if (answer == undefined) {
-    return {
-      id: questionId,
-      current_question: tutorial.current_question,
-      status: tutorial.status,
-    };
-  }
+  // if (answer == undefined) {
+  //   return {
+  //     id: questionId,
+  //     current_question: tutorial.current_question,
+  //     status: tutorial.status,
+  //   };
+  // }
 
   const tutorialQuestion = await prisma.tutorial_question.update({
     where: {
@@ -320,9 +317,9 @@ export const saveTutorialAnswer = async (
     throw new Error("Tutorial question not found");
   }
 
-  if (!tutorialQuestion.student_answer) {
-    throw new Error("Student answer not found");
-  }
+  // if (!tutorialQuestion.student_answer) {
+  //   throw new Error("Student answer not found");
+  // }
 
   return {
     id: tutorialQuestion.id,
@@ -465,4 +462,4 @@ export const deleteTutorial = async (id: string): Promise<void> => {
     }),
   ]);
 };
-// deleteTutorial("clzv3rww0000010g85wci9yvn");
+// deleteTutorial("clzwuhnhm00017517gmuzao30");

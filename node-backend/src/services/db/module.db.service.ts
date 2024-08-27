@@ -1,4 +1,5 @@
-import { CognitiveLevel, Lesson, Module } from "../../types/module.types";
+import { uniqBy } from "lodash";
+import { CognitiveLevel, Module } from "../../types/module.types";
 import prisma from "../../utils/prisma-client.util";
 
 /**
@@ -7,30 +8,21 @@ import prisma from "../../utils/prisma-client.util";
  */
 export const createModule = async (module: Module) => {
   // Step 1: Create or connect learning outcomes
-  const uniqueOutcomes = [
-    ...new Set(
-      module.lessons.flatMap((lesson) =>
-        lesson.lesson_learning_outcomes.map((outcome) => outcome.outcome)
-      )
-    ),
-  ];
-
-  const learningOutcomes = await Promise.all(
-    uniqueOutcomes.map(async (outcomeDescription) => {
+  const uniqueOutcomes = uniqBy(
+    module.lessons.flatMap((lesson) => lesson.lesson_learning_outcomes),
+    (lo) => lo.outcome
+  );
+  await Promise.all(
+    uniqueOutcomes.map(async ({ cognitive_level, outcome }) => {
       return await prisma.learning_outcome.upsert({
-        where: { description: outcomeDescription },
+        where: { description: outcome },
         update: {},
         create: {
-          description: outcomeDescription,
-          learning_outcome_cognitive_level: {
-            create: module.lessons
-              .flatMap((lesson) => lesson.lesson_learning_outcomes)
-              .find((outcome) => outcome.outcome === outcomeDescription)!
-              .cognitive_levels.map((level) => ({
-                cognitive_level: {
-                  connect: { level: level },
-                },
-              })),
+          description: outcome,
+          cognitive_level: {
+            connect: {
+              level: cognitive_level,
+            },
           },
         },
       });
@@ -71,11 +63,7 @@ export const createModule = async (module: Module) => {
             include: {
               learning_outcome: {
                 include: {
-                  learning_outcome_cognitive_level: {
-                    include: {
-                      cognitive_level: true,
-                    },
-                  },
+                  lesson_learning_outcome: true,
                 },
               },
             },
@@ -108,15 +96,7 @@ export const getLessonOutlineByModuleAndLessonName = async (
             include: {
               learning_outcome: {
                 include: {
-                  learning_outcome_cognitive_level: {
-                    include: {
-                      cognitive_level: {
-                        select: {
-                          level: true,
-                        },
-                      },
-                    },
-                  },
+                  cognitive_level: true,
                 },
               },
             },
@@ -137,10 +117,8 @@ export const getLessonOutlineByModuleAndLessonName = async (
     ...lesson,
     lesson_learning_outcomes: lesson.lesson_learning_outcomes.map((lo) => ({
       outcome: lo.learning_outcome.description,
-      cognitive_levels:
-        lo.learning_outcome.learning_outcome_cognitive_level.map(
-          (col) => col.cognitive_level.level as CognitiveLevel
-        ),
+      cognitive_level: lo.learning_outcome.cognitive_level
+        .level as CognitiveLevel,
     })),
   };
 };
@@ -159,13 +137,36 @@ export const getModuleByName = async (moduleName: string) => {
     include: {
       lessons: {
         include: {
+          //TODO: remove include
           sub_lessons: true,
+          lesson_learning_outcomes: {
+            include: {
+              learning_outcome: {
+                include: {
+                  cognitive_level: true,
+                },
+              },
+            },
+          },
         },
       },
     },
   });
 
-  return module;
+  if (!module) {
+    throw new Error("Module not found");
+  }
+
+  return {
+    ...module,
+    lessons: module.lessons.map((lesson) => ({
+      ...lesson,
+      lesson_learning_outcomes: lesson.lesson_learning_outcomes.map((lo) => ({
+        outcome: lo.learning_outcome.description,
+        cognitive_level: lo.learning_outcome.cognitive_level.level,
+      })),
+    })),
+  };
 };
 
 /**
@@ -185,6 +186,17 @@ export const getLessonByModuleIdAndTitle = async (
     where: {
       module_id: moduleId,
       title: lessonTitle,
+    },
+    include: {
+      lesson_learning_outcomes: {
+        include: {
+          learning_outcome: {
+            include: {
+              cognitive_level: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -227,16 +239,7 @@ export const deleteModule = async (id: number) => {
       },
     });
 
-    // 3. Delete learning_outcome_cognitive_levels
-    await prisma.learning_outcome_cognitive_level.deleteMany({
-      where: {
-        learning_outcome_id: {
-          in: learningOutcomeIds,
-        },
-      },
-    });
-
-    // 4. Delete learning_outcomes
+    // 3. Delete learning_outcomes
     await prisma.learning_outcome.deleteMany({
       where: {
         id: {
@@ -245,7 +248,7 @@ export const deleteModule = async (id: number) => {
       },
     });
 
-    // 5. Delete lesson_subtopics
+    // 4. Delete lesson_subtopics
     await prisma.sub_lesson.deleteMany({
       where: {
         lesson: {
@@ -254,7 +257,7 @@ export const deleteModule = async (id: number) => {
       },
     });
 
-    // 6. Delete tutorials
+    // 5. Delete tutorials
     await prisma.tutorial.deleteMany({
       where: {
         learning_material: {
@@ -265,7 +268,7 @@ export const deleteModule = async (id: number) => {
       },
     });
 
-    // 7. Delete learning_materials
+    // 6. Delete learning_materials
     await prisma.learning_material.deleteMany({
       where: {
         lesson: {
@@ -274,14 +277,14 @@ export const deleteModule = async (id: number) => {
       },
     });
 
-    // 8. Delete lessons
+    // 7. Delete lessons
     await prisma.lesson.deleteMany({
       where: {
         module_id: id,
       },
     });
 
-    // 9. Finally, delete the module itself
+    // 8. Finally, delete the module itself
     const deletedModule = await prisma.module.delete({
       where: { id },
       include: {
