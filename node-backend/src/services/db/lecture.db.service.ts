@@ -90,3 +90,64 @@ export const saveLectureContenttoDB =  (
     },
   });
 };
+
+
+/**
+ * Get lectuers by learner id, module name, and lesson title
+ * @param learnerId
+ * @param moduleName
+ * @param lessonTitle
+ * @returns
+ * @async
+ * @function
+ * @public
+ */
+export const getLectureByLearnerId = async (
+  learnerId: string,
+  moduleId: number,
+  lessonId: number
+): Promise<
+  {
+    id: string;
+    created_at: Date;
+    status: string;
+    learning_level: string;
+  }[]
+> => {
+  const lectures = await prisma.lecture.findMany({
+    where: {
+      learning_material: {
+        learner_id: learnerId,
+        lesson: {
+          id: lessonId,
+          module: {
+            id: moduleId,
+          },
+        },
+      },
+    },
+    include: {
+      learning_material: {
+        include: {
+          lesson: {
+            include: {
+              module: true,
+            },
+          },
+        },
+      },
+      assessment_question: {
+        include: {
+          options: true,
+        },
+      },
+    },
+  });
+
+  return lectures.map((lecture) => ({
+    id: lecture.id,
+    created_at: lecture.learning_material.created_at,
+    status: lecture.status,
+    learning_level: lecture.learning_material.learning_level,
+  }));
+};

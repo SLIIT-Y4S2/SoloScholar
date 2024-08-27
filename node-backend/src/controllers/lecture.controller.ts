@@ -1,13 +1,20 @@
 import { logger } from "@azure/storage-blob";
 import { Request, Response } from "express";
-import { MODULE_OUTLINE_LESSON_ARRAY } from "../dummyData/lessonOutline";
+// import { MODULE_OUTLINE_LESSON_ARRAY } from "../dummyData/lessonOutline";
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import { PassThrough } from "stream";
 
 import {
   createLecture,
   saveLectureContenttoDB,
+  getLectureByLearnerId,
 } from "../services/db/lecture.db.service";
+
+import {
+  GetLectureByIdSchema,
+  GetLecturesByLearnerSchema,
+  LectureGenerationSchema,
+} from "../models/lecture.schema";
 
 import {
   generateLectureForSubtopic,
@@ -16,7 +23,13 @@ import {
   generateMCQsForLecture,
 } from "../services/lecture.service";
 
-import { getLessonOutlineByModuleAndLessonName } from "../services/db/module.db.service";
+import {
+  getLessonOutlineByModuleAndLessonName,
+  getModuleByName,
+  getLessonByModuleIdAndTitle,
+  findSubtopicById,
+} from "../services/db/module.db.service";
+
 import prisma from "../utils/prisma-client.util";
 
 export const generateLectureHandler = async (req: Request, res: Response) => {
@@ -34,7 +47,7 @@ export const generateLectureHandler = async (req: Request, res: Response) => {
       lessonTitle
     );
 
-    // create a tutorial for the student
+    // create a lecture for the student
     const lecture = await createLecture(
       lessonOutline.id,
       learner_id,
@@ -103,65 +116,65 @@ export const generateLectureHandler = async (req: Request, res: Response) => {
     return res.status(200).send(updatedLecture);
 
     // TTS Conversion
-    const speechKey = process.env.SPEECH_KEY || "";
-    const speechRegion = process.env.SPEECH_REGION || "";
+    // const speechKey = process.env.SPEECH_KEY || "";
+    // const speechRegion = process.env.SPEECH_REGION || "";
 
-    const speechConfig = sdk.SpeechConfig.fromSubscription(
-      speechKey,
-      speechRegion
-    );
-    speechConfig.speechSynthesisVoiceName = `en-US-${
-      req.query.teacher || "Ava"
-    }Neural`;
+    // const speechConfig = sdk.SpeechConfig.fromSubscription(
+    //   speechKey,
+    //   speechRegion
+    // );
+    // speechConfig.speechSynthesisVoiceName = `en-US-${
+    //   req.query.teacher || "Ava"
+    // }Neural`;
 
-    const speechSynthesizer = new sdk.SpeechSynthesizer(speechConfig);
-    const visemes: number[][] = [];
-    speechSynthesizer.visemeReceived = function (s, e) {
-      visemes.push([e.audioOffset / 10000, e.visemeId]);
-    };
+    // const speechSynthesizer = new sdk.SpeechSynthesizer(speechConfig);
+    // const visemes: number[][] = [];
+    // speechSynthesizer.visemeReceived = function (s, e) {
+    //   visemes.push([e.audioOffset / 10000, e.visemeId]);
+    // };
 
-    const audioStream: PassThrough = await new Promise((resolve, reject) => {
-      speechSynthesizer.speakTextAsync(
-        //fullTranscript,
-        (result) => {
-          if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
-            const { audioData } = result;
-            speechSynthesizer.close();
+    // const audioStream: PassThrough = await new Promise((resolve, reject) => {
+    //   speechSynthesizer.speakTextAsync(
+    //     //fullTranscript,
+    //     (result) => {
+    //       if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
+    //         const { audioData } = result;
+    //         speechSynthesizer.close();
 
-            if (!audioData) {
-              reject(new Error("No audio data received"));
-              return;
-            }
+    //         if (!audioData) {
+    //           reject(new Error("No audio data received"));
+    //           return;
+    //         }
 
-            const bufferStream = new PassThrough();
-            bufferStream.end(Buffer.from(audioData));
-            resolve(bufferStream);
-          } else {
-            speechSynthesizer.close();
-            reject(
-              new Error(`Speech synthesis failed. Reason: ${result.reason}`)
-            );
-          }
-        },
-        (error) => {
-          speechSynthesizer.close();
-          reject(error);
-        }
-      );
-    });
+    //         const bufferStream = new PassThrough();
+    //         bufferStream.end(Buffer.from(audioData));
+    //         resolve(bufferStream);
+    //       } else {
+    //         speechSynthesizer.close();
+    //         reject(
+    //           new Error(`Speech synthesis failed. Reason: ${result.reason}`)
+    //         );
+    //       }
+    //     },
+    //     (error) => {
+    //       speechSynthesizer.close();
+    //       reject(error);
+    //     }
+    //   );
+    // });
 
-    const audioChunks = [];
-    for await (const chunk of audioStream) {
-      audioChunks.push(chunk);
-    }
-    const audioBuffer = Buffer.concat(audioChunks);
-    const audioBase64 = audioBuffer.toString("base64");
+    // const audioChunks = [];
+    // for await (const chunk of audioStream) {
+    //   audioChunks.push(chunk);
+    // }
+    // const audioBuffer = Buffer.concat(audioChunks);
+    // const audioBase64 = audioBuffer.toString("base64");
 
-    res.status(200).json({
-      fullTranscript,
-      audioBase64,
-      visemes,
-    });
+    // res.status(200).json({
+    //   fullTranscript,
+    //   audioBase64,
+    //   visemes,
+    // });
   } catch (error) {
     console.log(error);
     const message = (error as Error).message;
@@ -208,6 +221,47 @@ export const getLectureByIdHandler = async (req: Request, res: Response) => {
   } catch (error) {
     const message = (error as Error).message;
     res.status(500).json({ message });
+    logger.error({ message });
+  }
+};
+
+export const getLecturesByLearnerHandler = async (
+  req: Request<{}, {}, {}, GetLecturesByLearnerSchema["query"]>,
+  res: Response
+) => {
+  try {
+    const { id: learner_id } = res.locals.user;
+    const { moduleName, lessonTitle } = req.query;
+
+    const module = await getModuleByName(moduleName);
+
+    if (!module) {
+      return res.status(404).json({
+        message: "Module not found",
+      });
+    }
+
+    const lesson = await getLessonByModuleIdAndTitle(module.id, lessonTitle);
+
+    if (!lesson) {
+      return res.status(404).json({
+        message: "Lesson not found",
+      });
+    }
+
+    const tutorials = await getLectureByLearnerId(
+      learner_id,
+      module.id,
+      lesson.id
+    );
+
+    res.status(200).json({
+      message: "Lectures fetched successfully",
+      data: tutorials,
+    });
+  } catch (error) {
+    const message = (error as Error).message;
+    res.status(500).json({ message: " Internal server error", error });
     logger.error({ message });
   }
 };

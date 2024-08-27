@@ -166,7 +166,7 @@ const Routes = () => {
               element: <Lecture />,
             },
             {
-              path: "lecture/:lectureID",
+              path: "lecture/:lectureId",
               element: <Lecturesgenerated />,
             },
             {
