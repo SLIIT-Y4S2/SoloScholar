@@ -1,4 +1,6 @@
+//"use client";
 import { useAITeacher } from "../../hooks/useAITeacher";
+import { useLectureContext } from "../../provider/lecture/useLectureContext";
 import {
   CameraControls,
   Environment,
@@ -41,13 +43,17 @@ const itemPlacement = {
 };
 
 export const Experience = () => {
+
+  const lectureContext = useLectureContext();
+  const { lecture, isLoading, error, currentSubLectureContent } = lectureContext;
+
   const teacher = useAITeacher((state) => state.teacher);
   const classroom = useAITeacher((state) => state.classroom);
 
   return (
     <>
       <div className="z-10 md:justify-center fixed bottom-4 left-4 right-4 flex gap-3 flex-wrap justify-stretch">
-        <TypingBox />
+        <TypingBox/>
       </div>
       <Leva hidden />
       <Loader />
@@ -68,7 +74,7 @@ export const Experience = () => {
               <MessagesList />
               <BoardSettings />
             </Html>
-            <Environment files={"/models/venice_sunset_1k.hdr"}/>
+            <Environment files="/models/venice_sunset_1k.hdr" />
             <ambientLight intensity={0.8} color="pink" />
 
             <Gltf
@@ -87,6 +93,7 @@ export const Experience = () => {
       </Canvas>
     </>
   );
+
 };
 
 const CAMERA_POSITIONS = {

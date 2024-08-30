@@ -48,3 +48,22 @@ export const completeLectureService = async (lectureId: string) => {
   const response = await axiosInstance.post(`/lecture/${lectureId}/complete`);
   return response.data.data;
 };
+
+
+
+export const getTTS = async (teacher: string, text: string) => {
+  try {
+    const response = await axiosInstance.get('/tts', {
+      params: {
+        teacher,
+        text,
+      },
+    });
+
+    console.log("TTS response:", response.data);
+    return response.data.data; // Return the data property directly
+  } catch (error) {
+    console.error('Error fetching TTS:', error);
+    throw error;
+  }
+};

@@ -222,6 +222,7 @@ export async function generateMCQsForLecture(
     }));
 }
 
+
 // MARK: generate post-assessment MCQs
 // export async function generatePostAssessmentMCQs(lesson_title: string, generatedContent: string[]) {
 //     const context = await documentRetrievalPipeline(lesson_title);

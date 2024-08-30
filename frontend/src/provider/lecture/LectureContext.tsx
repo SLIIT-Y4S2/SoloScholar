@@ -61,27 +61,36 @@ export type LectureStatus =
   | "completed"
   | "submitted";
 
-interface LectureContextType {
-  lecture: Lecture | null;
-  status?: LectureStatus;
-  current_sub_lecture: number;
-  isFetching: boolean;
-  isLoading: boolean;
-  error: string | null;
-  studentsAnswerForTheCurrentQuestion: string | null;
-
-  setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
-  submitAnswer: (current: number, next: number | null) => void;
-  requestFeedback: (questionFeedback: { [key: string]: string }[]) => void;
-  completeLecture: () => void;
-}
+  interface LectureContextType {
+    lecture: Lecture | null;
+    status?: LectureStatus;
+    selectedKey: string;
+    current_sub_lecture: number;
+    currentSubLectureContent: string | null; // Add this line
+    isFetching: boolean;
+    isLoading: boolean;
+    error: string | null;
+    studentsAnswerForTheCurrentQuestion: string | null;
+  
+    setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
+    submitAnswer: (current: number, next: number | null) => void;
+    requestFeedback: (questionFeedback: { [key: string]: string }[]) => void;
+    completeLecture: () => void;
+    setCurrentSubLectureContent: (content: string | null) => void; // Add this line
+    setSelectedKey: (key: string) => void; // Add this line
+  }
 
 export const LectureProviderContext = createContext<LectureContextType | null>(null);
 
 export function LectureProvider({ children }: LectureProviderProps) {
   const { lectureId } = useParams();
 
+  const [currentSubLectureContent, setCurrentSubLectureContent] = useState<string | null>(null);
+
   const [lecture, setLecture] = useState<Lecture | null>(null);
+
+  const [selectedKey, setSelectedKey] = useState<string>("sub1");
+
   const [current_sub_lecture, setCurrentSubLecture] = useState<number>(1);
   const [studentsAnswerForTheCurrentQuestion, setStudentsAnswerForTheCurrentQuestion] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(true);
@@ -207,6 +216,7 @@ export function LectureProvider({ children }: LectureProviderProps) {
         isFetching,
         isLoading,
         current_sub_lecture,
+        currentSubLectureContent,
         studentsAnswerForTheCurrentQuestion,
         setStudentsAnswerForTheCurrentQuestion,
         submitAnswer,
@@ -214,6 +224,9 @@ export function LectureProvider({ children }: LectureProviderProps) {
         requestFeedback,
         error,
         completeLecture,
+        setCurrentSubLectureContent,
+        selectedKey,
+        setSelectedKey,
       }}
     >
       {contextHolder}

@@ -7,6 +7,7 @@ export const API_URLS = {
   LOGOUT: `/auth/logout`,
   TUTORIAL: `/tutorial`,
   Lecture: `/lecture`,
+  LectureTTS: `/lecture/tts`,
   LectureGenerate: `/lecture/generate`,
 };
 

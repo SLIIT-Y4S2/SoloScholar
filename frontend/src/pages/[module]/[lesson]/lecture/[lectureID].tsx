@@ -8,43 +8,42 @@ import { LectureProvider } from "../../../../provider/lecture/LectureContext";
 import { useLectureContext } from "../../../../provider/lecture/useLectureContext";
 
 // @ts-ignore
-import { Experience } from "../../../../Components/lecture/Experience.jsx"; // Import the Ex1 component
+import { Experience } from "../../../../Components/lecture/Experience.jsx";
 
 const { Content, Sider } = Layout;
 
 function Lecture() {
-    const [selectedKey, setSelectedKey] = useState<string>("sub1");
+    const lectureContext = useLectureContext();
+    const { lecture, isLoading, error, setSelectedKey } = lectureContext;
+
     const [showEx1, setShowEx1] = useState(false);
 
-    const lectureContext = useLectureContext();
-    const { lecture, isLoading, error } = lectureContext;
-
     const handleMenuClick = (e: { key: string }): void => {
-        setShowEx1(false); // Reset the showEx1 state to false when a new menu item is clicked
+        setShowEx1(false);
         setSelectedKey(e.key);
     };
 
     const handleCompleteLecture = () => {
-        setShowEx1(true); // Set the state to show the Ex1 component
+        setShowEx1(true);
     };
 
     const renderContent = (): JSX.Element => {
         if (showEx1) {
-            return <Experience />; // Render the Ex1 component when showEx1 is true
+            return <Experience />;
         }
 
         if (!lecture || !lecture.sub_lecture) {
             return <div>No content available</div>;
         }
 
-        if (selectedKey === "pre-assessment") {
+        if (lectureContext.selectedKey === "pre-assessment") {
             return <Assessment type="pre" />;
-        } else if (selectedKey === "post-assessment") {
+        } else if (lectureContext.selectedKey === "post-assessment") {
             return <Assessment type="post" />;
         }
 
         const selectedSubLecture = lecture.sub_lecture.find(
-            (_, index: number) => `sub${index + 1}` === selectedKey
+            (_, index: number) => `sub${index + 1}` === lectureContext.selectedKey
         );
 
         return (
@@ -79,7 +78,7 @@ function Lecture() {
                     <Sider style={{ background: "#fff" }} width={200}>
                         <Menu
                             mode="inline"
-                            selectedKeys={[selectedKey]}
+                            selectedKeys={[lectureContext.selectedKey]}
                             defaultOpenKeys={["sub1"]}
                             style={{ height: "100%" }}
                             onClick={handleMenuClick}
@@ -120,7 +119,7 @@ function Lecture() {
                     </Sider>
                     <Content style={{ padding: "0 24px", minHeight: 550 }}>
                         {renderContent()}
-                        {selectedKey !== "pre-assessment" && selectedKey !== "post-assessment" && !showEx1 && (
+                        {lectureContext.selectedKey !== "pre-assessment" && lectureContext.selectedKey !== "post-assessment" && !showEx1 && (
                             <Button type="primary" onClick={handleCompleteLecture}>
                                 View Lecture
                             </Button>
