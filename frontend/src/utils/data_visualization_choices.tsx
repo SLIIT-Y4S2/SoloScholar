@@ -1,14 +1,10 @@
-import CustomAreaChart from "../pages/dashboard/visualizations/CustomAreaChart";
-import CustomBarChart from "../pages/dashboard/visualizations/CustomBarChart";
-import CustomLineChart from "../pages/dashboard/visualizations/CustomLineChart";
-import CustomPieChart from "../pages/dashboard/visualizations/CustomPieChart";
-import CustomScatterChart from "../pages/dashboard/visualizations/CustomScatterChart";
-import CustomTable from "../pages/dashboard/visualizations/CustomTable";
-
-export interface VisualizationChoice {
-  value: string;
-  label: JSX.Element;
-}
+import CustomAreaChart from "../Components/dashboard/CustomAreaChart";
+import CustomBarChart from "../Components/dashboard/CustomBarChart";
+import CustomLineChart from "../Components/dashboard/CustomLineChart";
+import CustomPieChart from "../Components/dashboard/CustomPieChart";
+import CustomScatterChart from "../Components/dashboard/CustomScatterChart";
+import CustomTable from "../Components/dashboard/CustomTable";
+import { VisualizationChoice } from "../types/dashboard.types";
 
 export const visualizationChoices: VisualizationChoice[] = [
   {

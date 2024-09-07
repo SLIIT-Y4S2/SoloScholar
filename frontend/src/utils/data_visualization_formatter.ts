@@ -4,10 +4,7 @@
  * @param visualizationChoice
  * @returns formattedData
  */
-const getFormattedData = async (
-  data: Object[],
-  visualizationChoice: string
-) => {
+const getFormattedData = (data: any[], visualizationChoice: string) => {
   let formattedData: {
     xLabel?: string;
     yLabel?: string;
@@ -19,25 +16,20 @@ const getFormattedData = async (
     tableData?: any;
   };
   if (visualizationChoice === "Pie Chart") {
-    formattedData = await getPieChartFormattedData(data);
+    formattedData = getPieChartFormattedData(data);
   } else if (visualizationChoice === "Table") {
-    formattedData = await getTableFormattedData(data);
+    formattedData = getTableFormattedData(data);
   } else {
-    formattedData = await getDefaultFormattedData(data);
+    formattedData = getDefaultFormattedData(data);
   }
   return formattedData;
 };
 
 /**
- * TODO Define a function to check for data types and no.of keys in the input data. Accordingly appropriate
- * data formatting function should be called.
- */
-
-/**
  * Format data for pie chart.
  * @param data
  */
-const getPieChartFormattedData = async (data: any) => {
+const getPieChartFormattedData = (data: any[]) => {
   const formattedValues: any = data.map((datum: any) => {
     const keys = Object.keys(datum);
     return {
@@ -54,7 +46,7 @@ const getPieChartFormattedData = async (data: any) => {
  * Format data for table.
  * @param data
  */
-const getTableFormattedData = async (data: any) => {
+const getTableFormattedData = (data: any[]) => {
   // Extract column definitions
   const keys: string[] = Object.keys(data[0]);
   const tableColumns: {
@@ -80,7 +72,7 @@ const getTableFormattedData = async (data: any) => {
  * Format data for all other charts since all adhere to the same format.
  * @param data
  */
-const getDefaultFormattedData = async (data: Object[]) => {
+const getDefaultFormattedData = (data: any[]) => {
   const keys: string[] = Object.keys(data[0]);
   const formattedValues: {
     xValue: string | number;
