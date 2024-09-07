@@ -1,27 +1,18 @@
-import { Fragment } from "react/jsx-runtime";
 import BreadCrumb from "../../Components/BreadCrumb";
-import { useContext, useState } from "react";
-import { DashboardContext } from "../../provider/DashboardContext";
+import { Fragment } from "react/jsx-runtime";
+import { useState } from "react";
+import { useDashboardContext } from "../../provider/DashboardContext";
+import { Typography, Input, Select, Button, Skeleton, message } from "antd";
 import {
   getVisualization,
   visualizationChoices,
 } from "../../utils/data_visualization_choices";
-import {
-  Layout,
-  Typography,
-  Input,
-  Select,
-  Button,
-  Skeleton,
-  message,
-} from "antd";
 
-const { Content } = Layout;
 const { Text } = Typography;
 const { TextArea } = Input;
 
 const CustomAnalyticalIndicatorPrimary = () => {
-  const { generateIndicator } = useContext(DashboardContext);
+  const { generateIndicator } = useDashboardContext();
   const [messageApi, contextHolder] = message.useMessage();
   const [analysisGoal, setAnalysisGoal] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -37,7 +28,7 @@ const CustomAnalyticalIndicatorPrimary = () => {
         sidebarOption={{ label: "Custom Analytical Indicator" }}
       />
 
-      <Content
+      <div
         className="
       pt-[43px] pr-[46px] pb-[39px] pl-[46px]
       mt-[35px] mr-[80px] mb-[98px] ml-[45px]
@@ -107,7 +98,7 @@ E.g. I want to see how many beginner level students have scored more than averag
             </div>
           </Fragment>
         )}
-      </Content>
+      </div>
     </Fragment>
   );
 };

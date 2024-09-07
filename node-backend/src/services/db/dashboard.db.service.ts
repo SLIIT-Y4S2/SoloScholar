@@ -42,19 +42,23 @@ export const editIndicator = async (indicator: any) => {
   return await prisma.analytical_indicator.update({
     where: {
       id: indicator.id,
+      instructor_id: indicator.instructorId,
     },
     data: {
       indicator_name: indicator.indicatorName,
-      analysis_goal: indicator.analysisGoal,
       visualization_choice: indicator.visualizationChoice,
     },
   });
 };
 
-export const deleteIndicator = async (indicatorId: string) => {
+export const deleteIndicator = async (
+  indicatorId: string,
+  instructorId: string
+) => {
   return await prisma.analytical_indicator.delete({
     where: {
       id: indicatorId,
+      instructor_id: instructorId,
     },
   });
 };

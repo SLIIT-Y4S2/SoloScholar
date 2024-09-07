@@ -16,7 +16,7 @@ const dashboardRouter: Router = Router();
 dashboardRouter.post("/", generateIndicator);
 dashboardRouter.post("/indicators", saveIndicator);
 dashboardRouter.put("/indicators", editIndicator);
-dashboardRouter.get("/:instructorId", getIndicators);
+dashboardRouter.get("/", getIndicators);
 dashboardRouter.get("/indicators/:indicatorId", getIndicatorData);
 dashboardRouter.delete("/indicators/:indicatorId", deleteIndicator);
 
