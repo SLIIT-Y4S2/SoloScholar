@@ -1,6 +1,11 @@
 import { DataSource } from "typeorm";
 import { SqlDatabase } from "langchain/sql_db";
-import { ChatOpenAI, ChatOpenAICallOptions } from "@langchain/openai";
+import {
+  ChatOpenAI,
+  OpenAIEmbeddings,
+  ChatOpenAICallOptions,
+  OpenAI,
+} from "@langchain/openai";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { ZodTypeAny, ZodObject, ZodString } from "zod";
@@ -13,6 +18,7 @@ import {
   AZURE_SQL_PASSWORD,
   AZURE_SQL_USERNAME,
 } from "../constants/azure.constants";
+import { getEmbeddings } from "./openai.util";
 
 const datasource: DataSource = new DataSource({
   type: "mssql",
@@ -101,27 +107,91 @@ interface Table {
   columns: Column[];
 }
 
+// /**
+//  *  Function that converts the table information in JSON form into an array of metadata objects.
+//  */
+// async function getTableMetadata(tableInformation: { table_info: Table[] }) {
+//   return tableInformation.table_info.map((table) => {
+//     const columns: Column[] = table.columns;
+
+//     // Extract column details
+//     const columnNames = columns.map((column) => column.name);
+//     const columnDataTypes = columns.map((column) => column.data_type);
+//     const columnDescriptions = columns.map((column) => column.description);
+
+//     // Create metadata object
+//     return {
+//       table_name: table.name,
+//       table_description: table.description,
+//       column_names: JSON.stringify(columnNames),
+//       data_types: JSON.stringify(columnDataTypes),
+//       column_descriptions: JSON.stringify(columnDescriptions),
+//     };
+//   });
+// }
+
 /**
  *  Function that converts the table information in JSON form into an array of metadata objects.
  */
 async function getTableMetadata(tableInformation: { table_info: Table[] }) {
-  return tableInformation.table_info.map((table) => {
-    const columns: Column[] = table.columns;
+  // Initialize the OpenAI embeddings client
+  const openAIEmbeddings = getEmbeddings();
 
-    // Extract column details
-    const columnNames = columns.map((column) => column.name);
-    const columnDataTypes = columns.map((column) => column.data_type);
-    const columnDescriptions = columns.map((column) => column.description);
+  return Promise.all(
+    tableInformation.table_info.map(async (table) => {
+      const columns: Column[] = table.columns;
 
-    // Create metadata object
-    return {
-      table_name: table.name,
-      table_description: table.description,
-      column_names: JSON.stringify(columnNames),
-      data_types: JSON.stringify(columnDataTypes),
-      column_descriptions: JSON.stringify(columnDescriptions),
-    };
-  });
+      // Create text representations
+      const columnNamesText = JSON.stringify(
+        columns.map((column) => column.name)
+      );
+      const columnDataTypesText = JSON.stringify(
+        columns.map((column) => column.data_type)
+      );
+      const columnDescriptionsText = JSON.stringify(
+        columns.map((column) => column.description)
+      );
+
+      // Extract column details
+      // const columnNames = columns.map((column) => column.name);
+      // const columnDataTypes = columns.map((column) => column.data_type);
+      // const columnDescriptions = columns.map((column) => column.description);
+
+      // Table metadata text
+      const tableText = `Table: ${table.name} | Description: ${table.description}`;
+
+      // Combine all metadata into one text
+      const combinedText = `${tableText} | Columns: ${columnNamesText} | Data Types: ${columnDataTypesText} | Descriptions: ${columnDescriptionsText}`;
+
+      // Generate embeddings using LangChain
+      const tableEmbedding = await openAIEmbeddings.embedQuery(tableText); // Table embedding
+      const combinedEmbedding = await openAIEmbeddings.embedQuery(combinedText); // Combined embedding
+
+      // // Create metadata object
+      // const metadata = {
+      //   table_name: table.name,
+      //   table_description: table.description,
+      //   column_names: JSON.stringify(columnNames),
+      //   data_types: JSON.stringify(columnDataTypes),
+      //   column_descriptions: JSON.stringify(columnDescriptions),
+      // };
+
+      // // Generate embeddings for the metadata
+      // const metadataString = JSON.stringify(metadata);
+      // const embeddings = await openAIEmbeddings.embedQuery(metadataString);
+
+      // return {
+      //   ...metadata,
+      //   embeddings,
+      // };
+      return {
+        id: table.name,
+        table_embedding: tableEmbedding,
+        combined_embedding: combinedEmbedding,
+        metadata: table,
+      };
+    })
+  );
 }
 
 export const dashboardUtil = {

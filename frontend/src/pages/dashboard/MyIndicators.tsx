@@ -1,8 +1,10 @@
-import { Fragment } from "react/jsx-runtime";
 import BreadCrumb from "../../Components/BreadCrumb";
-import { useContext, useEffect, useState } from "react";
-import { DashboardContext } from "../../provider/DashboardContext";
+import MyIndicatorDrawer from "../../Components/MyIndicatorDrawer";
+import { Fragment } from "react/jsx-runtime";
+import { useEffect, useState } from "react";
+import { useDashboardContext } from "../../provider/DashboardContext";
 import { getVisualization } from "../../utils/data_visualization_choices";
+import { IndicatorState, PreviousIndicator } from "../../types/dashboard.types";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -13,38 +15,36 @@ import {
   Card,
   Input,
   Result,
-  Layout,
   Modal,
   Button,
   message,
+  Skeleton,
 } from "antd";
 
 const { Text } = Typography;
-const { Content } = Layout;
+
+// Hold the previous values of the indicator before being edited
+let previousIndicator: PreviousIndicator;
 
 const MyIndicators = () => {
+  const [messageApi, contextHolder] = message.useMessage();
+  const [searchText, setSearchText] = useState<string>("");
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  const [isSkeletonLoading, setIsSkeletonLoading] = useState<boolean>(true);
+  const [indicatorState, setIndicatorState] = useState<IndicatorState | null>(
+    null
+  );
   const {
     contextIndicators,
     getIndicators,
     getIndicatorData,
     deleteIndicator,
-    customMessageIndicator,
-  } = useContext(DashboardContext);
-  const [searchText, setSearchText] = useState<string>("");
-  const [messageApi, contextHolder] = message.useMessage();
-
-  const handleDelete = async (indicatorId: string) => {
-    await deleteIndicator(indicatorId);
-    await messageApi.open({
-      type: customMessageIndicator?.type,
-      content: customMessageIndicator?.content,
-    });
-  };
+  } = useDashboardContext();
 
   useEffect(() => {
     (async () => {
-      // TODO Make the following dynamic using the data from backend
-      await getIndicators("clz0trbf40000ld2w4z43q9yj"); // instructorId = clz0trbf40000ld2w4z43q9yj
+      await getIndicators();
+      setIsSkeletonLoading(false);
     })();
   }, []);
 
@@ -62,7 +62,7 @@ const MyIndicators = () => {
           placeholder="Search your indicator name here..."
         />
       </div>
-      <Content
+      <div
         className="
       pt-[43px] pr-[46px] pb-[39px] pl-[46px]
       mt-[35px] mr-[80px] mb-[98px] ml-[45px]
@@ -70,78 +70,135 @@ const MyIndicators = () => {
       "
       >
         {contextIndicators ? (
-          <div className="grid gap-4">
+          <div className="grid gap-6">
             {contextIndicators
               .filter((indicator: any) =>
                 indicator.indicator_name.toLowerCase().includes(searchText)
               )
               .map((indicator: any) => (
-                <Card
-                  key={indicator.id}
-                  title={indicator.indicator_name}
-                  onClick={async () => {
-                    const data = await getIndicatorData(
-                      indicator.id,
-                      indicator.visualization_choice
-                    );
-                    Modal.info({
-                      title: <Text>{indicator.indicator_name}</Text>,
-                      content: getVisualization(
-                        indicator.visualization_choice,
-                        data
-                      ),
-                      width: "75%",
-                      okText: "Close",
-                    });
-                  }}
-                  bordered={false}
-                  hoverable
-                  className="bg-[#f5f5f5] hover:bg-[#F6F6F6] transition duration-300"
-                >
-                  <Text className="text-center">{indicator.analysis_goal}</Text>
-                  <div className="flex justify-end gap-3">
-                    <Button
-                      onClick={async (e: any) => {
-                        e.stopPropagation();
-                      }}
-                      icon={<EditOutlined />}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      onClick={(e: any) => {
-                        e.stopPropagation();
-                        Modal.confirm({
-                          onOk: () => {
-                            handleDelete(indicator.id);
-                          },
-                          icon: <ExclamationCircleFilled />,
-                          title: <Text>Delete Indicator</Text>,
-                          content: (
-                            <Text>
-                              This will permanently delete your indicator. Are
-                              you sure?
-                            </Text>
-                          ),
-                          okText: "Yes",
-                          cancelText: "No",
-                        });
-                      }}
-                      icon={<DeleteOutlined />}
-                      danger
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </Card>
+                <Fragment key={indicator.id}>
+                  <Card
+                    title={indicator.indicator_name}
+                    onClick={async () => {
+                      const data = await getIndicatorData(
+                        indicator.id,
+                        indicator.visualization_choice
+                      );
+                      Modal.info({
+                        title: <Text>{indicator.indicator_name}</Text>,
+                        content: getVisualization(
+                          indicator.visualization_choice,
+                          data
+                        ),
+                        width: "75%",
+                        okText: "Close",
+                      });
+                    }}
+                    bordered={false}
+                    hoverable
+                    className="bg-[#f5f5f5] hover:bg-[#F6F6F6] transition duration-300"
+                  >
+                    <Text className="text-center">
+                      {indicator.analysis_goal}
+                    </Text>
+                    <div className="flex justify-end gap-3">
+                      <Button
+                        onClick={async (e: any) => {
+                          e.stopPropagation();
+                          // Set the previous values of the indicator before being edited
+                          previousIndicator = {
+                            indicatorName: indicator.indicator_name,
+                            analysisGoal: indicator.analysis_goal,
+                            visualizationChoice: indicator.visualization_choice,
+                          };
+                          const data = await getIndicatorData(
+                            indicator.id,
+                            indicator.visualization_choice
+                          );
+                          setIndicatorState({
+                            id: indicator.id,
+                            indicatorName: indicator.indicator_name,
+                            analysisGoal: indicator.analysis_goal,
+                            visualizationChoice: indicator.visualization_choice,
+                            data,
+                          });
+                          setIsDrawerOpen(true);
+                        }}
+                        icon={<EditOutlined />}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={(e: any) => {
+                          e.stopPropagation();
+                          Modal.confirm({
+                            onOk: async () => {
+                              const message = await deleteIndicator(
+                                indicator.id
+                              );
+                              messageApi.open({
+                                type: message.type,
+                                content: message.content,
+                              });
+                            },
+                            icon: <ExclamationCircleFilled />,
+                            title: <Text>Delete Indicator</Text>,
+                            content: (
+                              <Text>
+                                This will permanently delete your indicator. Are
+                                you sure?
+                              </Text>
+                            ),
+                            okText: "Yes",
+                            cancelText: "No",
+                          });
+                        }}
+                        icon={<DeleteOutlined />}
+                        danger
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </Card>
+                  {indicatorState && previousIndicator && (
+                    <MyIndicatorDrawer
+                      isOpen={isDrawerOpen}
+                      onClose={() => setIsDrawerOpen(false)}
+                      indicatorState={indicatorState}
+                      setIndicatorState={setIndicatorState}
+                      previousIndicator={previousIndicator}
+                      messageApi={messageApi}
+                    />
+                  )}
+                </Fragment>
               ))}
           </div>
+        ) : isSkeletonLoading ? (
+          <SkeletonCardList />
         ) : (
           <Result status="info" title="You dont' have any indicators" />
         )}
-      </Content>
+      </div>
     </Fragment>
   );
 };
+
+const SkeletonCard = () => (
+  <div className="flex flex-col justify-between bg-[#f5f5f5] h-[150px] p-5 mb-6">
+    <Skeleton title={true} paragraph={{ rows: 1 }} active />
+    <div className="flex justify-end gap-4">
+      <Skeleton.Button active size="default" />
+      <Skeleton.Button active size="default" />
+    </div>
+  </div>
+);
+
+const SkeletonCardList = ({ count = 2 }) => (
+  <Fragment>
+    {Array.from({ length: count }).map((_, index) => (
+      <SkeletonCard key={index} />
+    ))}
+  </Fragment>
+);
 
 export default MyIndicators;

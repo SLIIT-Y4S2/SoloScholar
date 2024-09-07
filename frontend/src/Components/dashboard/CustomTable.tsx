@@ -1,27 +1,28 @@
 import { Fragment } from "react/jsx-runtime";
 import { useContext, useState } from "react";
-import { DashboardContext } from "../../../provider/DashboardContext";
-import { Table, Button } from "antd";
+import { DashboardContext } from "../../provider/DashboardContext";
+import { Table, Button, TableColumnType } from "antd";
+import { SizeType } from "antd/es/config-provider/SizeContext";
+import { tablePreviewData } from "../../utils/data_visualization_preview_data";
+import { TablePreviewData } from "../../types/dashboard.types";
 import {
   UndoOutlined,
   ZoomInOutlined,
   ZoomOutOutlined,
 } from "@ant-design/icons";
-import {
-  tablePreviewColumns,
-  tablePreviewData,
-} from "../../../utils/data_visualization_preview_data";
 
 const CustomTable = (props: { data?: any }) => {
   const { data } = props;
   const { contextData } = useContext(DashboardContext);
-  const [size, setSize] = useState<string>("small");
+  const [size, setSize] = useState<SizeType>("small");
 
-  let tableData: any;
+  let tableData: TablePreviewData;
   if (contextData) {
     tableData = contextData.formattedData;
   } else if (data) {
     tableData = data.formattedData;
+  } else {
+    tableData = tablePreviewData;
   }
 
   return (
@@ -68,8 +69,8 @@ const CustomTable = (props: { data?: any }) => {
           bordered
           rowHoverable
           pagination={false}
-          columns={tableData ? tableData.tableColumns : tablePreviewColumns}
-          dataSource={tableData ? tableData.tableData : tablePreviewData}
+          columns={tableData.tableColumns as TableColumnType<any>[]}
+          dataSource={tableData.tableData}
         />
       </div>
     </Fragment>

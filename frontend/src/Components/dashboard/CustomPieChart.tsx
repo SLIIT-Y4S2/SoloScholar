@@ -1,8 +1,9 @@
 import { Tooltip, ResponsiveContainer, Pie, PieChart } from "recharts";
-import { DashboardContext } from "../../../provider/DashboardContext";
-import { pieChartPreviewData } from "../../../utils/data_visualization_preview_data";
+import { DashboardContext } from "../../provider/DashboardContext";
 import { Fragment, useContext, useState } from "react";
 import { Button } from "antd";
+import { PieChartPreviewData } from "../../types/dashboard.types";
+import { pieChartPreviewData } from "../../utils/data_visualization_preview_data";
 import {
   UndoOutlined,
   ZoomInOutlined,
@@ -14,11 +15,13 @@ const CustomPieChart = (props: { data?: any; pieColor?: string }) => {
   const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(255);
 
-  let chartData: any;
+  let chartData: PieChartPreviewData;
   if (contextData) {
     chartData = contextData.formattedData;
   } else if (data) {
     chartData = data.formattedData;
+  } else {
+    chartData = pieChartPreviewData;
   }
 
   return (
@@ -58,7 +61,7 @@ const CustomPieChart = (props: { data?: any; pieColor?: string }) => {
             className="rounded-[5px] border-[#eee]"
             dataKey="value"
             isAnimationActive={true}
-            data={chartData ? chartData.values : pieChartPreviewData}
+            data={chartData.values}
             outerRadius={100}
             fill={pieColor ? pieColor : "#8884d8"}
             label
