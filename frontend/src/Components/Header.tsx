@@ -27,6 +27,7 @@ const Header = () => {
         >
           <div className="">Modules</div>
         </Dropdown>
+        <Link to={`${APP_ROUTES.ds}/${APP_ROUTES.DASHBOARD}`}>Dashboard</Link>
         <ProfileIcon
           student_id={`${userDetails?.first_name} ${userDetails?.last_name}`}
         />

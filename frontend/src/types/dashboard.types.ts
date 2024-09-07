@@ -40,3 +40,9 @@ export interface TablePreviewData {
     column2: number | string | boolean;
   }[];
 }
+export interface BreadCrumbProp {
+  sidebarOption: {
+    label: string;
+    linkTo?: string;
+  };
+}

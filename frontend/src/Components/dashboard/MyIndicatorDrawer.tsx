@@ -1,13 +1,13 @@
-import getFormattedData from "../utils/data_visualization_formatter";
-import { Input, Typography, Button, Select, Drawer, Form } from "antd";
-import { Dispatch, SetStateAction, useEffect } from "react";
 import { MessageInstance, NoticeType } from "antd/es/message/interface";
-import { useDashboardContext } from "../provider/DashboardContext";
-import { IndicatorState, PreviousIndicator } from "../types/dashboard.types";
+import { IndicatorState, PreviousIndicator } from "../../types/dashboard.types";
+import { Dispatch, SetStateAction, useEffect } from "react";
+import { Button, Drawer, Form, Input, Result, Select, Typography } from "antd";
+import getFormattedData from "../../utils/data_visualization_formatter";
+import { useDashboardContext } from "../../provider/DashboardContext";
 import {
   getVisualization,
   visualizationChoices,
-} from "../utils/data_visualization_choices";
+} from "../../utils/data_visualization_choices";
 
 const { Text } = Typography;
 
@@ -134,7 +134,16 @@ const MyIndicatorDrawer = ({
                 options={visualizationChoices}
               />
             </Form.Item>
-            {getVisualization(visualizationChoice, indicatorState.data)}
+            {Object.keys(indicatorState.data.sqlQueryData[0]).length > 2 &&
+            visualizationChoice !== "Table" ? (
+              <Result
+                status="info"
+                title={`Sorry, this data cannot be visualized using a
+              ${visualizationChoice?.toLowerCase()}.`}
+              />
+            ) : (
+              getVisualization(visualizationChoice, indicatorState.data)
+            )}
           </div>
           <div className="flex gap-[10px] mt-10">
             <Button htmlType="submit" type="primary">

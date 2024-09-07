@@ -4,10 +4,7 @@ import { Fragment } from "react/jsx-runtime";
 const LabsOverview = () => {
   return (
     <Fragment>
-      <BreadCrumb
-        module={{ label: "Module A", linkTo: "#" }}
-        sidebarOption={{ label: "Labs Overview" }}
-      />
+      <BreadCrumb sidebarOption={{ label: "Labs Overview" }} />
       <div
         className="
       pt-[43px] pr-[46px] pb-[39px] pl-[46px]

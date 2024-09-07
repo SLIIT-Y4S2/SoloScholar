@@ -4,11 +4,7 @@ import { DashboardContext } from "../../provider/DashboardContext";
 import { useContext } from "react";
 
 const CustomAnalyticalIndicator = () => {
-  const {
-    contextData,
-    //customMessageWarningContextData,
-    customMessage,
-  } = useContext(DashboardContext);
+  const { contextData, customMessage } = useContext(DashboardContext);
 
   if (contextData) {
     return (
