@@ -170,13 +170,12 @@ model tutorial_question {
   question                  String                         @db.VarChar(MAX)
   question_number           Int
   answer                    String                         @db.VarChar(MAX)
+  hint                      String?                        @db.VarChar(MAX)
   student_answer            String?                        @db.VarChar(MAX)
   is_student_answer_correct Boolean                        @default(false)
   feedback_type             String?                        @db.VarChar(10)
   feedback                  String?                        @db.VarChar(Max)
-  // mcq_tutorial_question          mcq_tutorial_question?
-  // short-answer_tutorial_question short-answer_tutorial_question?
-  type                      String                         @db.VarChar(13) // can be 'mcq' or 'short-answer'
+  type                      String                         @db.VarChar(13) // can be only 'mcq' or 'short-answer'
   options                   mcq_tutorial_question_option[]
   tutorial_interaction      tutorial_interaction[]
   tutorial                  tutorial                       @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction)
@@ -211,17 +210,9 @@ model lecture_interaction {
   interaction interaction @relation(fields: [id], references: [id], onUpdate: NoAction)
 }
 
-// model mcq_tutorial_question {
-//   id                           Int                            @id
-//   tutorial_question            tutorial_question              @relation(fields: [id], references: [id], onUpdate: NoAction)
-//   mcq_tutorial_question_option mcq_tutorial_question_option[]
-// }
-
 model mcq_tutorial_question_option {
   id                  Int                @id @default(autoincrement())
   answer_option       String             @db.VarChar(300)
-  // mcq_tutorial_question_id Int
-  // mcq_tutorial_question    mcq_tutorial_question @relation(fields: [mcq_tutorial_question_id], references: [id], onUpdate: NoAction)
   tutorial_question   tutorial_question? @relation(fields: [tutorial_questionId], references: [id])
   tutorial_questionId Int?
 }
@@ -238,11 +229,6 @@ model person {
   system_log           system_log[]
   analytical_indicator analytical_indicator[]
 }
-
-// model short-answer_tutorial_question {
-//   id                Int               @id
-//   tutorial_question tutorial_question @relation(fields: [id], references: [id], onUpdate: NoAction)
-// }
 
 model tutorial_interaction {
   id                        Int               @id
