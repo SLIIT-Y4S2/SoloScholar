@@ -14,32 +14,23 @@ const CustomAnalyticalIndicatorSecondary = (props: {
   analysisGoal?: string;
   visualizationChoice?: string;
   sqlQuery?: string;
-  //sqlQueryData?: any;
   customMessage?: CustomMessage;
 }) => {
-  const {
-    analysisGoal,
-    visualizationChoice,
-    sqlQuery,
-    //sqlQueryData,
-    customMessage,
-  } = props;
+  const { analysisGoal, visualizationChoice, sqlQuery, customMessage } = props;
   const [messageApi, contextHolder] = message.useMessage();
   const {
-    //generateTabularIndicator,
+    customMessageWarningContextData,
+    generateTabularIndicator,
     saveIndicator,
     clearData,
   } = useContext(DashboardContext);
   const [indicatorName, setIndicatorName] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  console.log("customMessage", customMessage);
+
   return (
     <Fragment>
       {contextHolder}
-      <BreadCrumb
-        module={{ label: "Module A", linkTo: "#" }}
-        sidebarOption={{ label: "Custom Analytical Indicator" }}
-      />
+      <BreadCrumb sidebarOption={{ label: "Custom Analytical Indicator" }} />
       <div
         className="
         pt-[43px] pr-[46px] pb-[39px] pl-[46px]
@@ -79,33 +70,41 @@ const CustomAnalyticalIndicatorSecondary = (props: {
         )}
         <div className="flex justify-end gap-[8px] mt-[50px]">
           {customMessage ? (
-            <Fragment>
-              <Button
-                onClick={clearData}
-                hidden={customMessage.type === "warning"}
-                className="rounded-[2px]"
-              >
-                Retry
-              </Button>
-              <Button
-                // onClick={generateTabularIndicator(
-                //   analysisGoal,
-                //   sqlQuery,
-                //   sqlQueryData
-                // )}
-                hidden={customMessage.type !== "warning"}
-                className="rounded-[2px]"
-              >
-                Yes
-              </Button>
-              <Button
-                onClick={clearData}
-                hidden={customMessage.type !== "warning"}
-                className="rounded-[2px]"
-              >
-                No
-              </Button>
-            </Fragment>
+            customMessageWarningContextData ? (
+              <Fragment>
+                <Button
+                  onClick={() =>
+                    generateTabularIndicator(
+                      customMessageWarningContextData.analysisGoal,
+                      customMessageWarningContextData.sqlQuery,
+                      customMessageWarningContextData.sqlQueryData
+                    )
+                  }
+                  hidden={customMessage.type !== "warning"}
+                  className="rounded-[2px]"
+                >
+                  Yes
+                </Button>
+                <Button
+                  onClick={clearData}
+                  hidden={customMessage.type !== "warning"}
+                  className="rounded-[2px]"
+                >
+                  No
+                </Button>
+              </Fragment>
+            ) : (
+              <Fragment>
+                <Button
+                  onClick={clearData}
+                  hidden={customMessage.type === "warning"}
+                  className="rounded-[2px]"
+                >
+                  Retry
+                </Button>
+                :
+              </Fragment>
+            )
           ) : (
             <Fragment>
               <Button onClick={clearData} className="rounded-[2px]">

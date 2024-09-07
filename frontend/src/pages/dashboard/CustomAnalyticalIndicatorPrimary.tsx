@@ -23,11 +23,7 @@ const CustomAnalyticalIndicatorPrimary = () => {
   return (
     <Fragment>
       {contextHolder}
-      <BreadCrumb
-        module={{ label: "Module A", linkTo: "#" }}
-        sidebarOption={{ label: "Custom Analytical Indicator" }}
-      />
-
+      <BreadCrumb sidebarOption={{ label: "Custom Analytical Indicator" }} />
       <div
         className="
       pt-[43px] pr-[46px] pb-[39px] pl-[46px]
