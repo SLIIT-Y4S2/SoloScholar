@@ -179,7 +179,7 @@ export function DashboardProvider({
   const getIndicators = async () => {
     try {
       const response: AxiosResponse = await axiosInstance.get(
-        `${DASHBOARD_API_URLS.DASHBOARD}`
+        `${DASHBOARD_API_URLS.DASHBOARD_INDICATORS}`
       );
       setContextIndicators(response.data.result);
     } catch (error: any) {
