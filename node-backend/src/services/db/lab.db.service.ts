@@ -38,7 +38,6 @@ export async function createLabMaterials(lessonId: number, learnerId: string, le
                         },
                     },
                     learning_level: learningLevel,
-                    completion_status: 0,
                 },
             },
         },
