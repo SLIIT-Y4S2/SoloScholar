@@ -438,4 +438,4 @@ export const deleteTutorial = async (id: string): Promise<void> => {
     }),
   ]);
 };
-// deleteTutorial("cm0s39piz00058fbtodkpofnz");
+// deleteTutorial("cm0tpilec0000ir77oemczq22");
