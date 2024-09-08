@@ -1,7 +1,7 @@
 import QuestionCardForFeedback from "./QuestionCardForFeedback";
-import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import { Button } from "antd";
 import { useState } from "react";
+import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
 
 const TutorialFeedback = () => {
   const { questions, completeTutorial } = useTutorialContext();
@@ -46,7 +46,7 @@ const TutorialFeedback = () => {
 
         {question_number === filteredQuestions.length - 1 && (
           <Button type="primary" onClick={completeTutorial}>
-            Finish
+            End Feedback Session
           </Button>
         )}
 

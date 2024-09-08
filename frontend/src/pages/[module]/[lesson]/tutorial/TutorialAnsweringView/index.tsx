@@ -1,7 +1,7 @@
 import TutorialQuestionStatus from "./TutorialQuestionStatus";
 import QuestionCardForTutorialAnswering from "./QuestionCardForTutorialAnswering";
-import { useTutorialContext } from "../../../../../provider/TutorialContext";
 import { Spin } from "antd";
+import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
 
 const TutorialQuestionView = () => {
   const { questions, current_question, isLoading } = useTutorialContext();

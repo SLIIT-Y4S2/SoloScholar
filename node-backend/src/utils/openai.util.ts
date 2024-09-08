@@ -24,7 +24,7 @@ interface GetChatModelInputType {
 function getChatModel(): ChatOpenAI {
   return new ChatOpenAI({
     apiKey: OPENAI_API_KEY,
-    model: OPENAI_CHAT_MODEL, // this is undefined anyway it defaults to the value of gpt-3.5-turbo
+    model: OPENAI_CHAT_MODEL,
     temperature: 0.1,
     // verbose: true,
     callbacks: [

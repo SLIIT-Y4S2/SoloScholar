@@ -67,8 +67,6 @@ export const createModuleHandler = async (
       },
     });
   } catch (error) {
-    console.log(error);
-
     logger.error(error);
     res.status(500).json((error as Error).message);
   }
@@ -85,12 +83,6 @@ export const getModuleByNameHandler = async (req: Request, res: Response) => {
     }
 
     const module = await getModuleByName(name);
-
-    if (!module) {
-      return res.status(404).json({
-        message: "Module not found",
-      });
-    }
 
     res.status(200).json({
       message: "Module found",

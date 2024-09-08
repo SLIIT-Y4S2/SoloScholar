@@ -34,7 +34,7 @@ const Login = () => {
       />
 
       <div className="flex flex-col justify-center items-center p-8 w-full lg:w-1/2 lg:rounded-bl-[49px] lg:rounded-tl-[49px] lg:bg-white rounded overflow-y-scroll">
-        <h1 className="text-[#0e5699] text-2xl font-medium font-['Roboto']">
+        <h1 className="text-[#0e5699] text-2xl font-medium">
           Login to your account
         </h1>
         <Form

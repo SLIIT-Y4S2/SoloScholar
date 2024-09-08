@@ -1,17 +1,11 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, ReactNode, useEffect, useState } from "react";
 import {
   getTutorialByIndex,
   requestFeedbackService,
   submitAnswerByQuestionId,
   submitTutorial,
   completeTutorialService,
-} from "../services/tutorial.service";
+} from "../../services/tutorial.service";
 import { useParams } from "react-router-dom";
 import { AxiosError } from "axios";
 import { message } from "antd";
@@ -35,6 +29,7 @@ export interface TutorialQuestion {
   type: "short-answer" | "mcq";
   answer: string;
   student_answer: string | null;
+  hint?: string;
   feedback_type?: "skip" | "basic" | "detailed";
   feedback?: string;
   is_student_answer_correct?: boolean;
@@ -64,17 +59,8 @@ interface TutorialContextType {
   completeTutorial: () => void;
 }
 
-const TutorialProviderContext = createContext<TutorialContextType | null>(null);
-
-export function useTutorialContext() {
-  const value = useContext(TutorialProviderContext);
-  if (!value) {
-    throw new Error(
-      "useTutorialProvider must be used within a TutorialProvider"
-    );
-  }
-  return value;
-}
+export const TutorialProviderContext =
+  createContext<TutorialContextType | null>(null);
 
 export function TutorialProvider({ children }: TutorialProviderProps) {
   const { tutorialId } = useParams();
