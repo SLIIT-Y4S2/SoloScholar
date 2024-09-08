@@ -42,7 +42,7 @@ export function CompletedLab() {
                 <SupportMaterialsForLab isNewTab={false} labSheetId={labSheetId} />
             </Modal>
             <Content className="flex justify-center">
-                <div className="flex flex-col gap-4 bg-white px-10 py-8 rounded-2xl max-w-[1000px]">
+                <div className="flex flex-col gap-4 bg-white px-10 py-8 rounded-2xl container">
                     <div className="flex flex-row justify-between items-center">
                         <div>
                             <h1 className="text-2xl font-semibold">Lab Completed</h1>

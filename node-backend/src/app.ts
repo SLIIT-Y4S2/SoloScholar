@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
-import { PORT, MONGO_URI } from "./constants/app.constants";
-import server from "./utils/server.util";
+import { PORT, MONGO_URI, WS_PORT } from "./constants/app.constants";
+import { io, server, wsServer } from "./utils/server.util";
 import { logger } from "./utils/logger.utils";
 import prisma from "./utils/prisma-client.util";
+import { setupDiscussionWebSocket } from "./websockets/discussion.websocket";
 
 const app = server;
 
@@ -16,6 +17,14 @@ app.listen(PORT, async () => {
   } catch (error) {
     console.log(error);
   }
+});
+
+// Set up WebSocket handlers
+setupDiscussionWebSocket(io);
+
+// Start WebSocket server
+wsServer.listen(WS_PORT, () => {
+  logger.info(`WebSocket server is running on port ${WS_PORT}`);
 });
 
 // TODO: Uncomment this block after removing the mongoose connection

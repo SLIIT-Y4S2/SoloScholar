@@ -1,15 +1,16 @@
 import { RunnableSequence } from "@langchain/core/runnables";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { getChatModel, highLevelChatModel } from "../utils/openai.util";
-import { AnswerEvaluationPrompt, HintGenerationPrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
-import { StringOutputParser, StructuredOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
-import { zodSchemaForHintGeneration, zodSchemaForQuestions, zodSchemaForRealWorldScenario, zodSchemaForStudentAnswerEvaluation, zodSchemaForSupportingMaterial } from "../utils/zodSchema.util";
+import { AnswerEvaluationPrompt, HintGenerationPrompt, LabTaskEvaluationPrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt } from "../prompt-templates/lab.prompts";
+import { StringOutputParser, StructuredOutputParser } from "@langchain/core/output_parsers";
+import { zodSchemaForHintGeneration, zodSchemaForLabSheetFeedback, zodSchemaForQuestions, zodSchemaForRealWorldScenario, zodSchemaForStudentAnswerEvaluation, zodSchemaForSupportingMaterial } from "../utils/zodSchema.util";
 import { documentRetrievalPipeline } from "../utils/rag.util";
 import { OutputFixingParser } from "langchain/output_parsers";
 import { logger } from "../utils/logger.utils";
 import { z } from "zod";
 import { LearningOutcome } from "../types/module.types";
 
+//MARK: Custom Types
 interface ResponseSynthesizerForLabsInputType {
     lessonTitle: string,
     learningLevel: string,
@@ -45,7 +46,18 @@ interface HintGenerationInputType {
 interface HintGenerationOutputType {
     hint: string;
 }
+interface FeedbackGenerationInputType {
+    topicOfTheLab: string;
+    realWorldScenario: string;
+    supportingMaterial: any;
+    questions: {
+        question: string;
+        studentAnswer: string[];
+        reflection: string;
+    }[];
+}
 
+//MARK: Response Synthesizer for Labs
 /**
  * 
  * @param lessonTitle 
@@ -57,6 +69,8 @@ interface HintGenerationOutputType {
 export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, lessonOutline, learningOutcomes }: ResponseSynthesizerForLabsInputType): Promise<ResponseSynthesizerForLabsOutputType> {
     // Retrieve related context to the keywords from the vector database
     const relatedContext = await documentRetrievalPipeline(`${lessonTitle} ${learningOutcomes} ${lessonOutline}`, 10);
+
+    //MARK: Real World Scenario Generation
 
     // Generate a real-world scenario for the lab activity using the related context and subtopics
     const realWorldScenarioPrompt = PromptTemplate.fromTemplate(RealWorldScenarioPrompt);
@@ -84,6 +98,8 @@ export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, l
         topicOfTheLab: lessonTitle,
         formatInstructions: outputParserForRealWorldScenario.getFormatInstructions()
     });
+
+    //MARK: Supporting Material Generation
 
     // Generate supporting materials for the lab activity using the real-world scenario
     const supportingMaterialPrompt = PromptTemplate.fromTemplate(SupportingMaterialGenerationPrompt);
@@ -169,6 +185,7 @@ export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, l
     }
 }
 
+// MARK: Student Answer Evaluation
 /**
  * @param topicOfTheLab The topic of the lab
  * @param realWorldScenario The real-world scenario for the lab activity
@@ -214,6 +231,8 @@ export async function evaluateStudentAnswers({ topicOfTheLab, realWorldScenario,
     };
 }
 
+
+// MARK: Hint Generation
 /**
  * 
  * @param previousAnswers - The previous answers provided by the student
@@ -257,6 +276,77 @@ export async function generateHintsForStudentAnswers({ previousAnswers, realWorl
     );
 
     return hint;
+}
+
+// MARK: Feedback Generation
+/**
+ * 
+ * @param realWorldScenario - The real-world scenario for the lab activity
+ * @param supportingMaterial - The supporting materials for the lab activity
+ * @param questions - The questions for the lab activity
+ * @returns {Promise<z.infer<typeof zodSchemaForLabSheetFeedback>>} - The feedback for the lab activity
+ */
+export async function generateFeedbackForLabActivity({ topicOfTheLab, realWorldScenario, supportingMaterial, questions }: FeedbackGenerationInputType) {
+
+    const feedbackGenerationPrompt = PromptTemplate.fromTemplate(LabTaskEvaluationPrompt);
+
+    const outputParserForFeedback = StructuredOutputParser.fromZodSchema(zodSchemaForLabSheetFeedback);
+
+    const fixingParserForFeedback = OutputFixingParser.fromLLM(
+        getChatModel(),
+        outputParserForFeedback
+    );
+
+    const feedbackGenerationPipeline = RunnableSequence.from([
+        {
+            topicOfTheLab: (input) => input.topicOfTheLab,
+            realWorldScenario: (input) => input.realWorldScenario,
+            supportingMaterial: (input) => input.supportingMaterial,
+            questionsNAnswersNReflections: (input) => input.questionsNAnswersNReflections,
+            formatInstructions: (input) => input.formatInstructions
+        },
+        feedbackGenerationPrompt,
+        highLevelChatModel,
+        fixingParserForFeedback,
+    ]);
+
+    console.log(questions.map((question) => {
+        return (
+            `
+            <QuestionNAnswersNReflection>
+                <Question>${question.question}</Question>
+                <StudentAnswers>
+                    ${question.studentAnswer.map((answer) => `<Answer>${answer}</Answer>`).join("")}
+                </StudentAnswers>
+                <StudentReflection>${question.reflection}</StudentReflection>
+            </QuestionNAnswersNReflection>
+
+            `
+        )
+    }));
+    const feedback = await feedbackGenerationPipeline.invoke({
+        topicOfTheLab: topicOfTheLab,
+        realWorldScenario: realWorldScenario,
+        supportingMaterial: supportingMaterial,
+        questionsNAnswersNReflections: questions.map((question) => {
+            return (
+                `
+                <QuestionNAnswersNReflection>
+                    <Question>${question.question}</Question>
+                    <StudentAnswers>
+                        ${question.studentAnswer.map((answer) => `<Answer>${answer}</Answer>`).join("")}
+                    </StudentAnswers>
+                    <StudentReflection>${question.reflection}</StudentReflection>
+                </QuestionNAnswersNReflection>
+
+                `
+            )
+        }),
+        formatInstructions: outputParserForFeedback.getFormatInstructions()
+    });
+
+
+    return feedback;
 }
 
 

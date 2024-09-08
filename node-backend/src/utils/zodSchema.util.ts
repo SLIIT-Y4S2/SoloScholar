@@ -92,3 +92,10 @@ export const zodSchemaForStudentAnswerEvaluation = z.object({
 export const zodSchemaForHintGeneration = z.object({
     hint: z.string().describe("A hint to help the student answer the question based on the question and previous answers.")
 });
+
+export const zodSchemaForLabSheetFeedback = z.object({
+    overallScore: z.number().int().min(0).max(100).describe("The overall score for the lab sheet"),
+    strengths: z.array(z.string()).describe("List 5 areas where the student demonstrated strong reflective skills"),
+    areasForImprovement: z.array(z.string()).describe("List 5 areas where the student could enhance their reflection"),
+    recommendations: z.array(z.string()).describe("Provide 5 specific suggestions for developing reflective practice"),
+})

@@ -31,7 +31,6 @@ export const createTutorial = async (
             },
           },
           learning_level,
-          completion_status: 0,
         },
       },
     },
@@ -122,7 +121,6 @@ export const getTutorialByIdWithQuestions = async (
     lesson_id: number;
     learner_id: string;
     learning_level: string;
-    completion_status: Decimal;
   };
   questions: {
     id: number;
