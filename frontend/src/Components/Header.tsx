@@ -8,7 +8,7 @@ import { useAuth } from "../provider/authProvider";
 const Header = () => {
   const { userDetails } = useAuth();
   return (
-    <div className="text-base bg-white h-20 py-3 shadow-md">
+    <div className="text-base bg-white h-20 py-3 shadow-md z-10">
       <div className="container flex justify-between items-center h-full mx-auto">
         <Link to={APP_ROUTES.HOME}>
           <img src="/assets/soloscholar-logo.svg" alt="logo" className="h-12" />

@@ -52,7 +52,7 @@ const MyIndicators = () => {
     <Fragment>
       {contextHolder}
       <BreadCrumb sidebarOption={{ label: "My Indicators" }} />
-      <div className="mt-[20px] mr-[80px] ml-[45px]">
+      <div className="mt-[20px] ml-[45px]">
         <Input
           onChange={(e: any) => setSearchText(e.target.value)}
           value={searchText}
@@ -62,7 +62,7 @@ const MyIndicators = () => {
       <div
         className="
       pt-[43px] pr-[46px] pb-[39px] pl-[46px]
-      mt-[35px] mr-[80px] mb-[98px] ml-[45px]
+      mt-[35px] mb-[98px] ml-[45px]
       bg-[#ffff] rounded-[15px]
       "
       >
