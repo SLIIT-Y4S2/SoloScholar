@@ -20,3 +20,14 @@ export const DASHBOARD_API_URLS = {
   DASHBOARD: `${BASE_API_URL}/dashboard`,
   DASHBOARD_INDICATORS: `${BASE_API_URL}/dashboard/indicators`,
 };
+
+export const DISCUSSION_API_URLS = {
+  GET_DISCUSSIONS: `/discussions/modules`,
+  GET_DISCUSSION: `/discussions`,
+  CREATE_DISCUSSION: `/discussions`,
+  ADD_COMMENT: `/discussions/comments`,
+  LIKE_DISCUSSION: `/discussions/like`,
+  UNLIKE_DISCUSSION: `/discussions/unlike`,
+  LIKE_COMMENT: `/discussions/comments/like`,
+  UNLIKE_COMMENT: `/discussions/comments/unlike`,
+};

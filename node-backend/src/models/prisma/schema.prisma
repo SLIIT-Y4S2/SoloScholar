@@ -135,10 +135,11 @@ model lesson_learning_outcome {
 }
 
 model module {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(20)
-  description String   @db.VarChar(1000)
+  id          Int          @id @default(autoincrement())
+  name        String       @db.VarChar(20)
+  description String       @db.VarChar(1000)
   lessons     lesson[]
+  discussion  discussion[]
 }
 
 model sub_lecture {
@@ -227,16 +228,20 @@ model mcq_tutorial_question_option {
 }
 
 model person {
-  id                   String                 @id @default(cuid()) @db.VarChar(25)
-  first_name           String                 @db.VarChar(30)
-  last_name            String                 @db.VarChar(30)
-  email                String                 @unique @db.VarChar(30)
-  password             String                 @db.VarChar(60)
-  role                 String                 @db.VarChar(10)
-  session              session[]
-  learning_material    learning_material[]
-  system_log           system_log[]
-  analytical_indicator analytical_indicator[]
+  id                      String                    @id @default(cuid()) @db.VarChar(25)
+  first_name              String                    @db.VarChar(30)
+  last_name               String                    @db.VarChar(30)
+  email                   String                    @unique @db.VarChar(30)
+  password                String                    @db.VarChar(60)
+  role                    String                    @db.VarChar(10)
+  session                 session[]
+  learning_material       learning_material[]
+  system_log              system_log[]
+  analytical_indicator    analytical_indicator[]
+  discussion              discussion[]
+  discussion_comment      discussion_comment[]
+  discussion_like         discussion_like[]
+  discussion_comment_like discussion_comment_like[]
 }
 
 // model short-answer_tutorial_question {
@@ -254,4 +259,52 @@ model tutorial_interaction {
   tutorial_question_id      Int
   tutorial_question         tutorial_question @relation(fields: [tutorial_question_id], references: [id], onUpdate: NoAction)
   interaction               interaction       @relation(fields: [id], references: [id], onUpdate: NoAction)
+}
+
+model discussion {
+  id         String               @id @default(cuid()) @db.VarChar(25)
+  title      String               @db.VarChar(200)
+  content    String               @db.VarChar(Max)
+  created_at DateTime             @default(now())
+  updated_at DateTime             @updatedAt
+  module_id  Int
+  creator_id String               @db.VarChar(25)
+  module     module               @relation(fields: [module_id], references: [id], onUpdate: NoAction)
+  creator    person               @relation(fields: [creator_id], references: [id], onUpdate: NoAction)
+  comments   discussion_comment[]
+  likes      discussion_like[]
+}
+
+model discussion_comment {
+  id            Int                       @id @default(autoincrement())
+  content       String                    @db.VarChar(Max)
+  created_at    DateTime                  @default(now())
+  updated_at    DateTime                  @updatedAt
+  discussion_id String                    @db.VarChar(25)
+  creator_id    String                    @db.VarChar(25)
+  discussion    discussion                @relation(fields: [discussion_id], references: [id], onUpdate: NoAction)
+  creator       person                    @relation(fields: [creator_id], references: [id], onUpdate: NoAction)
+  likes         discussion_comment_like[]
+}
+
+model discussion_like {
+  id            String     @id @default(cuid()) @db.VarChar(25)
+  discussion_id String     @db.VarChar(25)
+  person_id     String     @db.VarChar(25)
+  created_at    DateTime   @default(now())
+  discussion    discussion @relation(fields: [discussion_id], references: [id], onUpdate: NoAction)
+  person        person     @relation(fields: [person_id], references: [id], onUpdate: NoAction)
+
+  @@unique([discussion_id, person_id])
+}
+
+model discussion_comment_like {
+  id         Int                @id @default(autoincrement())
+  comment_id Int
+  person_id  String             @db.VarChar(25)
+  created_at DateTime           @default(now())
+  comment    discussion_comment @relation(fields: [comment_id], references: [id], onUpdate: NoAction)
+  person     person             @relation(fields: [person_id], references: [id], onUpdate: NoAction)
+
+  @@unique([comment_id, person_id])
 }

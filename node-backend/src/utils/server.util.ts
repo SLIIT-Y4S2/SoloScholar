@@ -11,7 +11,10 @@ import tutorialsRouter from "../routes/tutorials.routes";
 import labRouter from "../routes/lab.routes";
 import dashboardRouter from "../routes/dashboard.routes";
 import moduleRouter from "../routes/module.routes";
+import discussionRouter from "../routes/discussion.routes";
 import requireInstructor from "../middlewares/requireInstructor.middleware";
+import { Server } from 'socket.io';
+import http from 'http';
 
 const server = express();
 
@@ -40,6 +43,7 @@ server.use("/api/v1/ref-docs", documentRouter);
 server.use("/api/v1/auth", authRouter);
 server.use("/api/v1/tutorial", requireUser, tutorialsRouter);
 server.use("/api/v1/labs", requireUser, labRouter);
+server.use("/api/v1/discussions", requireUser, discussionRouter);
 server.use("/api/v1/dashboard", dashboardRouter); // TODO add requireInstructor middleware
 server.use(
   "/api/v1/module",
@@ -55,4 +59,14 @@ server.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ message: err.message });
 });
 
-export default server;
+// WebSocket server setup
+const wsServer = http.createServer();
+const io = new Server(wsServer, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+export { server, io, wsServer };

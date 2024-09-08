@@ -1,190 +1,217 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-
-import { List, Card, Input, Button, Space, Divider, Typography, message, Modal, Form } from 'antd';
-import { LikeOutlined, DislikeOutlined, PlusOutlined } from '@ant-design/icons';
-import { useAuth } from '../../../../provider/authProvider';
+import { Layout, Typography, message, Modal, Form, Input, Button } from 'antd';
+import { useWebSocket } from '../../../../provider/WebSocketContext';
 import { useDiscussionForum } from '../../../../provider/DiscussionForumContext';
+import DiscussionList from '../../../../Components/discussionForum/DiscussionList';
+import DiscussionDetail from '../../../../Components/discussionForum/DiscussionDetail';
+import CommentList from '../../../../Components/discussionForum/CommentList';
+import NewComment from '../../../../Components/discussionForum/NewComment';
+import { useAuth } from '../../../../provider/authProvider';
 
+const { Content } = Layout;
+const { Title } = Typography;
 const { TextArea } = Input;
-const { Title, Text } = Typography;
 
-const DiscussionForum: React.FC = () => {
-    const { module, lesson } = useParams();
+interface Discussion {
+    id: string;
+    title: string;
+    content: string;
+    creatorName: string;
+    likeCount: number;
+    commentCount: number;
+    isLiked: boolean;
+    comments: Comment[];
+}
+
+interface Comment {
+    id: string;
+    content: string;
+    creatorName: string;
+    likeCount: number;
+    isLiked: boolean;
+}
+
+export default function DiscussionForum() {
+    const { module } = useParams();
+    const [discussions, setDiscussions] = useState<Discussion[]>([]);
+    const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
+    const [isNewDiscussionModalVisible, setIsNewDiscussionModalVisible] = useState(false);
+
+    const { socket } = useWebSocket();
+    const { fetchDiscussions, fetchDiscussion, addComment, createDiscussion } = useDiscussionForum();
     const { userDetails } = useAuth();
-    const {
-        topics,
-        selectedTopic,
-        posts,
-        fetchTopics,
-        handleTopicSelect,
-        createPost,
-        voteOnPost,
-        createTopic,
-    } = useDiscussionForum();
-    const [newPostContent, setNewPostContent] = useState('');
-    const [isNewTopicModalVisible, setIsNewTopicModalVisible] = useState(false);
+
     const [form] = Form.useForm();
 
     useEffect(() => {
-        fetchTopics();
-    }, [fetchTopics]);
-
-    const handleSubmitPost = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedTopic || !userDetails) {
-            message.error('Unable to create post. Please try again.');
+        if (!module) {
+            message.error('Invalid module ID');
             return;
         }
+
+        // Replace hyphens with spaces
+        const moduleName = module.replace(/-/g, ' ');
+
+        fetchDiscussions(moduleName)
+            .then(setDiscussions)
+            .catch(() => message.error('Failed to fetch discussions'));
+    }, [module, fetchDiscussions]);
+
+    useEffect(() => {
+        if (socket) {
+            socket.on('discussion_updated', (updatedDiscussion: Discussion) => {
+                setDiscussions(prevDiscussions =>
+                    prevDiscussions.map(d => d.id === updatedDiscussion.id ? updatedDiscussion : d)
+                );
+                if (selectedDiscussion && selectedDiscussion.id === updatedDiscussion.id) {
+                    setSelectedDiscussion(updatedDiscussion);
+                }
+            });
+
+            return () => {
+                socket.off('discussion_updated');
+            };
+        }
+    }, [socket, selectedDiscussion]);
+
+    const handleSelectDiscussion = async (discussionId: string) => {
         try {
-            await createPost(newPostContent, selectedTopic.id, userDetails.id);
-            setNewPostContent('');
-            message.success('Post created successfully');
+            const discussion = await fetchDiscussion(discussionId);
+            setSelectedDiscussion(discussion);
+            if (socket) {
+                socket.emit('join_discussion', discussionId);
+            }
         } catch (error) {
-            message.error('Failed to create post');
+            message.error('Failed to fetch discussion details');
         }
     };
 
-    const handleVote = async (postId: string, value: number) => {
-        if (!userDetails) {
-            message.error('You must be logged in to vote');
+    const handleLikeDiscussion = () => {
+        if (socket && selectedDiscussion) {
+            socket.emit('like_discussion', { discussionId: selectedDiscussion.id, userId: userDetails?.id });
+        }
+    };
+
+    const handleUnlikeDiscussion = () => {
+        if (socket && selectedDiscussion) {
+            socket.emit('unlike_discussion', { discussionId: selectedDiscussion.id, userId: userDetails?.id });
+        }
+    };
+
+    const handleLikeComment = (commentId: string) => {
+        if (socket && selectedDiscussion) {
+
+            console.log('like ----- comment', commentId);
+            socket.emit('like_comment', { discussionId: selectedDiscussion.id, commentId, userId: userDetails?.id });
+        }
+    };
+
+    const handleUnlikeComment = (commentId: string) => {
+        if (socket && selectedDiscussion) {
+            socket.emit('unlike_comment', { discussionId: selectedDiscussion.id, commentId, userId: userDetails?.id });
+        }
+    };
+
+    const handleAddComment = async (content: string) => {
+        if (selectedDiscussion) {
+            try {
+                await addComment(selectedDiscussion.id, content);
+            } catch (error) {
+                message.error('Failed to add comment');
+            }
+        }
+    };
+
+    const handleCreateDiscussion = async (values: { title: string; content: string }) => {
+        if (!module) {
+            message.error('Invalid module ID');
             return;
         }
+
+        const moduleName = module.replace(/-/g, ' ');
+
         try {
-            await voteOnPost(postId, userDetails.id, value);
-            message.success('Vote recorded successfully');
-        } catch (error) {
-            message.error('Failed to record vote');
-        }
-    };
-
-    const showNewTopicModal = () => {
-        setIsNewTopicModalVisible(true);
-    };
-
-    const handleNewTopicCancel = () => {
-        setIsNewTopicModalVisible(false);
-        form.resetFields();
-    };
-
-    const handleNewTopicSubmit = async (values: { title: string; description: string }) => {
-        try {
-            await createTopic(values.title, values.description, parseInt(lesson!));
-            message.success('New topic created successfully');
-            setIsNewTopicModalVisible(false);
+            const newDiscussion = await createDiscussion(moduleName, values.title, values.content);
+            setDiscussions(prevDiscussions => [newDiscussion, ...prevDiscussions]);
+            setIsNewDiscussionModalVisible(false);
             form.resetFields();
+            message.success('Discussion created successfully');
         } catch (error) {
-            message.error('Failed to create new topic');
+            message.error('Failed to create discussion');
         }
     };
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <Title level={2} className="mb-8">Discussion Forum: {module} - {lesson}</Title>
-            <div className="flex flex-col md:flex-row">
-                <div className="w-full md:w-1/3 pr-4 mb-8 md:mb-0">
-                    <Card
-                        title="Topics"
-                        extra={
-                            <Button type="primary" icon={<PlusOutlined />} onClick={showNewTopicModal}>
-                                New Topic
-                            </Button>
-                        }
-                        className="h-full"
-                    >
-                        <List
-                            dataSource={topics}
-                            renderItem={(topic) => (
-                                <List.Item
-                                    className="cursor-pointer hover:bg-gray-100"
-                                    onClick={() => handleTopicSelect(topic)}
-                                >
-                                    {topic.title}
-                                </List.Item>
-                            )}
+        <Layout className="min-h-screen">
+            <Content className="p-8">
+                <div className="flex justify-between items-center mb-4">
+                    <Title level={2}>Discussions</Title>
+                    <Button type="primary" onClick={() => setIsNewDiscussionModalVisible(true)}>
+                        New Discussion
+                    </Button>
+                </div>
+                <div className="flex">
+                    <div className="w-1/3 pr-4">
+                        <DiscussionList
+                            discussions={discussions}
+                            onSelectDiscussion={handleSelectDiscussion}
                         />
-                    </Card>
-                </div>
-                <div className="w-full md:w-2/3">
-                    {selectedTopic ? (
-                        <Card title={selectedTopic.title}>
-                            <List
-                                dataSource={posts}
-                                renderItem={(post) => (
-                                    <List.Item>
-                                        <div className="w-full">
-                                            <Text>{post.content}</Text>
-                                            <div className="mt-2">
-                                                <Space>
-                                                    <Button
-                                                        icon={<LikeOutlined />}
-                                                        onClick={() => handleVote(post.id, 1)}
-                                                    >
-                                                        {post.votes.filter(v => v.value > 0).length}
-                                                    </Button>
-                                                    <Button
-                                                        icon={<DislikeOutlined />}
-                                                        onClick={() => handleVote(post.id, -1)}
-                                                    >
-                                                        {post.votes.filter(v => v.value < 0).length}
-                                                    </Button>
-                                                </Space>
-                                            </div>
-                                        </div>
-                                    </List.Item>
-                                )}
-                            />
-                            <Divider />
-                            <form onSubmit={handleSubmitPost}>
-                                <TextArea
-                                    value={newPostContent}
-                                    onChange={(e) => setNewPostContent(e.target.value)}
-                                    rows={4}
-                                    className="mb-4"
-                                    placeholder="Write your post here..."
+                    </div>
+                    <div className="w-2/3 bg-white">
+                        {selectedDiscussion ? (
+                            <>
+                                <DiscussionDetail
+                                    title={selectedDiscussion.title}
+                                    content={selectedDiscussion.content}
+                                    likeCount={selectedDiscussion.likeCount}
+                                    isLiked={selectedDiscussion.isLiked}
+                                    onLike={handleLikeDiscussion}
+                                    onUnlike={handleUnlikeDiscussion}
                                 />
-                                <Button type="primary" htmlType="submit">
-                                    Submit Post
-                                </Button>
-                            </form>
-                        </Card>
-                    ) : (
-                        <Card>
-                            <Text>Select a topic to view posts</Text>
-                        </Card>
-                    )}
+                                <NewComment onSubmit={handleAddComment} />
+                                <CommentList
+                                    comments={selectedDiscussion.comments}
+                                    onLikeComment={handleLikeComment}
+                                    onUnlikeComment={handleUnlikeComment}
+                                />
+                            </>
+                        ) : (
+                            <div className="flex items-center justify-center h-full">
+                                <p>Select a discussion to view details</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
+            </Content>
             <Modal
-                title="Create New Topic"
-                visible={isNewTopicModalVisible}
-                onCancel={handleNewTopicCancel}
+                title="Create New Discussion"
+                open={isNewDiscussionModalVisible}
+                onCancel={() => setIsNewDiscussionModalVisible(false)}
                 footer={null}
             >
-                <Form form={form} onFinish={handleNewTopicSubmit} layout="vertical">
+                <Form form={form} onFinish={handleCreateDiscussion} layout="vertical">
                     <Form.Item
                         name="title"
-                        label="Topic Title"
-                        rules={[{ required: true, message: 'Please input the topic title!' }]}
+                        label="Title"
+                        rules={[{ required: true, message: 'Please input the discussion title!' }]}
                     >
                         <Input />
                     </Form.Item>
                     <Form.Item
-                        name="description"
-                        label="Topic Description"
-                        rules={[{ required: true, message: 'Please input the topic description!' }]}
+                        name="content"
+                        label="Content"
+                        rules={[{ required: true, message: 'Please input the discussion content!' }]}
                     >
                         <TextArea rows={4} />
                     </Form.Item>
                     <Form.Item>
                         <Button type="primary" htmlType="submit">
-                            Create Topic
+                            Create Discussion
                         </Button>
                     </Form.Item>
                 </Form>
             </Modal>
-        </div>
+        </Layout>
     );
-};
-
-export default DiscussionForum;
+}

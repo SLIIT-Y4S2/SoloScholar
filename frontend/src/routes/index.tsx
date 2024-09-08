@@ -32,6 +32,7 @@ import { Button, Result } from "antd";
 import Lesson from "../pages/[module]/[lesson]";
 import DiscussionForum from "../pages/[module]/[lesson]/discussionForum";
 import { DiscussionForumProvider } from "../provider/DiscussionForumContext";
+import { WebSocketProvider } from "../provider/WebSocketContext";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -121,10 +122,14 @@ const Routes = () => {
           element: <Module />,
         },
         {
+          path: "/:module/discussion-forum",
+          element: <WebSocketProvider><DiscussionForumProvider><DiscussionForum /></DiscussionForumProvider></WebSocketProvider>
+        },
+        {
           path: "/:module/:lesson",
           children: [
             {
-              path:"",
+              path: "",
               element: <Lesson />
             },
             {
@@ -160,10 +165,6 @@ const Routes = () => {
 
               ]
             },
-            {
-              path: "discussion-forum",
-              element: <DiscussionForumProvider><DiscussionForum /></DiscussionForumProvider>
-            }
           ],
         },
       ],

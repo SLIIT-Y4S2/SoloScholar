@@ -24,6 +24,7 @@ import {
 } from "../services/db/lab.db.service";
 import { StatusCodes } from "http-status-codes";
 
+//MARK:Lab Materials Generation
 /**
  *
  * @param req
@@ -31,6 +32,7 @@ import { StatusCodes } from "http-status-codes";
  * @returns
  */
 export async function generateLabMaterialsHandler(req: Request, res: Response) {
+    let labMaterials: { id: string, lessonId: number, learnerId: string } | null = null;
     try {
         const { moduleName, lessonTitle, learningLevel } = req.body;
         const { id: learnerId } = res.locals.user;
@@ -69,7 +71,7 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
             });
         }
 
-        const labMaterials = await createLabMaterials(
+        labMaterials = await createLabMaterials(
             lessonOutline.id,
             learnerId,
             learningLevel
@@ -80,24 +82,23 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
             lessonTitle: lessonTitle,
             lessonOutline: subTopics,
             learningOutcomes: lessonOutline.lesson_learning_outcomes,
-        })
-            .then((practicalLabData) => {
-                return updateLabMaterial(
-                    labMaterials.id,
-                    practicalLabData.realWorldScenario,
-                    JSON.stringify(practicalLabData.supportingMaterial),
-                    practicalLabData.questions
-                );
-            })
-            .catch((error) => {
-                deleteLabSheetById(labMaterials.id);
-                return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-                    message: "Failed to generate lab sheet",
-                    error: error,
-                });
-            });
+        });
 
-        return res.status(StatusCodes.CREATED).send(practicalLabData);
+
+        if (!labMaterials) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                message: "Failed to generate lab sheet",
+            });
+        }
+
+        const updatedLabMaterials = await updateLabMaterial(
+            labMaterials.id,
+            practicalLabData.realWorldScenario,
+            JSON.stringify(practicalLabData.supportingMaterial),
+            practicalLabData.questions
+        );
+
+        return res.status(StatusCodes.CREATED).json(updatedLabMaterials);
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);
@@ -108,7 +109,15 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
             console.error(error);
         }
 
-        res.status(500).send({
+        if (labMaterials) {
+            await deleteLabSheetById(labMaterials.id);
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                message: "Failed to generate lab sheet",
+                error: error,
+            });
+        }
+
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
             message: "Internal server error",
         });
     }
@@ -120,22 +129,29 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
  * @param res
  */
 export async function getLabSheetByIdHandler(req: Request, res: Response) {
+    let labSheet = null;
     try {
         const { labSheetId } = req.params;
         const { id: learnerId } = res.locals.user;
 
         if (!labSheetId || !learnerId) {
-            return res.status(400).json({
+            return res.status(StatusCodes.BAD_REQUEST).json({
                 message: "Invalid request body",
             });
         }
 
-        const labSheet = await getLabSheetByLabSheetIdAndLearnerId(
+        labSheet = await getLabSheetByLabSheetIdAndLearnerId(
             labSheetId,
             learnerId
         );
 
-        return res.status(200).send(labSheet);
+        if (!labSheet) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+                message: "Lab sheet not found",
+            });
+        }
+
+        return res.status(StatusCodes.OK).send(labSheet);
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);
@@ -145,6 +161,10 @@ export async function getLabSheetByIdHandler(req: Request, res: Response) {
         if (error) {
             console.error(error);
         }
+
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: "Failed to get lab sheet",
+        });
     }
 }
 
@@ -176,7 +196,7 @@ export async function getLearningMaterialSummaryByLessonNameHandler(
         const module = await getModuleByName(formattedModuleName);
 
         if (!module) {
-            return res.status(404).json({
+            return res.status(StatusCodes.NOT_FOUND).json({
                 message: "Module not found",
             });
         }
@@ -187,7 +207,7 @@ export async function getLearningMaterialSummaryByLessonNameHandler(
         );
 
         if (!lesson) {
-            return res.status(404).json({
+            return res.status(StatusCodes.NOT_FOUND).json({
                 message: "Lesson not found",
             });
         }
@@ -198,12 +218,12 @@ export async function getLearningMaterialSummaryByLessonNameHandler(
         );
 
         if (!labSheet) {
-            return res.status(404).json({
+            return res.status(StatusCodes.NOT_FOUND).json({
                 message: "Lab sheet not found",
             });
         }
 
-        res.status(200).send(labSheet);
+        res.status(StatusCodes.OK).send(labSheet);
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);
@@ -214,7 +234,7 @@ export async function getLearningMaterialSummaryByLessonNameHandler(
             console.error(error);
         }
 
-        res.status(500).send({
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
             message: "Failed to get learning material",
         });
     }
@@ -235,7 +255,7 @@ export async function evaluateStudentAnswersHandler(
         const { id: learnerId } = res.locals.user;
 
         if (!labSheetId || !studentsAnswer) {
-            return res.status(400).json({
+            return res.status(StatusCodes.BAD_REQUEST).json({
                 message: "Invalid request body",
             });
         }
@@ -247,7 +267,7 @@ export async function evaluateStudentAnswersHandler(
         const lesson = await getLessonDetailsByLabSheetId(labSheetId);
 
         if (!labSheet) {
-            return res.status(404).json({
+            return res.status(StatusCodes.NOT_FOUND).json({
                 message: "Lab sheet not found",
             });
         }
@@ -257,7 +277,7 @@ export async function evaluateStudentAnswersHandler(
         );
 
         if (!question_object) {
-            return res.status(404).json({
+            return res.status(StatusCodes.NOT_FOUND).json({
                 message: "Question not found",
             });
         }
@@ -278,7 +298,7 @@ export async function evaluateStudentAnswersHandler(
             results.studentAnswerEvaluation.isCorrect
         );
 
-        return res.status(200).json(results);
+        return res.status(StatusCodes.OK).json(results);
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);
@@ -289,7 +309,7 @@ export async function evaluateStudentAnswersHandler(
             console.error(error);
         }
 
-        res.status(500).send({
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
             message: "Failed to evaluate student answers",
         });
     }
@@ -310,13 +330,13 @@ export async function generateHintForQuestionHandler(
         const { id: learnerId } = res.locals.user;
 
         if (!labSheetId || !questionNumber) {
-            return res.status(400).json({
+            return res.status(StatusCodes.BAD_REQUEST).json({
                 message: "Invalid request body",
             });
         }
 
         if (isNaN(Number(questionNumber))) {
-            return res.status(400).json({
+            return res.status(StatusCodes.BAD_REQUEST).json({
                 message: "Invalid question id",
             });
         }
@@ -334,7 +354,7 @@ export async function generateHintForQuestionHandler(
         );
 
         if (!studentAnswers || !labSheet) {
-            return res.status(404).json({
+            return res.status(StatusCodes.NOT_FOUND).json({
                 message: "Student answers not found",
             });
         }
@@ -343,7 +363,7 @@ export async function generateHintForQuestionHandler(
             studentAnswers.student_answers &&
             studentAnswers.student_answers.length === 0
         ) {
-            return res.status(404).json({
+            return res.status(StatusCodes.NOT_FOUND).json({
                 message: "Student answers not found",
             });
         }
@@ -359,7 +379,7 @@ export async function generateHintForQuestionHandler(
             )!.question,
         });
 
-        return res.status(200).json({ ...hint });
+        return res.status(StatusCodes.OK).json({ ...hint });
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);
@@ -370,7 +390,7 @@ export async function generateHintForQuestionHandler(
             console.error(error);
         }
 
-        res.status(500).send({
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
             message: "Failed to generate hint",
         });
     }
@@ -387,14 +407,14 @@ export async function deleteLabSheetByIdHandler(req: Request, res: Response) {
         const { labSheetId } = req.params;
 
         if (!labSheetId) {
-            return res.status(400).json({
+            return res.status(StatusCodes.BAD_REQUEST).json({
                 message: "Invalid request body",
             });
         }
 
         await deleteLabSheetById(labSheetId);
 
-        return res.status(204).json({
+        return res.status(StatusCodes.NO_CONTENT).json({
             message: "Lab sheet deleted",
         });
     } catch (error) {
@@ -407,7 +427,7 @@ export async function deleteLabSheetByIdHandler(req: Request, res: Response) {
             console.error(error);
         }
 
-        res.status(500).send({
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
             message: "Failed to delete lab sheet",
         });
     }
@@ -429,7 +449,7 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(
         const { learnerId } = res.locals.user;
 
         if (!labSheetId || !questionId || typeof reflection !== "string") {
-            return res.status(400).json({
+            return res.status(StatusCodes.BAD_REQUEST).json({
                 message: "Invalid request body",
             });
         }
@@ -442,7 +462,7 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(
                 reflection
             );
 
-        return res.status(200).json({
+        return res.status(StatusCodes.OK).json({
             message: "Lab sheet question answer submission status updated",
             submission_status: submissionStatus.labsheet_question,
         });
@@ -456,7 +476,7 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(
             console.error(error);
         }
 
-        res.status(500).send({
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
             message: "Failed to update lab sheet question answer submission status",
         });
     }
@@ -517,7 +537,7 @@ export async function updateLabSheetStatusAsCompletedHandler(
             console.error(error);
         }
 
-        res.status(500).send({
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
             message: "Failed to update lab sheet status",
         });
     }
