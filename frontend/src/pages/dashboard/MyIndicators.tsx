@@ -1,10 +1,10 @@
 import BreadCrumb from "../../Components/BreadCrumb";
-import MyIndicatorDrawer from "../../Components/MyIndicatorDrawer";
 import { Fragment } from "react/jsx-runtime";
 import { useEffect, useState } from "react";
 import { useDashboardContext } from "../../provider/DashboardContext";
 import { getVisualization } from "../../utils/data_visualization_choices";
 import { IndicatorState, PreviousIndicator } from "../../types/dashboard.types";
+import MyIndicatorDrawer from "../../Components/dashboard/MyIndicatorDrawer";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -51,10 +51,7 @@ const MyIndicators = () => {
   return (
     <Fragment>
       {contextHolder}
-      <BreadCrumb
-        module={{ label: "Module A", linkTo: "#" }}
-        sidebarOption={{ label: "My Indicators" }}
-      />
+      <BreadCrumb sidebarOption={{ label: "My Indicators" }} />
       <div className="mt-[20px] mr-[80px] ml-[45px]">
         <Input
           onChange={(e: any) => setSearchText(e.target.value)}
@@ -80,16 +77,29 @@ const MyIndicators = () => {
                   <Card
                     title={indicator.indicator_name}
                     onClick={async () => {
-                      const data = await getIndicatorData(
+                      const data: {
+                        sqlQueryData: any[];
+                        formattedData: any[];
+                      } = await getIndicatorData(
                         indicator.id,
                         indicator.visualization_choice
                       );
                       Modal.info({
                         title: <Text>{indicator.indicator_name}</Text>,
-                        content: getVisualization(
-                          indicator.visualization_choice,
-                          data
-                        ),
+                        content:
+                          Object.keys(data.sqlQueryData[0]).length > 2 &&
+                          indicator.visualization_choice !== "Table" ? (
+                            <Result
+                              status="info"
+                              title={`Sorry, this data cannot be visualized using a
+                        ${indicator.visualization_choice.toLowerCase()}.`}
+                            />
+                          ) : (
+                            getVisualization(
+                              indicator.visualization_choice,
+                              data
+                            )
+                          ),
                         width: "75%",
                         okText: "Close",
                       });

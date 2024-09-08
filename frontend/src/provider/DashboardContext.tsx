@@ -28,20 +28,18 @@ export function DashboardProvider({
   const [customMessage, setCustomMessage] = useState<CustomMessage | null>(
     null
   );
+  const [customMessageWarningContextData, setCustomMessageWarningContextData] =
+    useState<{
+      analysisGoal: string;
+      visualizationChoice: string;
+      sqlQuery: string;
+      sqlQueryData: any[];
+    } | null>(null);
   const [contextData, setContextData] = useState<{
     analysisGoal: string;
     visualizationChoice: string;
     sqlQuery: string;
     formattedData: any;
-  } | null>(null);
-  const [
-    customMessageWarningContextData,
-    // setCustomMessageWarningContextData
-  ] = useState<{
-    analysisGoal: string;
-    visualizationChoice: string;
-    sqlQuery: string;
-    sqlQueryData: any[];
   } | null>(null);
 
   /**
@@ -96,17 +94,20 @@ export function DashboardProvider({
             content:
               "Sorry, there is insufficient data available for visualization. Retry by providing more information or try a different analysis goal.",
           });
-        } else if (Object.keys(sqlQueryData[0]).length > 2) {
+        } else if (
+          Object.keys(sqlQueryData[0]).length > 2 &&
+          visualizationChoice !== "Table"
+        ) {
           setCustomMessage({
             type: "warning",
-            content: `Sorry, the data cannot be properly visualized using a ${visualizationChoice.toLowerCase()}. Would you like to visualize using a table instead?`,
+            content: `Sorry, this data cannot be properly visualized using a ${visualizationChoice.toLowerCase()}. Would you like to visualize using a table instead?`,
           });
-          // setCustomMessageWarningContextData({
-          //   analysisGoal: goal,
-          //   visualizationChoice: "Table",
-          //   sqlQuery: sqlQuery,
-          //   sqlQueryData: sqlQueryData,
-          // });
+          setCustomMessageWarningContextData({
+            analysisGoal: goal,
+            visualizationChoice: "Table",
+            sqlQuery: sqlQuery,
+            sqlQueryData: sqlQueryData,
+          });
         } else {
           setContextData({
             analysisGoal: responseData.goal,
@@ -124,18 +125,18 @@ export function DashboardProvider({
   /**
    * Function to generate an indicator with table as the visualization choice when data has more than two-columned data.
    */
-  // const generateTabularIndicator = (
-  //   analysisGoal: string,
-  //   sqlQuery: string,
-  //   sqlQueryData: any[]
-  // ) => {
-  //   setContextData({
-  //     analysisGoal: analysisGoal,
-  //     visualizationChoice: "Table",
-  //     sqlQuery: sqlQuery,
-  //     formattedData: getFormattedData(sqlQueryData, "Table"),
-  //   });
-  // };
+  const generateTabularIndicator = (
+    analysisGoal: string,
+    sqlQuery: string,
+    sqlQueryData: any[]
+  ) => {
+    setContextData({
+      analysisGoal: analysisGoal,
+      visualizationChoice: "Table",
+      sqlQuery: sqlQuery,
+      formattedData: getFormattedData(sqlQueryData, "Table"),
+    });
+  };
 
   /**
    * Function to save an indicator.
@@ -323,7 +324,7 @@ export function DashboardProvider({
       contextIndicators,
       customMessage,
       generateIndicator,
-      //generateTabularIndicator,
+      generateTabularIndicator,
       saveIndicator,
       getIndicators,
       getIndicatorData,
@@ -337,7 +338,7 @@ export function DashboardProvider({
       contextIndicators,
       customMessage,
       generateIndicator,
-      //generateTabularIndicator,
+      generateTabularIndicator,
       saveIndicator,
       getIndicators,
       getIndicatorData,

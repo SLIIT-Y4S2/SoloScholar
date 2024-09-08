@@ -2,6 +2,7 @@ import { previewData } from "../../utils/data_visualization_preview_data";
 import { Fragment, useContext, useState } from "react";
 import { DashboardContext } from "../../provider/DashboardContext";
 import { Button } from "antd";
+import { PreviewData } from "../../types/dashboard.types";
 import {
   UndoOutlined,
   ZoomInOutlined,
@@ -17,7 +18,6 @@ import {
   ResponsiveContainer,
   Label,
 } from "recharts";
-import { PreviewData } from "../../types/dashboard.types";
 
 const CustomLineChart = (props: { data?: any; lineColor?: string }) => {
   const { data, lineColor } = props;
