@@ -61,7 +61,10 @@ const QuestionCardForFeedback = ({
           </>
         )}
         <br />
-        <strong>Example answer:</strong> <br />
+        <strong>
+          {type === "short-answer" ? "Example answer" : "Correct answer"}:
+        </strong>
+        <br />
         {answer}
       </p>
     </div>

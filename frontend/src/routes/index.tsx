@@ -12,7 +12,6 @@ import {
 } from "../utils/ProtectRoutes";
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
-import Home from "../pages/Home";
 import Dashboard from "../pages/dashboard/Dashboard";
 import CustomAnalyticalIndicator from "../pages/dashboard/CustomAnalyticalIndicator";
 import LecturesOverview from "../pages/dashboard/LecturesOverview";
@@ -69,7 +68,8 @@ const Routes = () => {
       children: [
         {
           path: "",
-          element: <Home />,
+          // element: <Home />,
+          element: <Navigate to="database-systems" />,
         },
         {
           path: "/profile",
@@ -84,7 +84,11 @@ const Routes = () => {
           element: <Navigate to="/" />,
         },
         {
-          path: "/dashboard",
+          path: "/:module",
+          element: <Module />,
+        },
+        {
+          path: "/:module/dashboard",
           element: (
             <ProtectedRouteInstructor>
               <Dashboard />
@@ -92,34 +96,30 @@ const Routes = () => {
           ),
           children: [
             {
-              path: "/dashboard",
+              path: "",
               element: <Main />,
             },
             {
-              path: "/dashboard/lectures-overview",
+              path: "lectures-overview",
               element: <LecturesOverview />,
             },
             {
-              path: "/dashboard/tutorials-overview",
+              path: "tutorials-overview",
               element: <TutorialsOverview />,
             },
             {
-              path: "/dashboard/labs-overview",
+              path: "labs-overview",
               element: <LabsOverview />,
             },
             {
-              path: "/dashboard/custom-analytical-indicator",
+              path: "custom-analytical-indicator",
               element: <CustomAnalyticalIndicator />,
             },
             {
-              path: "/dashboard/my-indicators",
+              path: "my-indicators",
               element: <MyIndicators />,
             },
           ],
-        },
-        {
-          path: "/:module",
-          element: <Module />,
         },
         {
           path: "/:module/discussion-forum",
@@ -129,8 +129,8 @@ const Routes = () => {
           path: "/:module/:lesson",
           children: [
             {
-              path: "",
-              element: <Lesson />
+              path:  "",
+              element: <Lesson />,
             },
             {
               path: "tutorial",
@@ -146,7 +146,7 @@ const Routes = () => {
               children: [
                 {
                   path: "",
-                  element: <LabOverview />
+                  element: <LabOverview />,
                 },
                 {
                   path: "session",
@@ -154,16 +154,20 @@ const Routes = () => {
                   children: [
                     {
                       path: ":labSheetId",
-                      element: <LabSession />
+                      element: <LabSession />,
                     },
                     {
                       path: ":labSheetId/support-material",
-                      element: <SupportMaterialsForLab isNewTab={true} labSheetId={undefined} />
-                    }
-                  ]
+                      element: (
+                        <SupportMaterialsForLab
+                          isNewTab={true}
+                          labSheetId={undefined}
+                        />
+                      ),
+                    },
+                  ],
                 },
-
-              ]
+              ],
             },
           ],
         },

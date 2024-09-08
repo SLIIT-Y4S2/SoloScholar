@@ -5,7 +5,7 @@ import { DashboardProvider } from "../../provider/DashboardContext";
 
 const Dashboard = () => {
   return (
-    <Layout>
+    <Layout className="container mx-auto">
       <DashboardSidebar />
       <Layout>
         <DashboardProvider>

@@ -44,12 +44,8 @@ server.use("/api/v1/auth", authRouter);
 server.use("/api/v1/tutorial", requireUser, tutorialsRouter);
 server.use("/api/v1/labs", requireUser, labRouter);
 server.use("/api/v1/discussions", requireUser, discussionRouter);
-server.use("/api/v1/dashboard", dashboardRouter); // TODO add requireInstructor middleware
-server.use(
-  "/api/v1/module",
-  // requireInstructor,
-  moduleRouter
-); // TODO add requireInstructor middleware
+server.use("/api/v1/dashboard", requireInstructor, dashboardRouter);
+server.use("/api/v1/module", moduleRouter);
 server.get("/api/v1/protected", requireUser, (req: Request, res: Response) => {
   res.json({ message: "Hello from protected route", user: res.locals.user });
 });

@@ -1,4 +1,4 @@
-import { Layout, Menu, MenuProps } from "antd";
+import { Layout, Menu } from "antd";
 import { Link } from "react-router-dom";
 
 const { Sider } = Layout;
@@ -18,7 +18,7 @@ const sidebarItems: SidebarItem[] = [
   },
   { label: "My Indicators", linkTo: "my-indicators" },
 ];
-const items: MenuProps = sidebarItems.map((activity: SidebarItem) => {
+const items = sidebarItems.map((activity: SidebarItem) => {
   return {
     key: activity.label,
     label: <Link to={activity.linkTo}>{activity.label}</Link>,

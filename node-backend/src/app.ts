@@ -3,6 +3,8 @@ import { PORT, MONGO_URI, WS_PORT } from "./constants/app.constants";
 import { io, server, wsServer } from "./utils/server.util";
 import { logger } from "./utils/logger.utils";
 import prisma from "./utils/prisma-client.util";
+import { dashboardUtil } from "./utils/dashboard.util";
+import jsDoc from "./metadata-schema-details/raw_schema_details.json";
 import { setupDiscussionWebSocket } from "./websockets/discussion.websocket";
 
 const app = server;
@@ -14,6 +16,8 @@ app.listen(PORT, async () => {
     logger.info(
       `Connected to database. Server available at http://localhost:${PORT}`
     );
+    // const abc = await dashboardUtil.getTableMetadata(jsDoc);
+    // console.log(abc);
   } catch (error) {
     console.log(error);
   }

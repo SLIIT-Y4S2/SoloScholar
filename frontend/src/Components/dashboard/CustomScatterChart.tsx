@@ -1,33 +1,36 @@
-import { previewData } from "../../../utils/data_visualization_preview_data";
 import { Fragment, useContext, useState } from "react";
-import { DashboardContext } from "../../../provider/DashboardContext";
+import { DashboardContext } from "../../provider/DashboardContext";
+import { previewData } from "../../utils/data_visualization_preview_data";
 import { Button } from "antd";
+import { PreviewData } from "../../types/dashboard.types";
 import {
   UndoOutlined,
   ZoomInOutlined,
   ZoomOutOutlined,
 } from "@ant-design/icons";
 import {
-  LineChart,
-  Line,
+  CartesianGrid,
+  Label,
+  ResponsiveContainer,
+  Scatter,
+  ScatterChart,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Label,
 } from "recharts";
 
-const CustomLineChart = (props: { data?: any; lineColor?: string }) => {
-  const { data, lineColor } = props;
+const CustomScatterChart = (props: { data?: any; dotColor?: string }) => {
+  const { data, dotColor } = props;
   const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(200);
 
-  let chartData: any;
+  let chartData: PreviewData;
   if (contextData) {
     chartData = contextData.formattedData;
   } else if (data) {
     chartData = data.formattedData;
+  } else {
+    chartData = previewData;
   }
 
   return (
@@ -61,34 +64,28 @@ const CustomLineChart = (props: { data?: any; lineColor?: string }) => {
         border-[#eee] rounded-[5px] border-[2px]
         "
       >
-        <LineChart data={chartData ? chartData.values : previewData}>
+        <ScatterChart>
           <CartesianGrid className="stroke-[#909090]" strokeDasharray="3 3" />
           <Tooltip />
-          <Line
-            type="monotone"
-            dataKey="yValue"
-            stroke={lineColor ? lineColor : "#8884d8"}
-            activeDot={{ r: 6 }}
+          <Scatter
+            data={chartData.values}
+            fill={dotColor ? dotColor : "#8884d8"}
           />
           <XAxis dataKey="xValue">
-            <Label
-              value={chartData ? chartData.xLabel : "X Label"}
-              position="bottom"
-              offset={-5}
-            />
+            <Label value={chartData.xLabel} position="bottom" offset={-5} />
           </XAxis>
           <YAxis dataKey="yValue">
             <Label
-              value={chartData ? chartData.yLabel : "Y Label"}
+              value={chartData.yLabel}
               position="left"
               angle={-90}
               offset={-5}
             />
           </YAxis>
-        </LineChart>
+        </ScatterChart>
       </ResponsiveContainer>
     </Fragment>
   );
 };
 
-export default CustomLineChart;
+export default CustomScatterChart;

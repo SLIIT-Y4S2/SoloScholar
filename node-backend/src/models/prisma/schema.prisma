@@ -8,9 +8,10 @@ datasource db {
 }
 
 model cognitive_level {
-  id               Int                @id @default(autoincrement())
-  level            String             @unique @db.VarChar(10)
-  learning_outcome learning_outcome[]
+  id                                Int                                 @id @default(autoincrement())
+  level                             String                              @unique @db.VarChar(10)
+  learning_outcome                  learning_outcome[]
+  tutorial_question_cognitive_level tutorial_question_cognitive_level[]
 }
 
 model interaction {
@@ -167,23 +168,32 @@ model tutorial {
 }
 
 model tutorial_question {
-  id                        Int                            @id @default(autoincrement())
-  question                  String                         @db.VarChar(MAX)
+  id                        Int                                 @id @default(autoincrement())
+  question                  String                              @db.VarChar(MAX)
   question_number           Int
-  answer                    String                         @db.VarChar(MAX)
-  student_answer            String?                        @db.VarChar(MAX)
-  is_student_answer_correct Boolean                        @default(false)
-  feedback_type             String?                        @db.VarChar(10)
-  feedback                  String?                        @db.VarChar(Max)
-  // mcq_tutorial_question          mcq_tutorial_question?
-  // short-answer_tutorial_question short-answer_tutorial_question?
-  type                      String                         @db.VarChar(13) // can be 'mcq' or 'short-answer'
+  answer                    String                              @db.VarChar(MAX)
+  hint                      String?                             @db.VarChar(MAX)
+  student_answer            String?                             @db.VarChar(MAX)
+  is_student_answer_correct Boolean                             @default(false)
+  feedback_type             String?                             @db.VarChar(10)
+  feedback                  String?                             @db.VarChar(Max)
+  type                      String                              @db.VarChar(13) // 'mcq' or 'short-answer'
   options                   mcq_tutorial_question_option[]
   tutorial_interaction      tutorial_interaction[]
-  tutorial                  tutorial                       @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction)
-  tutorial_id               String                         @db.VarChar(25)
-  sub_lesson                sub_lesson                     @relation(fields: [sub_lesson_id], references: [id])
+  tutorial                  tutorial                            @relation(fields: [tutorial_id], references: [id], onUpdate: NoAction)
+  tutorial_id               String                              @db.VarChar(25)
+  sub_lesson                sub_lesson                          @relation(fields: [sub_lesson_id], references: [id])
   sub_lesson_id             Int
+  cognitive_levels          tutorial_question_cognitive_level[]
+}
+
+model tutorial_question_cognitive_level {
+  tutorial_question_id Int
+  cognitive_level_id   Int
+  cognitive_level      cognitive_level   @relation(fields: [cognitive_level_id], references: [id], onUpdate: NoAction)
+  tutorial_question    tutorial_question @relation(fields: [tutorial_question_id], references: [id], onUpdate: NoAction)
+
+  @@id([tutorial_question_id, cognitive_level_id])
 }
 
 model analytical_indicator {
@@ -212,17 +222,9 @@ model lecture_interaction {
   interaction interaction @relation(fields: [id], references: [id], onUpdate: NoAction)
 }
 
-// model mcq_tutorial_question {
-//   id                           Int                            @id
-//   tutorial_question            tutorial_question              @relation(fields: [id], references: [id], onUpdate: NoAction)
-//   mcq_tutorial_question_option mcq_tutorial_question_option[]
-// }
-
 model mcq_tutorial_question_option {
   id                  Int                @id @default(autoincrement())
   answer_option       String             @db.VarChar(300)
-  // mcq_tutorial_question_id Int
-  // mcq_tutorial_question    mcq_tutorial_question @relation(fields: [mcq_tutorial_question_id], references: [id], onUpdate: NoAction)
   tutorial_question   tutorial_question? @relation(fields: [tutorial_questionId], references: [id])
   tutorial_questionId Int?
 }
@@ -243,11 +245,6 @@ model person {
   discussion_like         discussion_like[]
   discussion_comment_like discussion_comment_like[]
 }
-
-// model short-answer_tutorial_question {
-//   id                Int               @id
-//   tutorial_question tutorial_question @relation(fields: [id], references: [id], onUpdate: NoAction)
-// }
 
 model tutorial_interaction {
   id                        Int               @id

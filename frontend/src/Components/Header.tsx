@@ -8,7 +8,7 @@ import { useAuth } from "../provider/authProvider";
 const Header = () => {
   const { userDetails } = useAuth();
   return (
-    <div className="text-base bg-white h-20 px-6 py-3 shadow-md">
+    <div className="text-base bg-white h-20 py-3 shadow-md z-10">
       <div className="container flex justify-between items-center h-full mx-auto">
         <Link to={APP_ROUTES.HOME}>
           <img src="/assets/soloscholar-logo.svg" alt="logo" className="h-12" />
@@ -28,6 +28,11 @@ const Header = () => {
           >
             <div className="">Modules</div>
           </Dropdown>
+          {userDetails?.role === "instructor" && (
+            <Link to={`${APP_ROUTES.ds}/${APP_ROUTES.DASHBOARD}`}>
+              Dashboard
+            </Link>
+          )}
           <ProfileIcon
             student_id={`${userDetails?.first_name} ${userDetails?.last_name}`}
           />

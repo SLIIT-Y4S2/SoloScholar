@@ -2,7 +2,7 @@ import { Layout, Spin } from "antd";
 import { TutorialProvider } from "../../../../provider/tutorial/TutorialContext";
 import RequestFeedback from "./RequestFeedback";
 import TutorialFeedback from "./Feedback";
-import TutorialQuestionView from "./TutorialQuestionView";
+import TutorialQuestionView from "./TutorialAnsweringView";
 import CompletedTutorial from "./CompletedTutorial";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import Error from "../../../../Components/Error";
@@ -55,7 +55,7 @@ const TutorialView = () => {
 const TutorialViewWithProvider = () => {
   return (
     <TutorialProvider>
-      <Layout style={{ padding: "0 24px 24px" }}>
+      <Layout style={{ padding: "0 0 24px" }}>
         <Layout className="container mx-auto">
           <CustomBreadcrumb />
           <TutorialView />
