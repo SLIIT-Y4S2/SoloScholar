@@ -1,24 +1,19 @@
 import { DataSource } from "typeorm";
 import { SqlDatabase } from "langchain/sql_db";
-import {
-  ChatOpenAI,
-  OpenAIEmbeddings,
-  ChatOpenAICallOptions,
-  OpenAI,
-} from "@langchain/openai";
+import { ChatOpenAI, ChatOpenAICallOptions } from "@langchain/openai";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { ZodTypeAny, ZodObject, ZodString } from "zod";
 import { SQL_MSSQL_PROMPT } from "../prompt-templates/dashboard_prompt_template";
 import { OPENAI_CHAT_MODEL } from "../constants/openai.constants";
 import { OPENAI_API_KEY } from "../constants/app.constants";
+import { analyticalIndicatorContextRetrievalPipeline } from "./rag.util";
 import {
   AZURE_SQL_DATABASE,
   AZURE_SQL_HOST,
   AZURE_SQL_PASSWORD,
   AZURE_SQL_USERNAME,
 } from "../constants/azure.constants";
-import { getEmbeddings } from "./openai.util";
 
 const datasource: DataSource = new DataSource({
   type: "mssql",
@@ -52,7 +47,7 @@ const jsonParser: StructuredOutputParser<
 
 let database: SqlDatabase | null = null;
 
-async function getSqlQueryChain(): Promise<
+async function getSqlQueryChain(goal: string): Promise<
   RunnableSequence<
     {
       question: string;
@@ -66,9 +61,18 @@ async function getSqlQueryChain(): Promise<
     await datasource.initialize();
     database = await SqlDatabase.fromDataSourceParams({
       appDataSource: datasource,
-      ignoreTables: ["database_firewall_rules"],
+      ignoreTables: ["database_firewall_rules", "analytical_indicator"],
     });
   }
+
+  /**
+   * @description Retrieve the contextually relevant tables based on user question
+   */
+  const tablesContext = await analyticalIndicatorContextRetrievalPipeline(
+    goal,
+    3
+  );
+  console.log("tablesContext", tablesContext);
 
   /**
    * Create a new RunnableSequence where we pipe the output from `db.getTableInfo()`
@@ -84,6 +88,7 @@ async function getSqlQueryChain(): Promise<
   > = RunnableSequence.from([
     {
       schema: async () => await database?.getTableInfo(),
+      contextuallyRelevantTables: () => tablesContext,
       formatInstructions: () => jsonParser.getFormatInstructions(),
       question: (input: { question: string }) => input.question,
       defaultQuery: () => "SELECT NULL",
@@ -96,105 +101,6 @@ async function getSqlQueryChain(): Promise<
   return sqlQueryChain;
 }
 
-interface Column {
-  name: string;
-  data_type: string;
-  description: string;
-}
-interface Table {
-  name: string;
-  description: string;
-  columns: Column[];
-}
-
-// /**
-//  *  Function that converts the table information in JSON form into an array of metadata objects.
-//  */
-// async function getTableMetadata(tableInformation: { table_info: Table[] }) {
-//   return tableInformation.table_info.map((table) => {
-//     const columns: Column[] = table.columns;
-
-//     // Extract column details
-//     const columnNames = columns.map((column) => column.name);
-//     const columnDataTypes = columns.map((column) => column.data_type);
-//     const columnDescriptions = columns.map((column) => column.description);
-
-//     // Create metadata object
-//     return {
-//       table_name: table.name,
-//       table_description: table.description,
-//       column_names: JSON.stringify(columnNames),
-//       data_types: JSON.stringify(columnDataTypes),
-//       column_descriptions: JSON.stringify(columnDescriptions),
-//     };
-//   });
-// }
-
-/**
- *  Function that converts the table information in JSON form into an array of metadata objects.
- */
-async function getTableMetadata(tableInformation: { table_info: Table[] }) {
-  // Initialize the OpenAI embeddings client
-  const openAIEmbeddings = getEmbeddings();
-
-  return Promise.all(
-    tableInformation.table_info.map(async (table) => {
-      const columns: Column[] = table.columns;
-
-      // Create text representations
-      const columnNamesText = JSON.stringify(
-        columns.map((column) => column.name)
-      );
-      const columnDataTypesText = JSON.stringify(
-        columns.map((column) => column.data_type)
-      );
-      const columnDescriptionsText = JSON.stringify(
-        columns.map((column) => column.description)
-      );
-
-      // Extract column details
-      // const columnNames = columns.map((column) => column.name);
-      // const columnDataTypes = columns.map((column) => column.data_type);
-      // const columnDescriptions = columns.map((column) => column.description);
-
-      // Table metadata text
-      const tableText = `Table: ${table.name} | Description: ${table.description}`;
-
-      // Combine all metadata into one text
-      const combinedText = `${tableText} | Columns: ${columnNamesText} | Data Types: ${columnDataTypesText} | Descriptions: ${columnDescriptionsText}`;
-
-      // Generate embeddings using LangChain
-      const tableEmbedding = await openAIEmbeddings.embedQuery(tableText); // Table embedding
-      const combinedEmbedding = await openAIEmbeddings.embedQuery(combinedText); // Combined embedding
-
-      // // Create metadata object
-      // const metadata = {
-      //   table_name: table.name,
-      //   table_description: table.description,
-      //   column_names: JSON.stringify(columnNames),
-      //   data_types: JSON.stringify(columnDataTypes),
-      //   column_descriptions: JSON.stringify(columnDescriptions),
-      // };
-
-      // // Generate embeddings for the metadata
-      // const metadataString = JSON.stringify(metadata);
-      // const embeddings = await openAIEmbeddings.embedQuery(metadataString);
-
-      // return {
-      //   ...metadata,
-      //   embeddings,
-      // };
-      return {
-        id: table.name,
-        table_embedding: tableEmbedding,
-        combined_embedding: combinedEmbedding,
-        metadata: table,
-      };
-    })
-  );
-}
-
 export const dashboardUtil = {
   getSqlQueryChain,
-  getTableMetadata,
 };
