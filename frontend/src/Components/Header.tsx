@@ -13,7 +13,7 @@ const Header = () => {
         <img src="/assets/soloscholar-logo.svg" alt="logo" className="h-12" />
       </Link>
       <div className="flex justify-center items-center gap-4">
-        <Link to={APP_ROUTES.HOME}>Home</Link>
+        {/* <Link to={APP_ROUTES.HOME}>Home</Link> */}
         {/* <Link to={APP_ROUTES.MODULES}>Modules</Link> */}
         <Dropdown
           menu={{
@@ -30,7 +30,6 @@ const Header = () => {
         {userDetails?.role === "instructor" && (
           <Link to={`${APP_ROUTES.ds}/${APP_ROUTES.DASHBOARD}`}>Dashboard</Link>
         )}
-        <Link to={`${APP_ROUTES.ds}/${APP_ROUTES.DASHBOARD}`}>Dashboard</Link>
         <ProfileIcon
           student_id={`${userDetails?.first_name} ${userDetails?.last_name}`}
         />
