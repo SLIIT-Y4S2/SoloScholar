@@ -1,4 +1,4 @@
-import { Button, Layout, Skeleton, Table } from "antd";
+import { Button, Layout, Table } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -87,12 +87,12 @@ const TutorialView = () => {
     }
   };
 
-  if (loading) return <TutorialLoading />;
+  // if (loading) return <TutorialLoading />;
   if (error) return <Error title="Error occurred" subTitle={error} />;
   if (generatingNewTutorial) return <GeneratingView />;
 
   return (
-    <Layout style={{ padding: "0 24px 24px" }}>
+    <Layout style={{ padding: "0 0 24px" }}>
       <Layout className="container mx-auto">
         <CustomBreadcrumb />
         <Content
@@ -190,12 +190,13 @@ const TutorialView = () => {
             <Button
               type="primary"
               onClick={() => setIsModalVisible(true)}
+              loading={loading}
               disabled={options.length === 0}
             >
               Generate New Tutorial
             </Button>
           </div>
-          <PastTutorialsTable pastTutorials={pastTutorials} />
+          <PastTutorialsTable pastTutorials={pastTutorials} loading={loading} />
         </Content>
       </Layout>
       <GenerateTutorialModal
@@ -208,53 +209,12 @@ const TutorialView = () => {
   );
 };
 
-// const GenerateTutorialModal = ({
-//   visible,
-//   onCancel,
-//   onSubmit,
-//   options,
-// }: {
-//   visible: boolean;
-//   onCancel: () => void;
-//   onSubmit: (values: { learningLevel: string }) => void;
-//   options: ["beginner" | "intermediate" | "advanced"];
-// }) => (
-//   <Modal
-//     title="Generate New Tutorial"
-//     open={visible}
-//     onCancel={onCancel}
-//     footer={null}
-//   >
-//     <Form layout="vertical" onFinish={onSubmit}>
-//       <Form.Item
-//         name="learningLevel"
-//         label="Select Learning Level"
-//         rules={[{ required: true, message: "Please select a learning level" }]}
-//       >
-//         <Select
-//           placeholder="Select"
-//           options={options.map((option) => ({
-//             value: option,
-//             label: option.charAt(0).toUpperCase() + option.slice(1),
-//           }))}
-//         />
-//       </Form.Item>
-
-//       {/* show the description for the learning level */}
-
-//       <Form.Item>
-//         <Button type="primary" htmlType="submit" block>
-//           Generate Tutorial
-//         </Button>
-//       </Form.Item>
-//     </Form>
-//   </Modal>
-// );
-
 const PastTutorialsTable = ({
   pastTutorials,
+  loading,
 }: {
   pastTutorials: Tutorial[];
+  loading: boolean;
 }) => (
   <div className="flex flex-col gap-4">
     <h2 className="text-xl font-bold ">Generated Tutorials</h2>
@@ -264,6 +224,7 @@ const PastTutorialsTable = ({
       className="max-w-4xl"
       scroll={{ x: true }}
       rowKey="id"
+      loading={loading}
     >
       <Table.Column
         title="Created on"
@@ -309,53 +270,53 @@ const formatDate = (date: Date) => {
 
 export default TutorialView;
 
-function TutorialLoading() {
-  const active = true;
-  const size = "default";
+// function TutorialLoading() {
+//   const active = true;
+//   const size = "default";
 
-  const emptyLabSheetSummary = Array.from({ length: 5 }, (_k, id) => ({
-    Created: "",
-    "Learning Level": "",
-    Status: "",
-    Action: id,
-  }));
+//   const emptyLabSheetSummary = Array.from({ length: 5 }, (_k, id) => ({
+//     Created: "",
+//     "Learning Level": "",
+//     Status: "",
+//     Action: id,
+//   }));
 
-  const columns = Object.keys(emptyLabSheetSummary[0]).map((k, i) => {
-    return {
-      title: k,
-      index: k,
-      key: i,
-    };
-  });
+//   const columns = Object.keys(emptyLabSheetSummary[0]).map((k, i) => {
+//     return {
+//       title: k,
+//       index: k,
+//       key: i,
+//     };
+//   });
 
-  return (
-    <Content className="bg-white py-6 px-6 rounded-2xl flex flex-col gap-4">
-      <Skeleton paragraph={{ rows: 4 }} active={active} />
-      <div className="flex flex-row justify-between gap-2">
-        <Skeleton.Input active={active} size={size} />
-        <Skeleton.Input active={active} size={size} />
-      </div>
+//   return (
+//     <Content className="bg-white py-6 px-6 rounded-2xl flex flex-col gap-4">
+//       <Skeleton paragraph={{ rows: 4 }} active={active} />
+//       <div className="flex flex-row justify-between gap-2">
+//         <Skeleton.Input active={active} size={size} />
+//         <Skeleton.Input active={active} size={size} />
+//       </div>
 
-      <Table
-        dataSource={[]}
-        pagination={false}
-        className="max-w-4xl "
-        rowKey="_id"
-        columns={columns}
-        locale={{
-          emptyText: emptyLabSheetSummary.map((empty) => (
-            <Skeleton.Input
-              key={empty.Action}
-              style={{ marginTop: "10px", width: "100%" }}
-              active={true}
-              block={true}
-            />
-          )),
-        }}
-      />
-    </Content>
-  );
-}
+//       <Table
+//         dataSource={[]}
+//         pagination={false}
+//         className="max-w-4xl "
+//         rowKey="_id"
+//         columns={columns}
+//         locale={{
+//           emptyText: emptyLabSheetSummary.map((empty) => (
+//             <Skeleton.Input
+//               key={empty.Action}
+//               style={{ marginTop: "10px", width: "100%" }}
+//               active={true}
+//               block={true}
+//             />
+//           )),
+//         }}
+//       />
+//     </Content>
+//   );
+// }
 function toProperString(input: string): string {
   const words = input.split("-");
   words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);

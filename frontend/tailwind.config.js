@@ -9,6 +9,9 @@ export default {
       colors: {
         accent: "#1890ff",
       },
+      container: {
+        padding: "1rem",
+      },
     },
   },
   plugins: [],

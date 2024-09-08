@@ -1,4 +1,3 @@
-import React from "react";
 import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
 import {
   TrophyOutlined,
@@ -8,7 +7,17 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 
-const StatisticCard = ({ title, value, icon, color }) => (
+const StatisticCard = ({
+  title,
+  value,
+  icon,
+  color,
+}: {
+  title: string;
+  value: number | string;
+  icon: JSX.Element;
+  color: string;
+}) => (
   <div className="flex flex-col items-center p-4 bg-white rounded-lg shadow-md">
     <div className={`text-3xl ${color}`}>{icon}</div>
     <div className="text-2xl font-bold mt-2">{value}</div>

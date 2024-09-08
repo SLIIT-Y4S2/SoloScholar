@@ -122,8 +122,8 @@ const Routes = () => {
           path: "/:module/:lesson",
           children: [
             {
-              path:"",
-              element: <Lesson />
+              path: "",
+              element: <Lesson />,
             },
             {
               path: "tutorial",

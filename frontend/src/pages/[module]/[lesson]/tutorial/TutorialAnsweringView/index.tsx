@@ -12,7 +12,7 @@ const TutorialQuestionView = () => {
 
   return (
     <Spin spinning={isLoading}>
-      <div className="container mx-auto flex flex-col gap-4  lg:flex-row lg:items-start ">
+      <div className="flex flex-col gap-4  lg:flex-row lg:items-start ">
         <TutorialQuestionStatus
           noOfQuestions={questions.length}
           answeredQuestions={questionsWithAnswers.map(
