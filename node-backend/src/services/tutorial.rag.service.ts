@@ -125,7 +125,7 @@ export async function synthesizeQuestionsForSubtopic(
     totalNumberOfQuestions
   );
 
-  console.log("distribution", distribution); // TODO: Remove
+  // console.log("distribution", distribution); // TODO: Remove
 
   const questionResponse = await retrievalChain.invoke({
     context,
