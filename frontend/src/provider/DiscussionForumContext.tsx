@@ -1,29 +1,11 @@
 import { createContext, ReactNode, useContext, useMemo } from 'react';
 import { fetchDiscussions, addComment, createDiscussion, fetchDiscussion, likeComment, likeDiscussion, unlikeComment, unlikeDiscussion } from '../services/discussionForum.service';
-
-interface Discussion {
-    id: string;
-    title: string;
-    content: string;
-    creatorName: string;
-    likeCount: number;
-    commentCount: number;
-    isLiked: boolean;
-    comments: Comment[];
-}
-
-interface Comment {
-    id: string;
-    content: string;
-    creatorName: string;
-    likeCount: number;
-    isLiked: boolean;
-}
+import { DiscussionType } from '../types/discussionForum.types';
 
 interface DiscussionForumContextType {
-    fetchDiscussions: (moduleId: string) => Promise<Discussion[]>;
-    fetchDiscussion: (discussionId: string) => Promise<Discussion>;
-    createDiscussion: (moduleName: string, title: string, content: string) => Promise<Discussion>;
+    fetchDiscussions: (moduleId: string) => Promise<DiscussionType[]>;
+    fetchDiscussion: (discussionId: string) => Promise<DiscussionType>;
+    createDiscussion: (moduleName: string, title: string, content: string) => Promise<DiscussionType>;
     addComment: (discussionId: string, content: string) => Promise<Comment>;
     likeDiscussion: (discussionId: string) => Promise<void>;
     unlikeDiscussion: (discussionId: string) => Promise<void>;

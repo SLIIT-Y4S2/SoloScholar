@@ -11,7 +11,7 @@ import {
 export function setupDiscussionWebSocket(io: Server) {
 
     io.on('connection', (socket: Socket) => {
-        console.log('A user connected to discussion WebSocket');
+        console.log(`A user connected to discussion WebSocket. ${socket.id}`);
 
         socket.on('join_discussion', (discussionId: string) => {
             socket.join(discussionId);
@@ -23,18 +23,13 @@ export function setupDiscussionWebSocket(io: Server) {
             console.log(`User left discussion: ${discussionId}`);
         });
 
-        socket.on('add_comment', async (data: { discussionId: string, content: string }) => {
+        socket.on('add_comment', async (data: { discussionId: string, content: string, userId: string }) => {
             try {
-                const { discussionId, content } = data;
-                const creatorId = socket.data.user.id;  // Assuming user data is attached to socket
+                const { discussionId, content, userId } = data;
+                const newComment = await addCommentToDiscussion(discussionId, { content: content, creatorId: userId });
 
-                const newComment = await addCommentToDiscussion(discussionId, { content, creatorId });
-
-                // Fetch updated discussion to get latest state
-                const updatedDiscussion = await getDiscussionById(discussionId, creatorId);
-
-                io.to(discussionId).emit('discussion_updated', updatedDiscussion);
-                socket.emit('comment added', newComment);
+                io.to(discussionId).emit('discussion_updated');
+                socket.emit('comment_added', newComment);
             } catch (error) {
                 console.error('Error adding comment:', error);
                 socket.emit('error', { message: 'Failed to add comment' });
@@ -44,9 +39,13 @@ export function setupDiscussionWebSocket(io: Server) {
         socket.on('like_discussion', async (data: { discussionId: string, userId: string }) => {
             try {
                 const { discussionId, userId } = data;
-                await likeDiscussion(discussionId, userId);
-                const updatedDiscussion = await getDiscussionById(discussionId, userId);
-                io.to(discussionId).emit('discussion_updated', updatedDiscussion);
+                const result = await likeDiscussion(discussionId, userId);
+
+                if (result === null) {
+                    socket.emit('info', { message: "You've already liked this discussion." });
+                } else {
+                    io.to(discussionId).emit('discussion_updated');
+                }
             } catch (error) {
                 console.error('Error liking discussion:', error);
                 socket.emit('error', { message: 'Failed to like discussion' });
@@ -56,9 +55,13 @@ export function setupDiscussionWebSocket(io: Server) {
         socket.on('unlike_discussion', async (data: { discussionId: string, userId: string }) => {
             try {
                 const { discussionId, userId } = data;
-                await unlikeDiscussion(discussionId, userId);
-                const updatedDiscussion = await getDiscussionById(discussionId, userId);
-                io.to(discussionId).emit('discussion_updated', updatedDiscussion);
+                const result = await unlikeDiscussion(discussionId, userId);
+
+                if (result === null) {
+                    socket.emit('info', { message: "You haven't liked this discussion yet." });
+                } else {
+                    io.to(discussionId).emit('discussion_updated');
+                }
             } catch (error) {
                 console.error('Error unliking discussion:', error);
                 socket.emit('error', { message: 'Failed to unlike discussion' });
@@ -68,10 +71,13 @@ export function setupDiscussionWebSocket(io: Server) {
         socket.on('like_comment', async (data: { discussionId: string, commentId: number, userId: string }) => {
             try {
                 const { discussionId, commentId, userId } = data;
+                const result = await likeComment(commentId, userId);
 
-                await likeComment(commentId, userId);
-                const updatedDiscussion = await getDiscussionById(discussionId, userId);
-                io.to(discussionId).emit('discussion_updated', updatedDiscussion);
+                if (result === null) {
+                    socket.emit('info', { message: "You've already liked this comment." });
+                } else {
+                    io.to(discussionId).emit('discussion_updated');
+                }
             } catch (error) {
                 console.error('Error liking comment:', error);
                 socket.emit('error', { message: 'Failed to like comment' });
@@ -81,9 +87,13 @@ export function setupDiscussionWebSocket(io: Server) {
         socket.on('unlike_comment', async (data: { discussionId: string, commentId: number, userId: string }) => {
             try {
                 const { discussionId, commentId, userId } = data;
-                await unlikeComment(commentId, userId);
-                const updatedDiscussion = await getDiscussionById(discussionId, userId);
-                io.to(discussionId).emit('discussion_updated', updatedDiscussion);
+                const result = await unlikeComment(commentId, userId);
+
+                if (result === null) {
+                    socket.emit('info', { message: "You haven't liked this comment yet." });
+                } else {
+                    io.to(discussionId).emit('discussion_updated');
+                }
             } catch (error) {
                 console.error('Error unliking comment:', error);
                 socket.emit('error', { message: 'Failed to unlike comment' });

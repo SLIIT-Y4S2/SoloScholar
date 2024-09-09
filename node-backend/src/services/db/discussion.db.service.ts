@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import prisma from "../../utils/prisma-client.util";
 import { omit } from "lodash";
 
@@ -128,66 +129,108 @@ export async function addCommentToDiscussion(discussionId: string, commentInput:
  * Like a discussion
  * @param discussionId 
  * @param personId 
- * @returns 
+ * @returns The created like or null if already liked
  */
 export async function likeDiscussion(discussionId: string, personId: string) {
-    const like = await prisma.discussion_like.create({
-        data: {
-            discussion: { connect: { id: discussionId } },
-            person: { connect: { id: personId } },
-        },
-    });
-    return like;
+    try {
+        const like = await prisma.discussion_like.create({
+            data: {
+                discussion: { connect: { id: discussionId } },
+                person: { connect: { id: personId } },
+            },
+        });
+        return like;
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError)
+            if (error.code === 'P2002') {
+                // P2002 is the Prisma error code for unique constraint violation
+                console.log('User has already liked this discussion');
+                return null;
+            }
+        throw error;
+    }
 }
 
 /**
  * Unlike a discussion
  * @param discussionId 
  * @param personId 
+ * @returns true if unliked, null if not liked
  */
 export async function unlikeDiscussion(discussionId: string, personId: string) {
-    await prisma.discussion_like.delete({
-        where: {
-            discussion_id_person_id: {
-                discussion_id: discussionId,
-                person_id: personId,
+    try {
+        await prisma.discussion_like.delete({
+            where: {
+                discussion_id_person_id: {
+                    discussion_id: discussionId,
+                    person_id: personId,
+                },
             },
-        },
-    });
+        });
+        return true;
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError)
+            if (error.code === 'P2025') {
+                // P2025 is the Prisma error code for record not found
+                console.log('User has not liked this discussion');
+                return null;
+            }
+        throw error;
+    }
 }
 
 /**
  * Like a comment
  * @param commentId 
  * @param personId 
- * @returns 
+ * @returns The created like or null if already liked
  */
 export async function likeComment(commentId: number, personId: string) {
-    const like = await prisma.discussion_comment_like.create({
-        data: {
-            comment: { connect: { id: commentId } },
-            person: { connect: { id: personId } },
-        },
-    });
-    return like;
+    try {
+        const like = await prisma.discussion_comment_like.create({
+            data: {
+                comment: { connect: { id: commentId } },
+                person: { connect: { id: personId } },
+            },
+        });
+        return like;
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError)
+
+            if (error.code === 'P2002') {
+                console.log('User has already liked this comment');
+                return null;
+            }
+        throw error;
+    }
 }
 
 /**
  * Unlike a comment
  * @param commentId 
  * @param personId 
+ * @returns true if unliked, null if not liked
  */
 export async function unlikeComment(commentId: number, personId: string) {
-    await prisma.discussion_comment_like.delete({
-        where: {
-            comment_id_person_id: {
-                comment_id: commentId,
-                person_id: personId,
+    try {
+        await prisma.discussion_comment_like.delete({
+            where: {
+                comment_id_person_id: {
+                    comment_id: commentId,
+                    person_id: personId,
+                },
             },
-        },
-    });
+        });
+        return true;
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError)
+            if (error.code === 'P2025') {
+                console.log('User has not liked this comment');
+                return null;
+            }
+        throw error;
+    }
 }
-
 /**
  * Get a discussion by ID
  * @param discussionId 

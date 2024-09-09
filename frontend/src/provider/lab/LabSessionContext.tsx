@@ -10,6 +10,7 @@ import {
 import { evaluateStudentsAnswer, getLabExerciseById, getHintForQuestion, updateSubmissionStatus, updateLabSheetStatusAsCompleted } from "../../services/lab.service";
 import { LabStatus, SupportingMaterial } from "../../types/lab.types";
 import { useParams } from "react-router-dom";
+import { message } from "antd";
 
 interface LabSessionProviderProps {
     children: ReactNode;
@@ -158,6 +159,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
 
                 }).catch((error) => {
                     console.log("Error evaluating answer", error);
+                    message.error("Error evaluating answer");
                     setIsEvaluatingAnswer(false);
                 });
         },

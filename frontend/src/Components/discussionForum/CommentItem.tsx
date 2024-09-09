@@ -2,10 +2,10 @@ import { Avatar, Button, Tooltip } from 'antd';
 import { LikeOutlined, LikeFilled } from '@ant-design/icons';
 import { useDiscussionForum } from '../../provider/DiscussionForumContext';
 import { useWebSocket } from '../../provider/WebSocketContext';
-import { Comment } from '../../types/discussionForum.types';
+import { CommentType } from '../../types/discussionForum.types';
 interface CommentItemProps {
     discussionId: string;
-    comment: Comment;
+    comment: CommentType;
 }
 
 export default function CommentItem({ comment, discussionId }: Readonly<CommentItemProps>) {
@@ -25,17 +25,17 @@ export default function CommentItem({ comment, discussionId }: Readonly<CommentI
             <div className="flex-grow">
                 <div className="flex items-center space-x-2">
                     <span className="font-semibold">{"comment.creator.name"}</span>
-                    <span className="text-gray-500 text-sm">{comment.createdAt}</span>
+                    <span className="text-gray-500 text-sm">{comment.created_at}</span>
                 </div>
                 <p>{comment.content}</p>
-                <Tooltip title={comment.liked ? 'Unlike' : 'Like'}>
+                <Tooltip title={comment.isLiked ? 'Unlike' : 'Like'}>
                     <Button
-                        icon={comment.liked ? <LikeFilled /> : <LikeOutlined />}
+                        icon={comment.isLiked ? <LikeFilled /> : <LikeOutlined />}
                         onClick={handleLikeComment}
                         type="text"
                         size="small"
                     >
-                        {comment.likes}
+                        {comment._count.likes}
                     </Button>
                 </Tooltip>
             </div>

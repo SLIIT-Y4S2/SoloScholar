@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { getLabExerciseByModuleAndLessonName } from "../../services/lab.service";
 import { useParams } from "react-router-dom";
+import { message } from "antd";
 
 interface LabProviderProps {
     readonly children: ReactNode;
@@ -15,6 +16,7 @@ interface LabSheetDataSummary {
 
 interface LabContextType {
     previousLabSheetSummary: LabSheetDataSummary[] | null;
+    generatedLearningLevel: string[] | null;
     isLoading: boolean;
     isGenerationError: boolean;
     setIsGenerationError: React.Dispatch<React.SetStateAction<boolean>>;
@@ -36,6 +38,8 @@ export function LabProvider({ children }: LabProviderProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [previousLabSheetSummary, setPreviousLabSheetSummary] = useState<LabSheetDataSummary[]>([]);
     const [isGenerationError, setIsGenerationError] = useState<boolean>(false);
+    const [generatedLearningLevel, setGeneratedLearningLevel] = useState<string[] >([]);
+
 
 
     const { module, lesson } = useParams();
@@ -51,16 +55,18 @@ export function LabProvider({ children }: LabProviderProps) {
         // Fetch labSheet data
         getLabExerciseByModuleAndLessonName(module, lesson)
             .then((response) => {
-                setPreviousLabSheetSummary(response.data);
+                setPreviousLabSheetSummary(response.data.labSheet);
+                setGeneratedLearningLevel(response.data.remainingLevels);
                 setIsLoading(false);
             }).catch((error) => {
                 console.error("Error fetching labSheet data: ", error);
+                message.error("Error fetching labSheet data");
                 setIsLoading(false);
             }
             );
     }, [lesson, module]);
 
-    const contextValue = useMemo(() => ({ previousLabSheetSummary, isLoading, isGenerationError, setIsGenerationError }), [previousLabSheetSummary, isLoading, isGenerationError]);
+    const contextValue = useMemo(() => ({ previousLabSheetSummary, isLoading, isGenerationError, setIsGenerationError, generatedLearningLevel }), [previousLabSheetSummary, isLoading, isGenerationError, generatedLearningLevel]);
 
     return <LabContext.Provider value={contextValue}>{children}</LabContext.Provider>;
 }
