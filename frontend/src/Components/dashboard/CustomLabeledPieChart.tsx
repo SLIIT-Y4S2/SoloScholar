@@ -1,4 +1,3 @@
-import { Result } from "antd";
 import {
   PieChart,
   Pie,
