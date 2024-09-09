@@ -13,8 +13,9 @@ import dashboardRouter from "../routes/dashboard.routes";
 import moduleRouter from "../routes/module.routes";
 import discussionRouter from "../routes/discussion.routes";
 import requireInstructor from "../middlewares/requireInstructor.middleware";
-import { Server } from 'socket.io';
-import http from 'http';
+import { Server } from "socket.io";
+import http from "http";
+import dashboardAnalyticsRouter from "../routes/dashboardAnalytics.routes";
 
 const server = express();
 
@@ -45,6 +46,11 @@ server.use("/api/v1/tutorial", requireUser, tutorialsRouter);
 server.use("/api/v1/labs", requireUser, labRouter);
 server.use("/api/v1/discussions", requireUser, discussionRouter);
 server.use("/api/v1/dashboard", requireInstructor, dashboardRouter);
+server.use(
+  "/api/v1/dashboard-analytics",
+  requireInstructor,
+  dashboardAnalyticsRouter
+);
 server.use("/api/v1/module", moduleRouter);
 server.get("/api/v1/protected", requireUser, (req: Request, res: Response) => {
   res.json({ message: "Hello from protected route", user: res.locals.user });
@@ -61,8 +67,8 @@ const io = new Server(wsServer, {
   cors: {
     origin: "http://localhost:3000",
     methods: ["GET", "POST"],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 export { server, io, wsServer };
