@@ -32,6 +32,7 @@ import Lesson from "../pages/[module]/[lesson]";
 import DiscussionForum from "../pages/[module]/[lesson]/discussionForum";
 import { DiscussionForumProvider } from "../provider/DiscussionForumContext";
 import { WebSocketProvider } from "../provider/WebSocketContext";
+import Discussion from "../pages/[module]/[lesson]/discussionForum/[discussionId]";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -123,13 +124,22 @@ const Routes = () => {
         },
         {
           path: "/:module/discussion-forum",
-          element: <WebSocketProvider><DiscussionForumProvider><DiscussionForum /></DiscussionForumProvider></WebSocketProvider>
+          children: [
+            {
+              path: "",
+              element: <WebSocketProvider><DiscussionForumProvider><DiscussionForum /></DiscussionForumProvider></WebSocketProvider>
+            },
+            {
+              path: ":discussionId",
+              element: <WebSocketProvider><DiscussionForumProvider><Discussion /></DiscussionForumProvider></WebSocketProvider>
+            }
+          ],
         },
         {
           path: "/:module/:lesson",
           children: [
             {
-              path:  "",
+              path: "",
               element: <Lesson />,
             },
             {

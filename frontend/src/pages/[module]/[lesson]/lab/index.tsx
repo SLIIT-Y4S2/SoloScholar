@@ -1,18 +1,20 @@
-import { Button, Form, Layout, Select, Skeleton, Table } from "antd";
+import { Button, Layout, message, Skeleton, Table } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { generateLabExercise } from "../../../../services/lab.service";
 import { useLabContext } from "../../../../provider/lab/LabContext";
-import { QuestionCardForLabSkeleton } from "../../../../Components/lab/QuestionCardForLabSkeleton";
+import GenerateLabModal from "../../../../Components/lab/GenerateLabModal";
+import GeneratingView from "../../../../Components/tutorial/GeneratingView";
 
 export default function LabOverview() {
     const { module, lesson } = useParams();
     const navigate = useNavigate();
 
     const [generatingNewLabSheet, setGeneratingNewLabSheet] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
-    const { isLoading, previousLabSheetSummary, setIsGenerationError } = useLabContext();
+    const { isLoading, previousLabSheetSummary, generatedLearningLevel, setIsGenerationError } = useLabContext();
 
     if (isLoading) {
         console.log(isLoading);
@@ -22,7 +24,7 @@ export default function LabOverview() {
     if (generatingNewLabSheet) {
         return (
             <div className="flex content-center justify-center">
-                <QuestionCardForLabSkeleton />
+                 <GeneratingView />
             </div>
         );
     }
@@ -32,19 +34,25 @@ export default function LabOverview() {
     }: {
         learningLevel: string;
     }) => {
-        try {
-            if (!module || !lesson) {
-                return;
-            }
-            setGeneratingNewLabSheet(true);
-
-            const response = await generateLabExercise(module.replace(/-/g, " "), lesson.replace(/-/g, " "), learningLevel);
-
-            const labSheetId = response.data.id;
-            navigate(`./session/${labSheetId}`);
-        } catch (error) {
-            setIsGenerationError(true);
+        if (!module || !lesson) {
+            return;
         }
+        setGeneratingNewLabSheet(true);
+
+        await generateLabExercise(module.replace(/-/g, " "), lesson.replace(/-/g, " "), learningLevel)
+            .then((response) => {
+                const labSheetId = response.data.id;
+                navigate(`./session/${labSheetId}`);
+            })
+            .catch(error => {
+                setIsGenerationError(true);
+                console.error("Error generating lab sheet: ", error);
+                message.error({ content: "Error generating lab sheet", key: error.message, duration: 3});
+            })
+            .finally(() => {
+                setGeneratingNewLabSheet(false);
+                setIsModalVisible(false);
+            });
     };
 
     return (
@@ -59,44 +67,91 @@ export default function LabOverview() {
                 }}
                 className="flex flex-col gap-4"
             >
-                <h1 className="text-2xl font-bold">Introduction</h1>
-                <p>
-                    Lorem ipsum dolor sit amet consectetur. Vitae neque dui est elit diam
-                    risus. Integer nunc risus et elit dictum vitae in lorem sit. Felis
-                    enim aliq uam sit et eleifend. Ac consectetur porta congue eros velit
-                    lacinia dui. Commodo eu purus arcu consectetur. Cursus leo tempus
-                    lacinia nisl vel sus pendisse imperdiet ph. aretra volutpat. Nulla dui
-                    dui venenatis pulvinar in mi erat. Semper ac mattis curabitur nullam
-                    sit augue eget id ma ecenas. Commodo feugiat facilisi a purus cursus
-                    cras amet. Sit tempor vitae adipiscing a purus ac nulla. Bibendum
-                    pellentesque eget dic tumst justo etiam in fringilla. Iaculis augue at
-                    venenatis nulla eu donec nisl. Habitasse sem arcu rhoncus gravida
-                    viverra nibh. Feugiat ut n ibh vitae accumsan id congue viverra.
-                </p>
-                <Form layout="vertical" onFinish={generateLabSheet}>
-                    <div className="flex flex-row items-center gap-2">
-                        <div className="mb-6">Select Learning Level</div>
-                        <Form.Item
-                            name="learningLevel"
-                            rules={[
-                                { required: true, message: "Please select a learning level" },
-                            ]}
-                            className="flex flex-col mb-6"
-                            style={{ minWidth: "130px" }}
-                        >
-                            <Select placeholder="Select">
-                                <Select.Option value="beginner">Beginner</Select.Option>
-                                <Select.Option value="intermediate">Intermediate</Select.Option>
-                                <Select.Option value="advanced">Advanced</Select.Option>
-                            </Select>
-                        </Form.Item>
-                    </div>
-                    <div className="flex justify-end">
-                        <Button type="primary" htmlType="submit">
-                            Generate LabSheet
-                        </Button>
-                    </div>
-                </Form>
+                <h1 className="text-3xl font-bold">
+                    <span className="text-gray-700"> Lab for </span>
+                    {(toProperString(lesson ?? ""))}
+                </h1>
+                <div className="bg-gray-100 rounded-xl p-4">
+                    <section className="mb-2">
+                        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+                            How the Lab Works
+                        </h2>
+                        <ol className="space-y-3 list-decimal list-inside text-gray-600">
+                            <li>
+                                <strong>Question Presentation:</strong> You'll be presented
+                                with questions tailored to your learning level and the
+                                lesson's objectives. These may include Multiple Choice
+                                Questions (MCQs) and short-answer questions.
+                            </li>
+                            <li>
+                                <strong>Answering Questions:</strong> You can choose which
+                                questions to answer. It's not mandatory to answer every
+                                question - feel free to skip any that you prefer not to
+                                attempt.
+                            </li>
+                            <li>
+                                <strong>Hints:</strong> If you need assistance, hints are
+                                available for each question. These are designed to guide your
+                                thinking and provide additional support, but using them is
+                                entirely optional.
+                            </li>
+                            <li>
+                                <strong>Feedback Options:</strong> After submitting your
+                                answer, you can choose from three feedback options:
+                                <ul className="pl-5 mt-2 space-y-1 list-disc list-inside">
+                                    <li>
+                                        Skip feedback (only available if your answer is correct)
+                                    </li>
+                                    <li>
+                                        For more insight, you can request basic feedback, which
+                                        provides a quick overview of your response.
+                                    </li>
+                                    <li>
+                                        For in-depth learning, you can opt for detailed feedback,
+                                        which offers comprehensive explanations and additional
+                                        context.
+                                    </li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </section>
+
+                    <section className="mb-2">
+                        <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+                            Disclaimer
+                        </h2>
+                        <ul className="space-y-1 list-disc list-inside text-gray-600">
+                            <li>
+                                This lab uses AI to generate questions, support materials and feedback.
+                                While we strive for accuracy, please be aware that
+                                AI-generated content may occasionally contain errors.
+                            </li>
+                            <li>
+                                The lab is designed to supplement your learning. Always
+                                refer to your official course materials and instructors for
+                                authoritative information.
+                            </li>
+                            <li>
+                                Your interactions within this lab are for practice and
+                                self-assessment only. They do not constitute formal grading or
+                                assessment for your course.
+                            </li>
+                        </ul>
+                    </section>
+
+                    <p className="text-sm text-gray-500 mt-6">
+                        By proceeding, you acknowledge that you understand the nature of
+                        this AI-assisted lab and agree to use it as a supplementary
+                        learning tool.
+                    </p>
+                </div>
+
+                <div className="flex justify-end">
+                    <GenerateLabModal onSubmit={generateLabSheet} onCancel={() => setIsModalVisible(false)} visible={isModalVisible} options={generatedLearningLevel as ["beginner" | "intermediate" | "advanced"]} />
+                    <Button type="primary" onClick={() => setIsModalVisible(true)} disabled={generatedLearningLevel?.length === 0}>
+                        Generate LabSheet
+                    </Button>
+                </div>
 
                 <div className="flex flex-col gap-4">
                     <h2 className="text-xl font-bold">Generated LabSheets</h2>
@@ -157,8 +212,6 @@ function LabSkelton() {
         };
     });
 
-    console.log(emptyLabSheetSummary);
-
     return (
         <Content className="bg-white py-6 px-6 rounded-2xl flex flex-col gap-4">
             {/* <Skeleton title={true} /> */}
@@ -182,3 +235,11 @@ function LabSkelton() {
 
     )
 }
+
+
+function toProperString(input: string): string {
+    const words = input.split("-");
+    words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+    return words.join(" ");
+}
+

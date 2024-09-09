@@ -1,34 +1,50 @@
 import { Socket } from "socket.io-client";
 
-export interface Comment {
-    id: number;
-    content: string;
-    createdAt: string;
-    creator: {
-        id: string;
-        name: string;
-        avatar: string;
-    };
-    likes: number;
-    liked: boolean;
+export interface LikeType {
+    id: string;
+    discussion_id?: string;
+    comment_id?: number;
+    person_id: string;
+    created_at: string;
 }
 
-export interface Discussion {
+export interface CommentType {
+    id: number;
+    content: string;
+    created_at: string;
+    updated_at: string;
+    discussion_id: string;
+    creator_id: string;
+    likes: LikeType[];
+    _count: {
+        likes: number;
+    };
+    likeCount: number;
+    isLiked: boolean;
+    creatorName: string;
+}
+
+export interface DiscussionType {
     id: string;
     title: string;
     content: string;
-    createdAt: string;
-    creator: {
-        id: string;
-        name: string;
-        avatar: string;
+    created_at: string;
+    updated_at: string;
+    module_id: number;
+    creator_id: string;
+    comments: CommentType[];
+    likes: LikeType[];
+    _count: {
+        likes: number;
+        comments: number;
     };
-    comments: Comment[];
-    likes: number;
-    liked: boolean;
+    likeCount: number;
+    isLiked: boolean;
+    creatorName: string;
 }
+
 export interface DiscussionForumContextType {
-    discussions: Discussion[];
+    discussions: DiscussionType[];
     fetchDiscussions: () => Promise<void>;
     createDiscussion: (title: string, content: string) => Promise<void>;
     likeDiscussion: (discussionId: string, liked: boolean) => Promise<void>;

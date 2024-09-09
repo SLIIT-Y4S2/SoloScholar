@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { WEB_SOCKET_URL } from '../utils/api_routes';
 
 interface WebSocketContextType {
     socket: Socket | null;
@@ -19,7 +20,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
-        const newSocket = io('http://localhost:5001');
+        const newSocket = io(WEB_SOCKET_URL);
         setSocket(newSocket);
 
         newSocket.on('connect', () => setIsConnected(true));

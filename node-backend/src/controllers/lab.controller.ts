@@ -223,7 +223,22 @@ export async function getLearningMaterialSummaryByLessonNameHandler(
             });
         }
 
-        res.status(StatusCodes.OK).send(labSheet);
+        const allLearningLevels: ("beginner" | "intermediate" | "advanced")[] = [
+            "beginner",
+            "intermediate",
+            "advanced",
+        ];
+
+        const generatedLabSheetLearningLevel = labSheet.map((lab) => lab.learningLevel);
+
+        const remainingLevels = allLearningLevels.filter(
+            (level) => !generatedLabSheetLearningLevel.includes(level)
+        );
+
+        res.status(StatusCodes.OK).send({
+            remainingLevels,
+            labSheet
+        });
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);
