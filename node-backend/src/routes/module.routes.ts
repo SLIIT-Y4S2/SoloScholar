@@ -4,6 +4,7 @@ import {
   getModuleByNameHandler,
 } from "../controllers/module.controller";
 import requireInstructorMiddleware from "../middlewares/requireInstructor.middleware";
+import requireUser from "../middlewares/requireUser.middleware";
 
 const moduleRouter = Router();
 
@@ -13,6 +14,6 @@ const moduleRouter = Router();
 
 moduleRouter.post("/", requireInstructorMiddleware, createModuleHandler);
 
-moduleRouter.get("/:name", getModuleByNameHandler);
+moduleRouter.get("/:name", requireUser, getModuleByNameHandler);
 
 export default moduleRouter;

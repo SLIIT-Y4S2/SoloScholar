@@ -11,7 +11,7 @@ import {
 } from "../prompt-templates/tutorial.prompts";
 import { documentRetrievalPipeline } from "../utils/rag.util";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
-import { shuffle } from "lodash";
+import { keyBy, mapValues, shuffle } from "lodash";
 import { distributeQuestions } from "../utils/tutorial.util";
 import { z } from "zod";
 
@@ -354,22 +354,43 @@ export async function synthesizeFeedbackForQuestions(
   subtopic: string,
   subtopic_description: string,
   questions: {
+    question_number: number;
     question: string;
+    type: "short-answer" | "mcq";
     studentAnswer: string;
     correctAnswer: string;
+    options?: string[];
     isCorrect: boolean;
     feedbackType: "basic" | "detailed";
   }[]
-): Promise<string[]> {
+): Promise<{[key:number]:string}> {
   const questionAsString = questions
-    .map((question, index) => {
+    .map((question) => {
       return `
-      <Question>
+      <Question No: ${question.question_number}>
+
+      <Question Type>
+      ${question.type}
+      </Question Type>
 
       Question:
       <Question>
       ${question.question}
       </Question>
+
+      ${question.type === "mcq"&&
+        `
+      <MCQ Options>
+      ${question.options
+        ?.map((option, index) => {
+          return `
+          ${index + 1}. ${option}
+          `;
+        })
+        .join("\n")}
+      </MCQ Options>
+          `
+      }
 
       Student Answer : 
       <StudentAnswer>
@@ -381,23 +402,27 @@ export async function synthesizeFeedbackForQuestions(
       ${question.correctAnswer}
       </CorrectAnswer>
 
-      Is Correct : 
-      <IsCorrect>
+      Is Correct the student answer correct? : 
       ${question.isCorrect ? "Yes" : "No"}
-      </IsCorrect>
+    
 
       Requested Feedback Type :
       <FeedbackType>
       ${question.feedbackType}
       </FeedbackType>
 
-     </Question>
+     </End of Question No: ${question.question_number}>
      /n
       `;
     })
     .join("\n");
 
-  const jsonParser = StructuredOutputParser.fromZodSchema(z.array(z.string()));
+
+  const jsonParser = StructuredOutputParser.fromZodSchema(z.array(z.object({
+    question_number: z.number().describe("The question number as given in the <Question No: x> tag"),
+    feedback_type: z.enum(["basic", "detailed"]).describe("The feedback type requested for the question given in the <FeedbackType> tag"),
+    feedback: z.string().describe("The feedback for the question"),
+  })));
 
   const generationPrompt = PromptTemplate.fromTemplate(
     FeedbackForQuestionPrompt
@@ -431,7 +456,9 @@ export async function synthesizeFeedbackForQuestions(
     formatInstructions: jsonParser.getFormatInstructions(),
   });
 
-  return questionResponse;
+  
+  const result = keyBy(questionResponse, 'question_number');
+  return mapValues(result, 'feedback');
 }
 
 const dynamic_taxonomy_level_definition: {

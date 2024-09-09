@@ -1,8 +1,8 @@
 import supertest from "supertest";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import server from "../utils/server.util";
 import mongoose from "mongoose";
 import path from "path";
+import { server } from "../utils/server.util";
 
 let dummyDocument = {};
 

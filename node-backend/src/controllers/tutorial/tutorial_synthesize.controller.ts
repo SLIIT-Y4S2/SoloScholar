@@ -85,13 +85,8 @@ export const generateTutorialHandler = async (
 
     // MARK: STEP 3
     // loop through the detailed lesson plan and create questions for each subtopic
-    const totalNumberOfQuestions = 30; // TEMPORARY
-    const MCQRatio =
-      learningLevel === "beginner"
-        ? 0.5
-        : learningLevel === "intermediate"
-        ? 0.4
-        : 0.3;
+    const totalNumberOfQuestions = 30;
+    const MCQRatio = learningLevel === "beginner" ? 0.4 : 0.3;
 
     const numberOfMCQQuestions = Math.floor(totalNumberOfQuestions * MCQRatio);
 
@@ -276,8 +271,11 @@ export const requestFeedbackHandler = async (
             subtopic.topic,
             subtopic.description,
             questions.map((question) => ({
+              question_number: question.question_number,
               question: question.question,
+              type: question.type as "mcq" | "short-answer",
               studentAnswer: question.student_answer ?? "No answer provided",
+              options: question.options,
               correctAnswer: question.answer,
               isCorrect: question.is_student_answer_correct ?? false,
               feedbackType: question.feedback_type as "basic" | "detailed",
@@ -285,9 +283,9 @@ export const requestFeedbackHandler = async (
           );
 
           await updateQuestionWithFeedback(
-            questions.map((question, index) => ({
+            questions.map((question) => ({
               id: question.id,
-              feedback: result[index],
+              feedback: result[question.question_number],
               feedback_type: question.feedback_type,
             }))
           );
