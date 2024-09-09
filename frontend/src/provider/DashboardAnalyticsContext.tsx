@@ -3,7 +3,11 @@ import { DASHBOARD_ANALYTICS_API_URLS } from "../utils/api_routes";
 import { AxiosResponse } from "axios";
 import axiosInstance from "../utils/axiosInstance";
 import { CustomMessage } from "../types/dashboard.types";
-import { getAcademicPerformanceAndLearningStrategiesTutorial } from "../utils/dashboard_analytics_util";
+import {
+  getAcademicPerformanceAndLearningStrategiesTutorial,
+  getAffectiveStateTutorial,
+  getSummaryStatisticsTutorial,
+} from "../utils/dashboard_analytics_util";
 
 interface DashboardAnalyticsProviderProps {
   children: ReactNode;
@@ -37,6 +41,16 @@ export function DashboardAnalyticsProvider({
     incorrectShortAnswerQuestionAvg: number;
     unansweredMcqAvg: number;
     unansweredShortAnswerQuestionAvg: number;
+  } | null>(null);
+  const [affectiveStateTutorial, setAffectiveStateTutorial] = useState<{
+    skippedFeedback: number;
+    basicFeedback: number;
+    inDetailFeedback: number;
+  } | null>(null);
+  const [summaryStatisticsTutorial, setSummaryStatisticsTutorial] = useState<{
+    totalTutorialCount: number;
+    tutorialScorePercentageAvg: number;
+    tutorialCompletionRateAvg: number;
   } | null>(null);
 
   const getLessonsOfModule = async (moduleId: string) => {
@@ -93,6 +107,8 @@ export function DashboardAnalyticsProvider({
           setAcademicPerformanceAndLearningStrategiesTutorial(
             getAcademicPerformanceAndLearningStrategiesTutorial(results)
           );
+          setAffectiveStateTutorial(getAffectiveStateTutorial(results));
+          setSummaryStatisticsTutorial(getSummaryStatisticsTutorial(results));
         } else {
           setCustomMessage({ type: "info", content: "No data to display." });
         }
@@ -107,12 +123,16 @@ export function DashboardAnalyticsProvider({
       getLessonsOfModule,
       getTutorialAnalytics,
       academicPerformanceAndLearningStrategiesTutorial,
+      affectiveStateTutorial,
+      summaryStatisticsTutorial,
       customMessage,
     }),
     [
       getLessonsOfModule,
       getTutorialAnalytics,
       academicPerformanceAndLearningStrategiesTutorial,
+      affectiveStateTutorial,
+      summaryStatisticsTutorial,
       customMessage,
     ]
   );

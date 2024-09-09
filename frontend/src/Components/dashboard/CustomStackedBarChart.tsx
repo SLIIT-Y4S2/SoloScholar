@@ -10,12 +10,6 @@ import {
   Label,
 } from "recharts";
 
-// props: {
-//     name: string;
-//     correct: number;
-//     incorrect: number;
-//     unanswered: number;
-//   }
 const CustomStackedBarChart = (props: {
   chartData: {
     correctMcqAvg: number;
@@ -43,7 +37,7 @@ const CustomStackedBarChart = (props: {
   ];
 
   return (
-    <ResponsiveContainer height="80%">
+    <ResponsiveContainer height={300}>
       <BarChart
         data={data}
         margin={{
@@ -66,9 +60,9 @@ const CustomStackedBarChart = (props: {
         </YAxis>
         <Tooltip />
         <Legend />
-        <Bar label="correct" dataKey="correct" stackId="a" fill="#08c938" />
+        <Bar label="correct" dataKey="correct" stackId="a" fill="#00C49F" />
         <Bar dataKey="incorrect" stackId="a" fill="#c90808" />
-        <Bar dataKey="unanswered" stackId="a" fill="#0694cc" />
+        <Bar dataKey="unanswered" stackId="a" fill="#0088FE" />
       </BarChart>
     </ResponsiveContainer>
   );
