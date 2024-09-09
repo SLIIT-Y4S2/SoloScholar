@@ -156,6 +156,7 @@ export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, l
             detailedOutline: (input) => input.detailedOutline,
             realWorldScenario: (input) => input.realWorldScenario,
             supportingMaterial: (input) => input.supportingMaterial,
+            learningLevel: (input) => input.learningLevel,
             formatInstructions: (input) => input.formatInstructions
         },
         questionGenerationPrompt,
@@ -170,6 +171,7 @@ export async function responseSynthesizerForLabs({ lessonTitle, learningLevel, l
             detailedOutline: lessonOutline,
             realWorldScenario: realWorldScenario,
             supportingMaterial: supportingMaterial,
+            learningLevel: learningLevel,
             formatInstructions: outputParserForQuestions.getFormatInstructions()
         });
 

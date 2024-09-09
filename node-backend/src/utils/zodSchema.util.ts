@@ -63,8 +63,8 @@ const relationalSchemaSchema = z.record(
 // Schema for supporting material
 export const zodSchemaForSupportingMaterial = z.object(
     {
-        tables: z.array(zodSchemaForTables.optional().nullable()).describe("An optional list of tables if SQL is used"),
-        jsonDocument: zodSchemaForJsonDocuments.optional().nullable().describe("An optional JSON document schema  if NoSQL is used"),
+        tables: z.array(zodSchemaForTables.optional()).describe("An optional list of tables if SQL is used else empty array"),
+        jsonDocument: zodSchemaForJsonDocuments.optional().describe("An optional JSON document schema  if NoSQL is used else empty object"),
         relationalSchema: relationalSchemaSchema.optional().nullable().describe("An optional relational schema if SQL is used. You must provide a relational schema if you provide tables"),
     }
 );
