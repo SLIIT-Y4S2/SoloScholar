@@ -2,6 +2,8 @@ import { TutorialQuestion } from "../../../../../provider/tutorial/TutorialConte
 // import { CheckCircleTwoTone, CloseCircleOutlined } from "@ant-design/icons";
 import CheckCircleTwoTone from "@ant-design/icons/CheckCircleTwoTone";
 import CloseCircleOutlined from "@ant-design/icons/CloseCircleOutlined";
+import CheckCircleOutlined from "@ant-design/icons/CheckCircleOutlined";
+
 const QuestionCardForTutorialFeedback = ({
   question: {
     question_number,
@@ -17,9 +19,9 @@ const QuestionCardForTutorialFeedback = ({
 }) => {
   return (
     <div className="flex flex-col gap-4 w-full">
-      <h1>
+      <p className="font-medium">
         {question_number}. {question}
-      </h1>
+      </p>
 
       {type === "short-answer" ? (
         <div className="min-h-[10em] max-h-[15em] overflow-y-auto p-2 border border-gray-300 rounded bg-white text-gray-900 whitespace-pre-wrap">
@@ -29,7 +31,7 @@ const QuestionCardForTutorialFeedback = ({
         options.map((option, index) => (
           <div
             key={option}
-            className={`p-2 border rounded-lg ${
+            className={`p-2 border rounded-lg flex justify-between items-center ${
               option === answer
                 ? "bg-green-500"
                 : option === student_answer
@@ -38,6 +40,19 @@ const QuestionCardForTutorialFeedback = ({
             }`}
           >
             {String.fromCharCode(97 + index)}. {option}
+            <div className="">
+              {option === answer ? (
+                <div className="flex gap-1">
+                  {option === student_answer && <>Your Answer</>}
+                  <CheckCircleOutlined />
+                </div>
+              ) : option === student_answer ? (
+                <div className="flex gap-1">
+                  Your Answer
+                  <CloseCircleOutlined />
+                </div>
+              ) : null}
+            </div>
           </div>
         ))
       )}
@@ -54,7 +69,8 @@ const QuestionCardForTutorialFeedback = ({
           </span>
         )}
         <br />
-        <strong>Answer:</strong> <br />
+        <strong>{type === "mcq" ? " Answer:" : "Example Answer:"}</strong>{" "}
+        <br />
         {answer}
       </p>
     </div>

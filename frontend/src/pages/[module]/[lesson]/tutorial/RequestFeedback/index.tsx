@@ -31,9 +31,9 @@ const RequestFeedback = () => {
         2. <strong>Basic Explanation</strong>: Choose this option for a brief
         overview and clarification of the correct answer.
         <br />
-        3. <strong>In-depth Explanation</strong>: Select this for a
-        comprehensive explanation, including detailed reasoning and additional
-        context.
+        3. <strong>Detailed Explanation</strong>: Select this for a
+        comprehensive explanation, including detailed reasoning, additional
+        context and relevant theoretical concepts.
         <br />
         Feel free to review the basic or in-depth explanations for both correct
         and incorrect answers to reinforce your knowledge.
@@ -44,7 +44,7 @@ const RequestFeedback = () => {
           // console.log(values);
           requestFeedback(values);
         }}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-6"
       >
         {questions.map((question) => (
           <div

@@ -23,7 +23,7 @@ const server = express();
 server.use(helmet());
 
 // cors
-server.use(cors({ origin: "http://localhost:3000", credentials: true }));
+server.use(cors({ origin:[ "http://localhost:3000","https://solo-scholar.netlify.app"], credentials: true,}));
 
 // logger
 server.use(morgan("common"));
