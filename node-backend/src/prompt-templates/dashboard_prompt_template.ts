@@ -16,13 +16,14 @@ export const SQL_MSSQL_PROMPT: PromptTemplate<
   template: `
 You are an MSSQL expert. Given an input question, do the following:
 1. Unless the user specifies in the question a specific number of results to obtain, query for all the results. 
-2. You must include only the columns that are needed to answer the question and use meaningful aliases where necessary.
-3. Prioritize using the following contextually relevant tables to identify the relationships among them by 
-only considering their primary and foreign keys. 
+2. You must include only the columns that are needed to answer the question and always use clear and meaningful aliases for column names 
+where necessary. Separate words in aliases using underscores.
+3. Prioritize using the following contextually relevant tables to answer the input question. If necessary, join tables to get the required 
+information by only considering their primary and foreign key relationships.
 {contextuallyRelevantTables}
 
-If needed only, use the original database schema, given below, to get more information about these tables and their columns
-but never use any tables or columns from the original database schema that are not available in the contextually relevant tables:
+If needed only, use the original database schema, given below, to identify other tables, columns and relationships to the above contextually 
+relevant tables. If necessary, you can join these tables with the contextually relevant tables:
 {schema}
 
 When trying to join tables, consider joining columns of same datatype only and never include any tables or columns that are 
