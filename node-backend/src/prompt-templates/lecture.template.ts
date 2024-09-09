@@ -2,12 +2,12 @@
 
 // Prompt to generate lecture introduction
 export const LectureIntroductionPrompt = `
-You are an experienced lecturer at a University. You are about to start a new lecture. Generate the introduction for the lecture.
+You are an experienced lecturer at a University. You are about to start a new lecture. Generate the lecture script related introduction for the lecture.
 Lesson Title: {lesson_title}
 Lesson Plan:
 {lesson_plan}
 
-Make sure to attract the user to the topic by providing a real-world scenario related to the lesson. Don't use phrases like "Good morning, everyone!". but use greatings like "Hi, there!".
+Make sure to attract the user to the topic by providing a real-world scenario related to the lesson. Don't use phrases like "Good morning, everyone!". but use greatings like "Hi, there!". Don't start directly from life scinario, first introduce the topic and then relate it to real-world scenario. Don't add any markdown formats.
 `;
 
 

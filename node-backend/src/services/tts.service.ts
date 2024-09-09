@@ -54,8 +54,6 @@ export const getTTS = async (teacher: string, text: string) => {
         const audioBuffer = Buffer.concat(audioChunks);
         const audioBase64 = audioBuffer.toString('base64');
 
-        console.log('audioBase64:', audioBase64);
-
         // return  {
         //     audioBase64,
         //     visemes,
