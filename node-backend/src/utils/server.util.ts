@@ -16,6 +16,7 @@ import requireInstructor from "../middlewares/requireInstructor.middleware";
 import { Server } from "socket.io";
 import http from "http";
 import dashboardAnalyticsRouter from "../routes/dashboardAnalytics.routes";
+import lectureRouter from "../routes/lecture.routes";
 
 const server = express();
 
@@ -42,6 +43,7 @@ server.use(express.json());
 // routes
 server.use("/api/v1/ref-docs", documentRouter);
 server.use("/api/v1/auth", authRouter);
+server.use("/api/v1/lecture", requireUser, lectureRouter);
 server.use("/api/v1/tutorial", requireUser, tutorialsRouter);
 server.use("/api/v1/labs", requireUser, labRouter);
 server.use("/api/v1/discussions", requireUser, discussionRouter);
