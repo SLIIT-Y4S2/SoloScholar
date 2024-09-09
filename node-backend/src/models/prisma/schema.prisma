@@ -82,7 +82,6 @@ model lecture {
   id                  String                @id @db.VarChar(25)
   status              String                @db.VarChar(30)
   learning_material   learning_material     @relation(fields: [id], references: [id], onUpdate: NoAction)
-  lecture_interaction lecture_interaction[]
   sub_lecture         sub_lecture[]
   assessment_question lecture_assesstment_question[]
 }
@@ -151,22 +150,6 @@ model module {
   description String       @db.VarChar(1000)
   lessons     lesson[]
   discussion  discussion[]
-}
-
-model sub_lecture {
-  id         Int     @id @default(autoincrement())
-  title      String  @db.VarChar(50)
-  content    String? @db.VarChar(Max)
-  lecture_id String  @db.VarChar(25)
-  lecture    lecture @relation(fields: [lecture_id], references: [id], onUpdate: NoAction)
-}
-
-model system_log {
-  id         Int      @id @default(autoincrement())
-  action     String   @db.VarChar(30)
-  timestamp  DateTime @default(dbgenerated("getutcdate()")) @db.DateTime
-  learner_id String   @db.VarChar(25)
-  learner    person   @relation(fields: [learner_id], references: [id], onUpdate: NoAction)
 }
 
 model tutorial {

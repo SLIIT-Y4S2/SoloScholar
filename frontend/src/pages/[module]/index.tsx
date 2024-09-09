@@ -62,7 +62,7 @@ const Module = () => {
               </div>
             )}
             <div className="flex space-x-2">
-              {["lecture", "tutorial", "lab"].map((type) => {
+              {["Lecture", "Tutorial", "Lab"].map((type) => {
                 const title = lesson.title.toLowerCase().replace(/\s/g, "-");
                 const path = `/${module}/${title}/${type}`;
                 return (

@@ -90,7 +90,7 @@ const LectureView = () => {
   if (generatingNewLecture) return <GeneratingView />;
 
   return (
-    <Layout style={{ padding: "0 24px 24px" }}>
+    <Layout className="container mx-auto mt-3">
       <CustomBreadcrumb />
       <Content
         style={{

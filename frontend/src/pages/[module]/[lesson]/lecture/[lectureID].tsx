@@ -106,7 +106,7 @@ function Lecture() {
 
     return (
         <ModuleProvider>
-            <Layout className="flex flex-col gap-8 my-6 mx-4 h-max">
+            <Layout className="flex flex-col gap-8 my-6 mx-4 h-max container mx-auto mt-3">
                 <CustomBreadcrumb />
                 <Layout style={{ padding: "24px 0", background: "#fff" }}>
                     <Sider style={{ background: "#fff" }} width={200}>
