@@ -18,7 +18,7 @@ const Home = () => {
 
   return (
     <div>
-      <div>Home</div>
+      {/* <div>Home</div> */}
       {responseData && (
         <div>Response from server: {JSON.stringify(responseData)}</div>
       )}

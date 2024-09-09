@@ -13,6 +13,9 @@ import {
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Dashboard from "../pages/dashboard/Dashboard";
+import Lecture from "../pages/[module]/[lesson]/lecture";
+import Lecturesgenerated from "../pages/[module]/[lesson]/lecture/[lectureID]";
+import Lectureview from "../pages/[module]/[lesson]/lecture/lectureView";
 import CustomAnalyticalIndicator from "../pages/dashboard/CustomAnalyticalIndicator";
 import LecturesOverview from "../pages/dashboard/LecturesOverview";
 import TutorialsOverview from "../pages/dashboard/TutorialsOverview";
@@ -178,6 +181,18 @@ const Routes = () => {
                   ],
                 },
               ],
+            },
+            {
+              path: "lecture",
+              element: <Lecture />,
+            },
+            {
+              path: "lecture/:lectureId",
+              element: <Lecturesgenerated />,
+            },
+            {
+              path: "lecture/lectureView",
+              element: <Lectureview />,
             },
           ],
         },

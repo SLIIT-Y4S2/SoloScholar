@@ -61,6 +61,9 @@ const QuestionCardForTutorialAnswering = () => {
             minRows: 10,
             maxRows: 15,
           }}
+          maxLength={2000}
+          showCount
+          className="mb-4"
         />
       ) : (
         options.map((option, index) => (

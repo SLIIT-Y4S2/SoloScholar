@@ -1,3 +1,5 @@
+
+
 export const BASE_API_URL = import.meta.env.VITE_BACKEND_URL;
 export const WEB_SOCKET_URL = import.meta.env.VITE_WEB_SOCKET_URL;
 
@@ -5,6 +7,10 @@ export const API_URLS = {
   LOGIN: `/auth/login`,
   LOGOUT: `/auth/logout`,
   TUTORIAL: `/tutorial`,
+  Lecture: `/lecture`,
+  LectureTTS: `/lecture/tts`,
+  LectureGenerate: `/lecture/generate`,
+  LectureMarkdownSlides: `/lecture/subtopicslides`,
 };
 
 export const LAB_API_URLS = {
@@ -20,6 +26,13 @@ export const LAB_API_URLS = {
 export const DASHBOARD_API_URLS = {
   DASHBOARD: `${BASE_API_URL}/dashboard`,
   DASHBOARD_INDICATORS: `${BASE_API_URL}/dashboard/indicators`,
+};
+
+export const DASHBOARD_ANALYTICS_API_URLS = {
+  LESSONS_OF_MODULE: `${BASE_API_URL}/dashboard-analytics/lessons`,
+  TUTORIAL_ANALYTICS: `${BASE_API_URL}/dashboard-analytics/tutorial-analytics`,
+  LAB_ANALYTICS: `${BASE_API_URL}/dashboard-analytics/lab-analytics`,
+  LECTURE_ANALYTICS: `${BASE_API_URL}/dashboard-analytics/lecture-analytics`,
 };
 
 export const DISCUSSION_API_URLS = {

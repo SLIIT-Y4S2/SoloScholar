@@ -33,9 +33,13 @@ async function createUserSessionHandler(req: Request, res: Response) {
 
     res.cookie("jwt", jwtToken, {
       httpOnly: true,
+      // secure: true,
       secure: false,
       sameSite: "strict",
+      // sameSite: "none",
       domain: "localhost",
+      // domain: "solo-scholar.netlify.app",
+
       path: "/",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });

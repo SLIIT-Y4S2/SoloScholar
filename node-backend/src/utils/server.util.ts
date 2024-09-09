@@ -13,8 +13,10 @@ import dashboardRouter from "../routes/dashboard.routes";
 import moduleRouter from "../routes/module.routes";
 import discussionRouter from "../routes/discussion.routes";
 import requireInstructor from "../middlewares/requireInstructor.middleware";
-import { Server } from 'socket.io';
-import http from 'http';
+import { Server } from "socket.io";
+import http from "http";
+import dashboardAnalyticsRouter from "../routes/dashboardAnalytics.routes";
+import lectureRouter from "../routes/lecture.routes";
 
 const server = express();
 
@@ -23,7 +25,7 @@ const server = express();
 server.use(helmet());
 
 // cors
-server.use(cors({ origin: "http://localhost:3000", credentials: true }));
+server.use(cors({ origin:[ "http://localhost:3000","https://solo-scholar.netlify.app"], credentials: true,}));
 
 // logger
 server.use(morgan("common"));
@@ -41,10 +43,16 @@ server.use(express.json());
 // routes
 server.use("/api/v1/ref-docs", documentRouter);
 server.use("/api/v1/auth", authRouter);
+server.use("/api/v1/lecture", requireUser, lectureRouter);
 server.use("/api/v1/tutorial", requireUser, tutorialsRouter);
 server.use("/api/v1/labs", requireUser, labRouter);
 server.use("/api/v1/discussions", requireUser, discussionRouter);
 server.use("/api/v1/dashboard", requireInstructor, dashboardRouter);
+server.use(
+  "/api/v1/dashboard-analytics",
+  requireInstructor,
+  dashboardAnalyticsRouter
+);
 server.use("/api/v1/module", moduleRouter);
 server.get("/api/v1/protected", requireUser, (req: Request, res: Response) => {
   res.json({ message: "Hello from protected route", user: res.locals.user });
@@ -61,8 +69,8 @@ const io = new Server(wsServer, {
   cors: {
     origin: "http://localhost:3000",
     methods: ["GET", "POST"],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 export { server, io, wsServer };

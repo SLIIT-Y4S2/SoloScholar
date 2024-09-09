@@ -51,26 +51,18 @@ const Module = () => {
             <h2 className="text-xl font-semibold mb-2">
               {index + 1}. {lesson.title}
             </h2>
-            <p className="text-gray-600 mb-4">{lesson.description}</p>
-            {/* TODO: remove following */}
-            {/* <div className="flex flex-col gap-2 mb-4 bg-red-200">
-              {lesson.lesson_learning_outcomes.map(
-                ({ outcome, cognitive_level }) => (
-                  <div key={outcome} className="flex gap-2 bg-green-200">
-                    <span>{outcome}</span>
-                    <span>{cognitive_level}</span>
-                  </div>
-                )
-              )}
-              {lesson.sub_lessons.map(({ topic, description }) => (
-                <div key={topic}>
-                  <span key={topic}>{topic}</span>
-                  <span key={description}>{description}</span>
-                </div>
-              ))}
-            </div> */}
+            {/* <p className="text-gray-600 mb-4">{lesson.description}</p> */}
+            {lesson.sub_lessons.length > 0 && (
+              <div className="mb-6">
+                <ul className="list-disc list-inside space-y-1 text-gray-600">
+                  {lesson.sub_lessons.map(({ topic }) => (
+                    <li key={topic}>{topic}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="flex space-x-2">
-              {["lecture", "tutorial", "lab"].map((type) => {
+              {["Lecture", "Tutorial", "Lab"].map((type) => {
                 const title = lesson.title.toLowerCase().replace(/\s/g, "-");
                 const path = `/${module}/${title}/${type}`;
                 return (
@@ -92,3 +84,25 @@ const Module = () => {
 };
 
 export default Module;
+
+{
+  /* TODO: remove following */
+}
+{
+  /* <div className="flex flex-col gap-2 mb-4 bg-red-200">
+              {lesson.lesson_learning_outcomes.map(
+                ({ outcome, cognitive_level }) => (
+                  <div key={outcome} className="flex gap-2 bg-green-200">
+                    <span>{outcome}</span>
+                    <span>{cognitive_level}</span>
+                  </div>
+                )
+              )}
+              {lesson.sub_lessons.map(({ topic, description }) => (
+                <div key={topic}>
+                  <span key={topic}>{topic}</span>
+                  <span key={description}>{description}</span>
+                </div>
+              ))}
+            </div> */
+}
