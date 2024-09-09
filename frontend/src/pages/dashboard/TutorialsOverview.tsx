@@ -74,7 +74,7 @@ const TutorialsOverview = () => {
       "
       >
         <div className="flex justify-center gap-52">
-          <div className="inline">
+          <div className="inline w-full">
             <Text>
               <b>Learning Level</b>
             </Text>
@@ -94,7 +94,7 @@ const TutorialsOverview = () => {
               showSearch
             />
           </div>
-          <div className="inline">
+          <div className="inline w-full">
             <Text>
               <b>Lesson Title</b>
             </Text>
