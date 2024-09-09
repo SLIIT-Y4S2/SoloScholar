@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Layout, Spin, Menu, Button } from "antd";
+import React, { useEffect, useState } from "react";
+import { Layout, Spin, Menu, Button, Typography } from "antd";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import { ModuleProvider } from "../../../../provider/ModuleContext";
 import { CheckOutlined } from "@ant-design/icons";
@@ -7,25 +7,47 @@ import Assessment from "../../../../Components/lecture/Assessment";
 import { LectureProvider } from "../../../../provider/lecture/LectureContext";
 import { useLectureContext } from "../../../../provider/lecture/useLectureContext";
 
+const { Title} = Typography;
+
 // @ts-ignore
 import { Experience } from "../../../../Components/lecture/Experience.jsx";
+
+// @ts-ignore
+import { useAITeacher } from "../../../../hooks/useAITeacher";
 
 const { Content, Sider } = Layout;
 
 function Lecture() {
     const lectureContext = useLectureContext();
-    const { lecture, isLoading, error, setSelectedKey } = lectureContext;
+    const { lecture, isLoading, error, setSelectedKey, setCurrentSubLectureContent, setCurrentSubLectureTopic} = lectureContext;
 
     const [showEx1, setShowEx1] = useState(false);
 
+    const stopLecture = useAITeacher((state: { stopLecture: any; }) => state.stopLecture); // Get stopLecture from useAITeacher
+
     const handleMenuClick = (e: { key: string }): void => {
+        stopLecture(); // Stop the current lecture when the user clicks a new sub-lecture
+
         setShowEx1(false);
-        setSelectedKey(e.key);
+        setSelectedKey(e.key); // Switch the selected key
     };
 
     const handleCompleteLecture = () => {
         setShowEx1(true);
     };
+
+    useEffect(() => {
+        const selectedSubLecture = lecture?.sub_lecture?.find(
+            (_, index: number) => `sub${index + 1}` === lectureContext.selectedKey
+        );
+
+        if (selectedSubLecture) {
+            setCurrentSubLectureContent(selectedSubLecture.content);
+            setCurrentSubLectureTopic(selectedSubLecture.topic);
+        }
+    }, [lectureContext.selectedKey]); // Update based on the selected key
+
+
 
     const renderContent = (): JSX.Element => {
         if (showEx1) {
@@ -46,10 +68,22 @@ function Lecture() {
             (_, index: number) => `sub${index + 1}` === lectureContext.selectedKey
         );
 
+
+
+        const currentSubContent = selectedSubLecture?.content ?? null;
+        const currentSubTopic = selectedSubLecture?.topic ?? null;
+        setCurrentSubLectureContent(currentSubContent);
+        setCurrentSubLectureTopic(currentSubTopic);
+
+
+
         return (
-            <div>
-                <h2>{selectedSubLecture?.topic}</h2>
-                <p>{selectedSubLecture?.content}</p>
+            <div style={{ padding: '24px', borderRadius: '8px' }}>
+                <Title level={3}>{selectedSubLecture?.topic}</Title>
+                <br />
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                    <p style={{ width: '100%', justifyContent: 'center' }}>{selectedSubLecture?.content}</p>
+                </div>
             </div>
         );
     };
@@ -81,7 +115,7 @@ function Lecture() {
                             selectedKeys={[lectureContext.selectedKey]}
                             defaultOpenKeys={["sub1"]}
                             style={{ height: "100%" }}
-                            onClick={handleMenuClick}
+                            onClick={handleMenuClick} // Updated to stop the lecture
                             items={[
                                 ...lecture.sub_lecture.flatMap((sub_lecture: any, index: number) => {
                                     const items = [
@@ -117,13 +151,18 @@ function Lecture() {
                             ]}
                         />
                     </Sider>
-                    <Content style={{ padding: "0 24px", minHeight: 550 }}>
+
+                    <Content style={{ padding: "24px", minHeight: 530 }}>
                         {renderContent()}
-                        {lectureContext.selectedKey !== "pre-assessment" && lectureContext.selectedKey !== "post-assessment" && !showEx1 && (
-                            <Button type="primary" onClick={handleCompleteLecture}>
-                                View Lecture
-                            </Button>
-                        )}
+                        {lectureContext.selectedKey !== "pre-assessment" &&
+                            lectureContext.selectedKey !== "post-assessment" &&
+                            !showEx1 && (
+                                <div style={{ padding: '24px' }}>
+                                    <Button type="primary" onClick={handleCompleteLecture}>
+                                        View Lecture
+                                    </Button>
+                                </div>
+                            )}
                     </Content>
                 </Layout>
             </Layout>

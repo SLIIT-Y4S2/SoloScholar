@@ -15,7 +15,7 @@ import { Leva, button, useControls } from "leva";
 import { Suspense, useEffect, useRef } from "react";
 import { degToRad } from "three/src/math/MathUtils";
 import { BoardSettings } from "./BoardSettings";
-import { MessagesList } from "./MessagesList";
+import  {MessagesList}  from "./MessagesList";
 import { Teacher } from "./Teacher";
 import { TypingBox } from "./TypingBox";
 
@@ -45,14 +45,15 @@ const itemPlacement = {
 export const Experience = () => {
 
   const lectureContext = useLectureContext();
-  const { lecture, isLoading, error, currentSubLectureContent } = lectureContext;
+  const { lecture, isLoading, error, currentSubLectureContent,currentSubLectureTopic } = lectureContext;
+
 
   const teacher = useAITeacher((state) => state.teacher);
   const classroom = useAITeacher((state) => state.classroom);
 
   return (
     <>
-      <div className="z-10 md:justify-center fixed bottom-4 left-4 right-4 flex gap-3 flex-wrap justify-stretch">
+      <div className="z-10 md:justify-center fixed bottom-20 left-4 right-4 flex gap-3 flex-wrap justify-stretch">
         <TypingBox/>
       </div>
       <Leva hidden />
@@ -71,7 +72,7 @@ export const Experience = () => {
               {...itemPlacement[classroom].board}
               distanceFactor={1}
             >
-              <MessagesList />
+              <MessagesList currentSubLectureContent={currentSubLectureContent} currentSubLectureTopic={currentSubLectureTopic}/>
               <BoardSettings />
             </Html>
             <Environment files="/models/venice_sunset_1k.hdr" />
@@ -129,7 +130,6 @@ const CameraManager = () => {
     getCameraPosition: button(() => {
       const position = controls.current.getPosition();
       const zoom = controls.current.camera.zoom;
-      console.log([...position], zoom);
     }),
   });
 

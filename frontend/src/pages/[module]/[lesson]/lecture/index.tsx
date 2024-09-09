@@ -76,7 +76,7 @@ const LectureView = () => {
         learningLevel,
       });
       const lectureId = response.data.id;
-      navigate(`./lecture/${lectureId}`);
+      navigate(`./${lectureId}`);
     } catch (error) {
       console.error("Error generating lecture:", error);
       setError("Failed to generate lecture. Please try again.");

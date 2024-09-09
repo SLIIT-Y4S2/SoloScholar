@@ -151,3 +151,74 @@ export const getLectureByLearnerId = async (
     learning_level: lecture.learning_material.learning_level,
   }));
 };
+
+
+export const saveStudentAnswer = async (
+  lectureId: string,
+  questionId: number,
+  studentAnswer: string
+) => {
+  return prisma.lecture_assesstment_question.updateMany({
+    where: {
+      AND: [
+        { id: questionId },
+        { lecture_id: lectureId }
+      ]
+    },
+    data: {
+      student_answer: studentAnswer,
+    },
+  });
+};
+
+
+export const getStudentAnswers = async (lectureId: string) => {
+  return prisma.lecture_assesstment_question.findMany({
+    where: {
+      lecture_id: lectureId,
+    },
+    select: {
+      id: true,
+      question: true,
+      type: true,
+      question_number: true,
+      answer: true,
+      student_answer: true,
+    },
+  });
+};
+
+
+export async function getLearningOutcomesByLessonTitle(lessonTitle: string) {
+  try {
+    const learningOutcomes = await prisma.lesson.findFirst({
+      where: {
+        title: lessonTitle,
+      },
+      select: {
+        title: true,
+        lesson_learning_outcomes: {
+          select: {
+            learning_outcome: {
+              select: {
+                description: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!learningOutcomes) {
+      throw new Error(`No lesson found with title: ${lessonTitle}`);
+    }
+
+    return learningOutcomes;
+  } catch (error) {
+    console.error("Error fetching learning outcomes:", error);
+    throw error;
+  }
+}
+
+
+

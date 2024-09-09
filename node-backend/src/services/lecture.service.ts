@@ -8,6 +8,8 @@ import {
     LectureConclusionPrompt,
     LectureMCQPrompt,
     PostAssessmentMCQPrompt,
+    LearningOutcomesLecturePrompt,
+    MarkdownPPTSlidePrompt,
 } from "../prompt-templates/lecture.template";
 import { LessonOutlineType } from "../types/lesson.types";
 import { PineconeStore } from "@langchain/pinecone";
@@ -18,6 +20,8 @@ import { JsonOutputParser } from "@langchain/core/output_parsers";
 import { shuffle } from "lodash";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { z } from "zod";
+
+import { getLearningOutcomesByLessonTitle } from '../../../node-backend/src/services/db/lecture.db.service';
 
 // MARK: Detailed Lesson Outline
 /**
@@ -70,7 +74,18 @@ export async function generateIntroForLecture(
     );
 
     // Create a runnable sequence for generating the introduction
-    const introPipeline = RunnableSequence.from([
+    interface LessonPlan {
+        topic: string;
+        description: string;
+    }
+
+    interface IntroPipelineInput {
+        context: string;
+        lesson_title: string;
+        lesson_plan: LessonPlan[];
+    }
+
+    const introPipeline = RunnableSequence.from<IntroPipelineInput>([
         {
             context: (input) => input.context,
             lesson_title: (input) => input.lesson_title,
@@ -96,11 +111,12 @@ export async function generateIntroForLecture(
 // MARK: generate section for each subtopic
 export async function generateLectureForSubtopic(
     lesson_title: string,
+    learning_level: string,
     subtopic: string,
     description: string,
     prevSections: string[]
 ) {
-    const context = await documentRetrievalPipeline(`${subtopic} ${description}`);
+    const context = await documentRetrievalPipeline(`${subtopic} ${description} ${learning_level}`);
 
     // Generate content for each subtopics
     const lectureSectionPrompt =
@@ -110,6 +126,7 @@ export async function generateLectureForSubtopic(
     const realWorldScenarioPipeline = RunnableSequence.from([
         {
             context: (input) => input.context,
+            learning_level: (input) => input.learning_level,
             subtopic: (input) => input.subtopic,
             description: (input) => input.description,
             lesson_title: (input) => input.lesson_title,
@@ -250,3 +267,73 @@ export async function generateMCQsForLecture(
 
 //     return postAssessmentQuestions;
 // }
+
+
+
+export async function generateLectureFromLearningOutcomes(
+    lesson_title: string
+): Promise<string> {
+    // Fetch learning outcomes related to the lesson
+    const learningOutcomes = await getLearningOutcomesByLessonTitle(lesson_title);
+
+    // Get related context
+   // const context = await documentRetrievalPipeline(`${lesson_title} ${learningOutcomes}`);
+
+    // Create the prompt template
+    const learningOutcomesLecturePrompt = PromptTemplate.fromTemplate(LearningOutcomesLecturePrompt);
+
+    // Create a runnable sequence for generating the lecture section
+    const lecturePipeline = RunnableSequence.from([
+        {
+            //context: (input) => input.context,
+            lesson_title: (input) => input.lesson_title,
+            learning_outcomes: (input) => input.learning_outcomes,
+        },
+        learningOutcomesLecturePrompt,
+        getChatModel,
+        new StringOutputParser(),
+    ]);
+
+    // Generate the lecture section
+    const lOlectureSection = await lecturePipeline.invoke({
+        //context: context,
+        lesson_title: lesson_title,
+        learning_outcomes: learningOutcomes,
+    });
+
+    return lOlectureSection;
+}
+
+
+// Function to generate markdown PPT slides from content
+export async function generateMarkdownPPTSlidesFromContent(
+    lesson_title: string,
+    content: string
+) {
+    const markdownPPTPipeline = RunnableSequence.from([
+        {
+            lesson_title: (input) => input.lesson_title,
+            content: (input) => input.content,
+        },
+        PromptTemplate.fromTemplate(MarkdownPPTSlidePrompt),
+        getChatModel,
+        new StringOutputParser(),
+    ]);
+
+    // Generate the markdown slides
+    let markdownSlides = await markdownPPTPipeline.invoke({
+        lesson_title: lesson_title,
+        content: content,
+    });
+
+    // Clean up excessive newlines (you may also adjust spacing between headers and paragraphs)
+    markdownSlides = markdownSlides
+        .replace(/\\n/g, '\n')            // Replace literal "\n" with real newlines
+        .replace(/\n{3,}/g, '\n\n')       // Limit multiple newlines to two
+        .replace(/---\n\n/g, '---\n')     // Remove extra line breaks after dividers (if any)
+        .replace(/\n\s*\n/g, '\n\n');     // Ensure there is exactly one blank line between paragraphs
+
+    return markdownSlides;
+}
+
+

@@ -2,9 +2,8 @@ import { createContext, ReactNode, useEffect, useState } from "react";
 import {
   getLectureByIndex,
   submitAnswerByQuestionId,
-  requestFeedbackService,
   completeLectureService,
-} from "../../services/lecture.service"; // Assuming these services are implemented
+} from "../../services/lecture.service";
 import { useParams } from "react-router-dom";
 import { AxiosError } from "axios";
 import { message } from "antd";
@@ -14,6 +13,8 @@ interface LectureProviderProps {
 }
 
 export interface Lecture {
+  score(score: any): unknown;
+  isCompleted: Lecture | null;
   id: string;
   status: LectureStatus;
   learning_material: {
@@ -33,6 +34,7 @@ export interface Lecture {
   };
   sub_lecture: SubLecture[];
   assessment_question: AssessmentQuestion[];
+  learning_level: "beginner" | "intermediate" | "advanced";
 }
 
 export interface SubLecture {
@@ -61,24 +63,25 @@ export type LectureStatus =
   | "completed"
   | "submitted";
 
-  interface LectureContextType {
-    lecture: Lecture | null;
-    status?: LectureStatus;
-    selectedKey: string;
-    current_sub_lecture: number;
-    currentSubLectureContent: string | null; // Add this line
-    isFetching: boolean;
-    isLoading: boolean;
-    error: string | null;
-    studentsAnswerForTheCurrentQuestion: string | null;
-  
-    setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
-    submitAnswer: (current: number, next: number | null) => void;
-    requestFeedback: (questionFeedback: { [key: string]: string }[]) => void;
-    completeLecture: () => void;
-    setCurrentSubLectureContent: (content: string | null) => void; // Add this line
-    setSelectedKey: (key: string) => void; // Add this line
-  }
+interface LectureContextType {
+  lecture: Lecture | null;
+  status?: LectureStatus;
+  selectedKey: string;
+  current_sub_lecture: number;
+  currentSubLectureContent: string | null;
+  currentSubLectureTopic: string | null;
+  isFetching: boolean;
+  isLoading: boolean;
+  error: string | null;
+  studentsAnswerForTheCurrentQuestion: string | null;
+
+  setStudentsAnswerForTheCurrentQuestion: (answer: string | null) => void;
+  submitAnswer: (current: number, next: number | null) => void;
+  completeLecture: () => void;
+  setCurrentSubLectureContent: (content: string | null) => void;
+  setCurrentSubLectureTopic: (topic: string | null) => void; // Add this line
+  setSelectedKey: (key: string) => void;
+}
 
 export const LectureProviderContext = createContext<LectureContextType | null>(null);
 
@@ -90,6 +93,9 @@ export function LectureProvider({ children }: LectureProviderProps) {
   const [lecture, setLecture] = useState<Lecture | null>(null);
 
   const [selectedKey, setSelectedKey] = useState<string>("sub1");
+  const [currentSubLectureTopic, setCurrentSubLectureTopic] = useState<string | null>(null);
+
+
 
   const [current_sub_lecture, setCurrentSubLecture] = useState<number>(1);
   const [studentsAnswerForTheCurrentQuestion, setStudentsAnswerForTheCurrentQuestion] = useState<string | null>(null);
@@ -100,18 +106,12 @@ export function LectureProvider({ children }: LectureProviderProps) {
 
   const displayedSubLecture = lecture?.sub_lecture[current_sub_lecture - 1];
 
-  // useEffect(() => {
-  //   if (current_sub_lecture === 0) return;
-  //   setStudentsAnswerForTheCurrentQuestion(displayedSubLecture?.content || null);
-  // }, [displayedSubLecture, current_sub_lecture]);
-
   useEffect(() => {
     setIsFetching(true);
     if (!lectureId) return;
     const fetchLecture = async () => {
       try {
         const lectureData = await getLectureByIndex(lectureId);
-        console.log("lectureData:", lectureData);
         setLecture(lectureData);
         setIsFetching(false);
       } catch (error) {
@@ -153,7 +153,6 @@ export function LectureProvider({ children }: LectureProviderProps) {
           lectureId,
           currentQuestionId!,
           studentsAnswerForTheCurrentQuestion,
-          next
         );
         updateQuestionAnswer(current);
         setCurrentSubLecture(result.current_sub_lecture);
@@ -165,7 +164,6 @@ export function LectureProvider({ children }: LectureProviderProps) {
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
-      console.error(error);
       messageApi.error("An error occurred while submitting your answer");
       return;
     }
@@ -175,26 +173,18 @@ export function LectureProvider({ children }: LectureProviderProps) {
     setLecture((prevLecture) =>
       prevLecture
         ? {
-            ...prevLecture,
-            assessment_question: prevLecture.assessment_question.map((q) =>
-              q.question_number === questionNumber
-                ? { ...q, student_answer: studentsAnswerForTheCurrentQuestion }
-                : q
-            ),
-          }
+          ...prevLecture,
+          assessment_question: prevLecture.assessment_question.map((q) =>
+            q.question_number === questionNumber
+              ? { ...q, student_answer: studentsAnswerForTheCurrentQuestion }
+              : q
+          ),
+        }
         : null
     );
   };
 
-  const requestFeedback = async (questionFeedback: { [key: string]: string }[]) => {
-    try {
-      const lectureData = await requestFeedbackService(lectureId, questionFeedback);
-      setLecture(lectureData);
-    } catch (error) {
-      messageApi.error("An error occurred while requesting feedback");
-      console.error(error);
-    }
-  };
+
 
   const completeLecture = async () => {
     try {
@@ -205,7 +195,6 @@ export function LectureProvider({ children }: LectureProviderProps) {
     } catch (error) {
       setIsFetching(false);
       messageApi.error("An error occurred while completing the lecture");
-      console.error(error);
     }
   };
 
@@ -218,15 +207,16 @@ export function LectureProvider({ children }: LectureProviderProps) {
         current_sub_lecture,
         currentSubLectureContent,
         studentsAnswerForTheCurrentQuestion,
+        currentSubLectureTopic,
         setStudentsAnswerForTheCurrentQuestion,
         submitAnswer,
         status: lecture?.status,
-        requestFeedback,
         error,
         completeLecture,
         setCurrentSubLectureContent,
         selectedKey,
         setSelectedKey,
+        setCurrentSubLectureTopic,
       }}
     >
       {contextHolder}

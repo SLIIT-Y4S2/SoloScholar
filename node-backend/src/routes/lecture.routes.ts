@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { generateLectureHandler,getLectureByIdHandler,getLecturesByLearnerHandler } from "../controllers/lecture.controller";
+import { generateLectureHandler,getLectureByIdHandler,getLecturesByLearnerHandler, saveStudentAnswerHandler,generateMarkdownPPTSlides } from "../controllers/lecture.controller";
 import { getTTSHandler } from '../controllers/tts.controller';
 
 
@@ -10,6 +10,8 @@ lecturesRouter.post("/tts",getTTSHandler);
 
 lecturesRouter.post("/generate", generateLectureHandler);
 lecturesRouter.get('/:id', getLectureByIdHandler);
+lecturesRouter.post('/:id/answer', saveStudentAnswerHandler);
+lecturesRouter.post('/subtopicslides', generateMarkdownPPTSlides);
 
 
 export default lecturesRouter;

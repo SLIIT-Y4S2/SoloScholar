@@ -8,16 +8,15 @@ export const getLectureByIndex = async (id: string) => {
 export const submitAnswerByQuestionId = async (
   lectureId: string,
   questionId: number,
-  answer: string | null,
-  next: number | null
+  studentAnswer: string | null 
 ) => {
   const response = await axiosInstance.post(`/lecture/${lectureId}/answer`, {
     questionId,
-    answer,
-    next,
+    studentAnswer,  
   });
   return response.data.data;
 };
+
 
 export const submitLecture = async (
   lectureId: string,
@@ -31,18 +30,7 @@ export const submitLecture = async (
   return response.data.data;
 };
 
-export const requestFeedbackService = async (
-  lectureId: string,
-  feedback: { [key: string]: string }[]
-) => {
-  const response = await axiosInstance.post(
-    `/lecture/${lectureId}/feedback`,
-    {
-      ...feedback,
-    }
-  );
-  return response.data.data;
-};
+
 
 export const completeLectureService = async (lectureId: string) => {
   const response = await axiosInstance.post(`/lecture/${lectureId}/complete`);
@@ -64,6 +52,27 @@ export const getTTS = async (teacher: string, text: string) => {
     return response.data.data; // Return the data property directly
   } catch (error) {
     console.error('Error fetching TTS:', error);
+    throw error;
+  }
+};
+
+
+export const generateMarkdownSlides = async (lessonTitle: string, content: string): Promise<string[]> => {
+  try {
+    const response = await axiosInstance.post(`/lecture/subtopicslides`, {
+      lesson_title: lessonTitle,
+      content: content,
+    });
+
+    if (response.status === 200 && response.data.markdownSlides) {
+      // Assuming markdownSlides is returned as a single string separated by some delimiter, e.g., "\n\n" for paragraphs
+      const markdownSlides: string[] = response.data.markdownSlides.split('\n\n'); // Adjust delimiter as necessary
+      return markdownSlides;
+    } else {
+      throw new Error('Failed to generate markdown slides. No valid slides returned.');
+    }
+  } catch (error) {
+    console.error('Error fetching markdown slides:', error);
     throw error;
   }
 };

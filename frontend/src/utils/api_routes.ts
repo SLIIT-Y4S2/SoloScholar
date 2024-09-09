@@ -9,6 +9,7 @@ export const API_URLS = {
   Lecture: `/lecture`,
   LectureTTS: `/lecture/tts`,
   LectureGenerate: `/lecture/generate`,
+  LectureMarkdownSlides: `/lecture/subtopicslides`,
 };
 
 export const LAB_API_URLS = {
