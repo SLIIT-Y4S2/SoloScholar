@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { LaptopOutlined, NotificationOutlined, UserOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { Breadcrumb, Layout, Menu, theme, Typography } from 'antd';
+import { Breadcrumb, Layout, Menu, theme} from 'antd';
 import Lecture from './Lecture';
-const { Title } = Typography;
 
-const { Header, Content, Sider } = Layout;
+
+const { Content, Sider } = Layout;
 
 
 const backendData = [
@@ -70,12 +69,6 @@ const SideNav: React.FC = () => {
 
     const items: MenuProps['items'] = [...items3];
 
-    // Define a variable to hold the selected component
-    type LectureProps = {
-        title: string;
-        duration: number;
-        selectedMenuItem: string; // Add the selectedMenuItem prop
-    };
 
     let selectedComponent: React.ReactNode;
 

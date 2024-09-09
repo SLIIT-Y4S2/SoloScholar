@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Layout, Spin, Menu, Button, Typography } from "antd";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import { ModuleProvider } from "../../../../provider/ModuleContext";
@@ -13,7 +13,7 @@ const { Title} = Typography;
 import { Experience } from "../../../../Components/lecture/Experience.jsx";
 
 // @ts-ignore
-import { useAITeacher } from "../../../../hooks/useAITeacher";
+import { useAITeacher } from "../../../../hooks/useAITeacher.js";
 
 const { Content, Sider } = Layout;
 
