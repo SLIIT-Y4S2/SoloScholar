@@ -12,7 +12,6 @@ import {
 } from "../utils/ProtectRoutes";
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
-import Home from "../pages/Home";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Lecture from "../pages/[module]/[lesson]/lecture";
 import Lecturesgenerated from "../pages/[module]/[lesson]/lecture/[lectureID]";
@@ -33,6 +32,9 @@ import LabSession from "../pages/[module]/[lesson]/lab/[labID]";
 import Module from "../pages/[module]";
 import { Button, Result } from "antd";
 import Lesson from "../pages/[module]/[lesson]";
+import DiscussionForum from "../pages/[module]/[lesson]/discussionForum";
+import { DiscussionForumProvider } from "../provider/DiscussionForumContext";
+import { WebSocketProvider } from "../provider/WebSocketContext";
 
 const Routes = () => {
   const { userDetails } = useAuth();
@@ -69,7 +71,8 @@ const Routes = () => {
       children: [
         {
           path: "",
-          element: <Home />,
+          // element: <Home />,
+          element: <Navigate to="database-systems" />,
         },
         {
           path: "/profile",
@@ -84,7 +87,11 @@ const Routes = () => {
           element: <Navigate to="/" />,
         },
         {
-          path: "/dashboard",
+          path: "/:module",
+          element: <Module />,
+        },
+        {
+          path: "/:module/dashboard",
           element: (
             <ProtectedRouteInstructor>
               <Dashboard />
@@ -92,41 +99,41 @@ const Routes = () => {
           ),
           children: [
             {
-              path: "/dashboard",
+              path: "",
               element: <Main />,
             },
             {
-              path: "/dashboard/lectures-overview",
+              path: "lectures-overview",
               element: <LecturesOverview />,
             },
             {
-              path: "/dashboard/tutorials-overview",
+              path: "tutorials-overview",
               element: <TutorialsOverview />,
             },
             {
-              path: "/dashboard/labs-overview",
+              path: "labs-overview",
               element: <LabsOverview />,
             },
             {
-              path: "/dashboard/custom-analytical-indicator",
+              path: "custom-analytical-indicator",
               element: <CustomAnalyticalIndicator />,
             },
             {
-              path: "/dashboard/my-indicators",
+              path: "my-indicators",
               element: <MyIndicators />,
             },
           ],
         },
         {
-          path: "/:module",
-          element: <Module />,
+          path: "/:module/discussion-forum",
+          element: <WebSocketProvider><DiscussionForumProvider><DiscussionForum /></DiscussionForumProvider></WebSocketProvider>
         },
         {
           path: "/:module/:lesson",
           children: [
             {
-              path:"",
-              element: <Lesson />
+              path:  "",
+              element: <Lesson />,
             },
             {
               path: "tutorial",
@@ -142,7 +149,7 @@ const Routes = () => {
               children: [
                 {
                   path: "",
-                  element: <LabOverview />
+                  element: <LabOverview />,
                 },
                 {
                   path: "session",
@@ -150,16 +157,20 @@ const Routes = () => {
                   children: [
                     {
                       path: ":labSheetId",
-                      element: <LabSession />
+                      element: <LabSession />,
                     },
                     {
                       path: ":labSheetId/support-material",
-                      element: <SupportMaterialsForLab isNewTab={true} labSheetId={undefined}/>
-                    }
-                  ]
+                      element: (
+                        <SupportMaterialsForLab
+                          isNewTab={true}
+                          labSheetId={undefined}
+                        />
+                      ),
+                    },
+                  ],
                 },
-
-              ]
+              ],
             },
             {
               path: "lecture",

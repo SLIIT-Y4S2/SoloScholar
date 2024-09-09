@@ -31,7 +31,6 @@ export const createTutorial = async (
             },
           },
           learning_level,
-          completion_status: 0,
         },
       },
     },
@@ -58,28 +57,14 @@ export const addQuestionsToTheTutorial = async (
     sub_lesson_id: number;
     question: string;
     answer: string;
-    type: string;
+    type: "mcq" | "short-answer";
+    question_number: number;
     options: string[];
+    hint?: string;
   }[]
 ): Promise<{
   id: string;
   status: string;
-  learning_material: {
-    id: string;
-    lesson_id: number;
-    learner_id: string;
-    learning_level: string;
-    completion_status: Decimal;
-  };
-  questions: {
-    id: number;
-    question: string;
-    answer: string;
-    type: string;
-    question_number: number;
-    options: string[];
-    sub_lesson_id: number;
-  }[];
 }> => {
   const tutorial = await prisma.tutorial.findFirst({
     where: { id },
@@ -94,36 +79,24 @@ export const addQuestionsToTheTutorial = async (
     data: {
       status: "generated",
       questions: {
-        create: questions.map((q, index) => ({
+        create: questions.map((q) => ({
           sub_lesson_id: q.sub_lesson_id,
           question: q.question,
           answer: q.answer,
           type: q.type,
-          question_number: index + 1,
+          question_number: q.question_number,
+          hint: q.hint,
           options: {
             create: q.options.map((answer_option) => ({ answer_option })),
           },
         })),
       },
     },
-    include: {
-      questions: {
-        include: {
-          options: true,
-        },
-      },
-      learning_material: true,
-    },
   });
 
   return {
     id: updatedTutorial.id,
-    learning_material: updatedTutorial.learning_material,
     status: updatedTutorial.status,
-    questions: updatedTutorial.questions.map((q) => ({
-      ...q,
-      options: q.options.map((o) => o.answer_option),
-    })),
   };
 };
 
@@ -148,7 +121,6 @@ export const getTutorialByIdWithQuestions = async (
     lesson_id: number;
     learner_id: string;
     learning_level: string;
-    completion_status: Decimal;
   };
   questions: {
     id: number;
@@ -270,9 +242,10 @@ export const getTutorialByLearnerId = async (
  */
 
 export const saveTutorialAnswer = async (
+  learnerId: string,
   tutorialId: string,
   questionId: number,
-  answer: string | undefined,
+  answer: string | null,
   nextQuestionNumber: number,
   isSubmission: boolean = false
 ): Promise<{
@@ -283,6 +256,7 @@ export const saveTutorialAnswer = async (
   const tutorial = await prisma.tutorial.update({
     where: {
       id: tutorialId,
+      learning_material: { learner_id: learnerId },
     },
     data: {
       current_question: nextQuestionNumber,
@@ -294,13 +268,13 @@ export const saveTutorialAnswer = async (
     throw new Error("Tutorial not found");
   }
 
-  if (answer == undefined) {
-    return {
-      id: questionId,
-      current_question: tutorial.current_question,
-      status: tutorial.status,
-    };
-  }
+  // if (answer == undefined) {
+  //   return {
+  //     id: questionId,
+  //     current_question: tutorial.current_question,
+  //     status: tutorial.status,
+  //   };
+  // }
 
   const tutorialQuestion = await prisma.tutorial_question.update({
     where: {
@@ -317,9 +291,9 @@ export const saveTutorialAnswer = async (
     throw new Error("Tutorial question not found");
   }
 
-  if (!tutorialQuestion.student_answer) {
-    throw new Error("Student answer not found");
-  }
+  // if (!tutorialQuestion.student_answer) {
+  //   throw new Error("Student answer not found");
+  // }
 
   return {
     id: tutorialQuestion.id,
@@ -462,4 +436,4 @@ export const deleteTutorial = async (id: string): Promise<void> => {
     }),
   ]);
 };
-// deleteTutorial("clzv3rww0000010g85wci9yvn");
+// deleteTutorial("cm0tpilec0000ir77oemczq22");

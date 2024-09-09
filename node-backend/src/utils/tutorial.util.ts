@@ -1,4 +1,5 @@
 import { LearningLevel } from "../types/learning-material.types";
+import { CognitiveLevel } from "../types/module.types";
 
 interface Distribution {
   beginner: number;
@@ -64,4 +65,24 @@ export const distributeQuestions = (
     intermediate: numIntermediate,
     advanced: numAdvanced,
   };
+};
+
+export const getHighestCognitiveLevel = (cognitiveLevel: CognitiveLevel[]) => {
+  const bloomHierarchy = [
+    "Remember",
+    "Understand",
+    "Apply",
+    "Analyze",
+    "Evaluate",
+    "Create",
+  ];
+
+  // Find the highest level in the array
+  const highest_cognitive_level = cognitiveLevel.reduce((highest, level) => {
+    return bloomHierarchy.indexOf(level) > bloomHierarchy.indexOf(highest)
+      ? level
+      : highest;
+  }, cognitiveLevel[0]);
+
+  return highest_cognitive_level;
 };

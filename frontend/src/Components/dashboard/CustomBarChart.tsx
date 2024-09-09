@@ -1,6 +1,6 @@
 import { Fragment, useContext, useState } from "react";
-import { DashboardContext } from "../../../provider/DashboardContext";
-import { previewData } from "../../../utils/data_visualization_preview_data";
+import { DashboardContext } from "../../provider/DashboardContext";
+import { previewData } from "../../utils/data_visualization_preview_data";
 import { Button } from "antd";
 import {
   UndoOutlined,
@@ -8,26 +8,30 @@ import {
   ZoomOutOutlined,
 } from "@ant-design/icons";
 import {
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Label,
+  Rectangle,
 } from "recharts";
+import { PreviewData } from "../../types/dashboard.types";
 
-const CustomAreaChart = (props: { data?: any; areaColor?: string }) => {
-  const { data, areaColor } = props;
+const CustomBarChart = (props: { data?: any; barColor?: string }) => {
+  const { data, barColor } = props;
   const { contextData } = useContext(DashboardContext);
   const [height, setHeight] = useState<number>(200);
 
-  let chartData: any;
+  let chartData: PreviewData;
   if (contextData) {
     chartData = contextData.formattedData;
   } else if (data) {
     chartData = data.formattedData;
+  } else {
+    chartData = previewData;
   }
 
   return (
@@ -61,34 +65,30 @@ const CustomAreaChart = (props: { data?: any; areaColor?: string }) => {
         border-[#eee] rounded-[5px] border-[2px]
         "
       >
-        <AreaChart data={chartData ? chartData.values : previewData}>
+        <BarChart data={chartData.values}>
           <CartesianGrid className="stroke-[#909090]" strokeDasharray="3 3" />
           <Tooltip />
-          <Area
+          <Bar
             type="monotone"
             dataKey="yValue"
-            stroke={areaColor ? areaColor : "#8884d8"}
-            fill={areaColor ? areaColor : "#8884d8"}
+            fill={barColor ? barColor : "#8884d8"}
+            activeBar={<Rectangle />}
           />
           <XAxis dataKey="xValue">
-            <Label
-              value={chartData ? chartData.xLabel : "X Label"}
-              position="bottom"
-              offset={-5}
-            />
+            <Label value={chartData.xLabel} position="bottom" offset={-5} />
           </XAxis>
           <YAxis dataKey="yValue">
             <Label
-              value={chartData ? chartData.yLabel : "Y Label"}
+              value={chartData.yLabel}
               position="left"
               angle={-90}
               offset={-5}
             />
           </YAxis>
-        </AreaChart>
+        </BarChart>
       </ResponsiveContainer>
     </Fragment>
   );
 };
 
-export default CustomAreaChart;
+export default CustomBarChart;

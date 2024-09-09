@@ -1,25 +1,131 @@
-import { Fragment } from "react/jsx-runtime";
 import BreadCrumb from "../../Components/BreadCrumb";
-import { Layout } from "antd";
+import { Fragment } from "react/jsx-runtime";
+import { Result, Select, Typography } from "antd";
+import { useContext, useEffect, useState } from "react";
+import CustomStackedBarChart from "../../Components/dashboard/CustomStackedBarChart";
+import { DashboardAnalyticsContext } from "../../provider/DashboardAnalyticsContext";
+import { ResultStatusType } from "antd/es/result";
 
-const { Content } = Layout;
+const { Text } = Typography;
+
+const learningLevels: { value: string; label: JSX.Element }[] = [
+  {
+    value: "beginner",
+    label: <span>Beginner</span>,
+  },
+  {
+    value: "intermediate",
+    label: <span>Intermediate</span>,
+  },
+  {
+    value: "advanced",
+    label: <span>Advanced</span>,
+  },
+];
 
 const TutorialsOverview = () => {
+  const [learningLevel, setLearningLevel] = useState<string>(
+    learningLevels[0].value
+  );
+  const [lessons, setLessons] = useState<any[] | null>(null);
+  const [lesson, setLesson] = useState<{
+    id: number;
+    title: string;
+    description: string;
+    module_id: number;
+  } | null>(null);
+  const {
+    getLessonsOfModule,
+    getTutorialAnalytics,
+    academicPerformanceAndLearningStrategiesTutorial,
+    customMessage,
+  } = useContext(DashboardAnalyticsContext);
+
+  useEffect(() => {
+    (async () => {
+      const lessons = await getLessonsOfModule("1"); // Make this moduleId dynamic
+      setLessons(lessons);
+      setLesson(lessons?.[0]);
+      await getTutorialAnalytics({
+        moduleId: 1, // Make this moduleId dynamic
+        learningLevel: learningLevel,
+        lessonId: lessons?.[0]?.id,
+        lessonTitle: lessons?.[0]?.title,
+      });
+    })();
+  }, []);
+
   return (
     <Fragment>
-      <BreadCrumb
-        module={{ label: "Module A", linkTo: "#" }}
-        sidebarOption={{ label: "Tutorials Overview" }}
-      />
-      <Content
+      <BreadCrumb sidebarOption={{ label: "Tutorials Overview" }} />
+      <div
         className="
       pt-[43px] pr-[46px] pb-[39px] pl-[46px]
-      mt-[35px] mr-[80px] mb-[98px] ml-[45px]
+      mt-[35px] mb-[98px] ml-[45px]
       bg-[#ffff] rounded-[15px]
       "
       >
-        <p>Tutorials Overview</p>
-      </Content>
+        <div className="flex justify-center gap-52">
+          <div className="inline">
+            <Text>
+              <b>Learning Level</b>
+            </Text>
+            <Select
+              value={learningLevel}
+              options={learningLevels}
+              onChange={async (e: string) => {
+                setLearningLevel(e);
+                await getTutorialAnalytics({
+                  moduleId: 1, // Make this moduleId dynamic
+                  learningLevel: e,
+                  lessonId: lesson?.id,
+                  lessonTitle: lesson?.title,
+                });
+              }}
+              className="w-full"
+              showSearch
+            />
+          </div>
+          <div className="inline">
+            <Text>
+              <b>Lesson Title</b>
+            </Text>
+            <Select
+              value={lesson?.title}
+              options={lessons?.map((lesson) => ({
+                value: lesson.id,
+                label: lesson.title,
+              }))}
+              onChange={async (e) => {
+                const lesson = lessons?.find((lesson) => lesson.id === e);
+                setLesson(lesson);
+                await getTutorialAnalytics({
+                  moduleId: 1, // Make this moduleId dynamic
+                  learningLevel: learningLevel,
+                  lessonId: lesson?.id,
+                  lessonTitle: lesson?.title,
+                });
+              }}
+              className="w-full"
+              showSearch
+            />
+          </div>
+        </div>
+
+        <Text>
+          <b>Academic Performance & Learning Strategies</b>
+        </Text>
+        {customMessage ? (
+          <Result
+            status={customMessage.type as ResultStatusType}
+            title={customMessage.content}
+          />
+        ) : (
+          <CustomStackedBarChart
+            chartData={academicPerformanceAndLearningStrategiesTutorial}
+          />
+        )}
+      </div>
     </Fragment>
   );
 };

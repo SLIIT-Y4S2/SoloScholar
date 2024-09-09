@@ -1,11 +1,12 @@
 import { Content } from "antd/es/layout/layout";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
+import { useState } from "react";
+import BulbOutlined from "@ant-design/icons/BulbOutlined";
+import SubmitTutorialButton from "./SubmitTutorialButton";
 
 const QuestionCardForTutorialAnswering = () => {
-  // const [selectedOption, setSelectedOption] = useState<string | null>(null);
-
   const {
     submitAnswer,
     questions,
@@ -14,9 +15,10 @@ const QuestionCardForTutorialAnswering = () => {
     setStudentsAnswerForTheCurrentQuestion,
     isFetching: isLoading,
   } = useTutorialContext();
-
-  const { question, options, question_number, type } =
+  const { question, options, question_number, type, hint } =
     questions[current_question - 1];
+
+  const [isHintModalVisible, setIsHintModalVisible] = useState(false);
 
   if (isLoading || questions.length === 0) {
     return <>Loading...</>;
@@ -33,19 +35,35 @@ const QuestionCardForTutorialAnswering = () => {
       }}
       className="flex flex-col gap-4"
     >
-      <h1>
-        {question_number}. {question}
-      </h1>
+      <div className="flex flex-col md:flex-row md:justify-between gap-1">
+        <p className="mb-2">
+          {question_number}. {question}
+        </p>
+        {hint && (
+          <Button
+            type="default"
+            icon={<BulbOutlined />}
+            onClick={() => setIsHintModalVisible(true)}
+            className="hover:bg-yellow-100 transition-colors duration-300"
+          >
+            Hint
+          </Button>
+        )}
+      </div>
+
       {type === "short-answer" ? (
         <TextArea
           value={studentsAnswerForTheCurrentQuestion || ""}
           onChange={(e) =>
-            setStudentsAnswerForTheCurrentQuestion(e.target.value)
+            setStudentsAnswerForTheCurrentQuestion(e.target.value || null)
           }
           autoSize={{
             minRows: 10,
             maxRows: 15,
           }}
+          maxLength={2000}
+          showCount
+          className="mb-4"
         />
       ) : (
         options.map((option, index) => (
@@ -73,12 +91,9 @@ const QuestionCardForTutorialAnswering = () => {
         )}
 
         {current_question === questions.length && (
-          <Button
-            type="primary"
-            onClick={() => submitAnswer(question_number, null)}
-          >
-            Finish
-          </Button>
+          <SubmitTutorialButton
+            onSubmit={() => submitAnswer(question_number, null)}
+          />
         )}
 
         {current_question !== 1 && (
@@ -89,6 +104,21 @@ const QuestionCardForTutorialAnswering = () => {
           </Button>
         )}
       </div>
+
+      {hint && (
+        <Modal
+          title="Hint"
+          open={isHintModalVisible}
+          onCancel={() => setIsHintModalVisible(false)}
+          footer={[
+            <Button key="close" onClick={() => setIsHintModalVisible(false)}>
+              Close
+            </Button>,
+          ]}
+        >
+          <p>{hint}</p>
+        </Modal>
+      )}
     </Content>
   );
 };

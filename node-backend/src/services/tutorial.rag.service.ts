@@ -7,10 +7,11 @@ import {
   GenerateShortAnswerQuestionPrompt,
   MarkShortAnswerQuestionPrompt,
   FeedbackForQuestionPrompt,
+  CurateQuestionsPrompt,
 } from "../prompt-templates/tutorial.prompts";
 import { documentRetrievalPipeline } from "../utils/rag.util";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
-import { shuffle } from "lodash";
+import { keyBy, mapValues, shuffle } from "lodash";
 import { distributeQuestions } from "../utils/tutorial.util";
 import { z } from "zod";
 
@@ -36,7 +37,7 @@ export async function synthesizeQuestionsForSubtopic(
   subtopic: string,
   subtopic_description: string,
   lesson_learning_outcome: string[],
-  cognitive_level: string[],
+  highest_cognitive_level: string,
   learning_level: LearningLevel,
   totalNumberOfQuestions: number,
   questionType: "short-answer" | "mcq"
@@ -45,40 +46,52 @@ export async function synthesizeQuestionsForSubtopic(
     sub_lesson_id: number;
     question: string;
     answer: string;
-    type: string;
+    type: "short-answer" | "mcq";
     options: string[];
     difficulty: string;
   }[]
 > {
-  const isNotMcq = questionType === "short-answer";
-  const prompt = isNotMcq
-    ? GenerateShortAnswerQuestionPrompt
-    : GenerateMultipleChoiceQuestionPrompt;
+  const isShortAnswer = questionType === "short-answer";
+
+  // Define short answer question schema
+  const CommonQuestionProperties = {
+    question: z.string().describe("The question to be asked"),
+    answer: z.string().describe("The correct answer to the question"),
+    difficulty: z
+      .enum(["beginner", "intermediate", "advanced"])
+      .optional()
+      .default(learning_level)
+      .describe(
+        "The difficulty level of the question. The difficulty level can be 'beginner', 'intermediate', or 'advanced'"
+      ),
+  };
+
+  const ShortAnswerQuestionSchema = z.object({
+    ...CommonQuestionProperties,
+    hint: z
+      .string()
+      .optional()
+      .describe("A hint to help the learner answer the question"),
+  });
+
+  const MultipleChoiceQuestionSchema = z.object({
+    ...CommonQuestionProperties,
+    distractors: z
+      .array(z.string())
+      .describe("The options for the multiple choice question"),
+  });
 
   const jsonParser = StructuredOutputParser.fromZodSchema(
     z.array(
-      z.object({
-        question: z.string().describe("The question to be asked"),
-        answer: z.string().describe("The correct answer to the question"),
-        difficulty: z
-          .string()
-          .describe(
-            "The difficulty level of the question. The difficulty level can be 'beginner', 'intermediate', or 'advanced'"
-          ),
-        ...(isNotMcq
-          ? {}
-          : {
-              distractors: z
-                .array(z.string())
-                .optional()
-                .describe("The options for the multiple choice question"),
-            }),
-      })
+      isShortAnswer ? ShortAnswerQuestionSchema : MultipleChoiceQuestionSchema
     )
   );
 
-  const questionGenerationPrompt = PromptTemplate.fromTemplate(prompt);
-
+  const questionGenerationPrompt = PromptTemplate.fromTemplate(
+    isShortAnswer
+      ? GenerateShortAnswerQuestionPrompt
+      : GenerateMultipleChoiceQuestionPrompt
+  );
   const context = documentRetrievalPipeline(searchingKeywords, 6);
 
   const retrievalChain = RunnableSequence.from([
@@ -90,24 +103,29 @@ export async function synthesizeQuestionsForSubtopic(
       subtopic: (input) => input.subtopic,
       subtopic_description: (input) => input.subtopic_description,
       lesson_learning_outcome: (input) => input.lesson_learning_outcome,
-      cognitive_level: (input) => input.cognitive_level,
+      cognitive_level: (input) => input.highest_cognitive_level,
       learning_level: (input) => input.learning_level,
       totalNumberOfQuestions: (input) => input.totalNumberOfQuestions,
       beginnerQuestions: (input) => input.questionDistribution.beginner,
       intermediateQuestions: (input) => input.questionDistribution.intermediate,
       advancedQuestions: (input) => input.questionDistribution.advanced,
-
       dynamic_taxonomy_level_definition: (input) =>
         input.dynamic_taxonomy_level_definition,
       dynamic_question_characteristics: (input) =>
         input.dynamic_question_characteristics,
-
       format_instructions: (input) => input.formatInstructions,
     },
     questionGenerationPrompt,
     getChatModel,
     jsonParser,
   ]);
+
+  const distribution = distributeQuestions(
+    learning_level,
+    totalNumberOfQuestions
+  );
+
+  // console.log("distribution", distribution); // TODO: Remove
 
   const questionResponse = await retrievalChain.invoke({
     context,
@@ -117,13 +135,10 @@ export async function synthesizeQuestionsForSubtopic(
     subtopic,
     subtopic_description,
     lesson_learning_outcome,
-    cognitive_level,
+    highest_cognitive_level,
     learning_level,
     totalNumberOfQuestions,
-    questionDistribution: distributeQuestions(
-      learning_level,
-      totalNumberOfQuestions
-    ),
+    questionDistribution: distribution,
     dynamic_taxonomy_level_definition:
       dynamic_taxonomy_level_definition[learning_level],
     dynamic_question_characteristics:
@@ -132,7 +147,7 @@ export async function synthesizeQuestionsForSubtopic(
   });
 
   const questions = questionResponse.map((question) => {
-    if (isNotMcq) {
+    if (isShortAnswer) {
       return {
         ...question,
         sub_lesson_id,
@@ -141,15 +156,19 @@ export async function synthesizeQuestionsForSubtopic(
       };
     }
 
-    const answer = question.answer.replace(/\.$/, "");
-    const distractors = (question.distractors as string[])?.map((option) =>
+    const mcqQuestion = question as z.infer<
+      typeof MultipleChoiceQuestionSchema
+    >;
+
+    const answer = mcqQuestion.answer.replace(/\.$/, "");
+    const distractors = (mcqQuestion.distractors as string[])?.map((option) =>
       option.replace(/\.$/, "")
     );
 
     const options: string[] = distractors ? [answer, ...distractors] : [];
 
     return {
-      ...question,
+      ...mcqQuestion,
       sub_lesson_id,
       type: questionType,
       answer: answer,
@@ -160,8 +179,107 @@ export async function synthesizeQuestionsForSubtopic(
   return questions;
 }
 
-//Filter out the questions that are relevant to the subtopic
-// export async function filterQuestionsForSubtopic() //TODO
+//Filter out the questions that are relevant to the lesson
+export async function curateQuestions(
+  searchingKeywords: string,
+  module: string,
+  lesson: string,
+  lesson_description: string,
+  learning_outcomes: string[],
+  questions: {
+    question_number: number;
+    question: string;
+    answer: string;
+    type: "short-answer" | "mcq";
+    options?: string[];
+  }[]
+): Promise<
+  {
+    question_number: number;
+    reason: string;
+  }[]
+> {
+  const questionAsString = questions
+    .map((question) => {
+      return `
+    <Question No: ${question.question_number}>
+
+      <Question>
+      ${question.question}
+      </Question>
+
+      <Correct Answer>
+      ${question.answer}
+      </Correct Answer>
+
+      ${
+        question.type === "mcq"
+          ? `
+          <Options>
+          ${question.options
+            ?.map((option, index) => {
+              return `
+              <Option ${index + 1}>
+              ${option}
+              </Option>
+              `;
+            })
+            .join("\n")}
+            </Options>
+              `
+          : ""
+      }
+      <Type>
+      ${question.type}
+      </Type>
+
+     </End of Question No: ${question.question_number}>
+      `;
+    })
+    .join("\n");
+
+  const jsonParser = StructuredOutputParser.fromZodSchema(
+    z.array(
+      z.object({
+        question_number: z.number().describe("The question number"),
+        reason: z
+          .string()
+          .describe("briefly explain why the question is invalid)"),
+      })
+    )
+  );
+
+  const generationPrompt = PromptTemplate.fromTemplate(CurateQuestionsPrompt);
+
+  const context = documentRetrievalPipeline(searchingKeywords, 10);
+
+  const retrievalChain = RunnableSequence.from([
+    {
+      context: (input) => input.context,
+      module: (input) => input.module,
+      lesson: (input) => input.lesson,
+      lesson_description: (input) => input.lesson_description,
+      learning_outcomes: (input) => input.learning_outcomes,
+      question_list: (input) => input.questions,
+      format_instructions: (input) => input.formatInstructions,
+    },
+    generationPrompt,
+    getChatModel,
+    jsonParser,
+  ]);
+
+  const questionResponse = await retrievalChain.invoke({
+    context,
+    module,
+    lesson,
+    learning_outcomes,
+    lesson_description,
+    questions: questionAsString,
+    formatInstructions: jsonParser.getFormatInstructions(),
+  });
+
+  return questionResponse;
+}
 
 export async function markStudentAnswerCorrectOrIncorrect(
   lesson: string,
@@ -236,22 +354,43 @@ export async function synthesizeFeedbackForQuestions(
   subtopic: string,
   subtopic_description: string,
   questions: {
+    question_number: number;
     question: string;
+    type: "short-answer" | "mcq";
     studentAnswer: string;
     correctAnswer: string;
+    options?: string[];
     isCorrect: boolean;
     feedbackType: "basic" | "detailed";
   }[]
-): Promise<string[]> {
+): Promise<{[key:number]:string}> {
   const questionAsString = questions
-    .map((question, index) => {
+    .map((question) => {
       return `
-      <Question>
+      <Question No: ${question.question_number}>
+
+      <Question Type>
+      ${question.type}
+      </Question Type>
 
       Question:
       <Question>
       ${question.question}
       </Question>
+
+      ${question.type === "mcq"&&
+        `
+      <MCQ Options>
+      ${question.options
+        ?.map((option, index) => {
+          return `
+          ${index + 1}. ${option}
+          `;
+        })
+        .join("\n")}
+      </MCQ Options>
+          `
+      }
 
       Student Answer : 
       <StudentAnswer>
@@ -263,23 +402,27 @@ export async function synthesizeFeedbackForQuestions(
       ${question.correctAnswer}
       </CorrectAnswer>
 
-      Is Correct : 
-      <IsCorrect>
+      Is Correct the student answer correct? : 
       ${question.isCorrect ? "Yes" : "No"}
-      </IsCorrect>
+    
 
       Requested Feedback Type :
       <FeedbackType>
       ${question.feedbackType}
       </FeedbackType>
 
-     </Question>
+     </End of Question No: ${question.question_number}>
      /n
       `;
     })
     .join("\n");
 
-  const jsonParser = StructuredOutputParser.fromZodSchema(z.array(z.string()));
+
+  const jsonParser = StructuredOutputParser.fromZodSchema(z.array(z.object({
+    question_number: z.number().describe("The question number as given in the <Question No: x> tag"),
+    feedback_type: z.enum(["basic", "detailed"]).describe("The feedback type requested for the question given in the <FeedbackType> tag"),
+    feedback: z.string().describe("The feedback for the question"),
+  })));
 
   const generationPrompt = PromptTemplate.fromTemplate(
     FeedbackForQuestionPrompt
@@ -313,7 +456,9 @@ export async function synthesizeFeedbackForQuestions(
     formatInstructions: jsonParser.getFormatInstructions(),
   });
 
-  return questionResponse;
+  
+  const result = keyBy(questionResponse, 'question_number');
+  return mapValues(result, 'feedback');
 }
 
 const dynamic_taxonomy_level_definition: {

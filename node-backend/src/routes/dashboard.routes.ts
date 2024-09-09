@@ -5,16 +5,15 @@ import {
   getIndicatorData,
   getIndicators,
   saveIndicator,
+  editIndicator,
 } from "../controllers/dashboard.controller";
 
 const dashboardRouter: Router = Router();
 
-/**
- * @route POST /api/v1/dashboard/
- */
 dashboardRouter.post("/", generateIndicator);
 dashboardRouter.post("/indicators", saveIndicator);
-dashboardRouter.get("/:instructorId", getIndicators);
+dashboardRouter.put("/indicators", editIndicator);
+dashboardRouter.get("/indicators", getIndicators);
 dashboardRouter.get("/indicators/:indicatorId", getIndicatorData);
 dashboardRouter.delete("/indicators/:indicatorId", deleteIndicator);
 

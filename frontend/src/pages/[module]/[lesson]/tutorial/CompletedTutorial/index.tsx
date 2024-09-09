@@ -1,6 +1,7 @@
 import { Content } from "antd/es/layout/layout";
 import QuestionCardForFeedback from "../Feedback/QuestionCardForFeedback";
 import { useTutorialContext } from "../../../../../provider/tutorial/useTutorialContext";
+import TutorialSummary from "./TutorialSummary";
 
 const CompletedTutorial = () => {
   const { questions, isFetching: isLoading } = useTutorialContext();
@@ -11,7 +12,9 @@ const CompletedTutorial = () => {
 
   return (
     <Content className="flex flex-col gap-4 p-4 bg-white rounded-lg">
-      <h1 className="text-2xl font-bold">Tutorial </h1>
+      {/* <h1 className="text-2xl font-bold">Tutorial </h1> */}
+
+      <TutorialSummary />
 
       {questions.map((question) => (
         <div

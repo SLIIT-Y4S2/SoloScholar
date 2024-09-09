@@ -7,4 +7,5 @@ export const APP_ROUTES = {
   //TODO: TEMPORARY
   ds: "database-systems",
   lab: "database-systems/xml/lab",
+  DASHBOARD: "dashboard",
 };

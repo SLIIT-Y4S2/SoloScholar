@@ -23,5 +23,5 @@ export interface Tutorial {
   questions: TutorialQuestion[];
   status: TutorialStatus;
   created_at: Date;
-  updatedAt: Date;
+  // updatedAt: Date;
 }

@@ -27,7 +27,7 @@ const dashboardRoutes = [
 
 const Main = () => {
   return (
-    <div className="mt-[35px] mr-[80px] mb-[68px] ml-[45px]">
+    <div className="flex flex-col justify-evenly h-screen px-[45px]">
       {dashboardRoutes.map((dashboardRoute) => (
         <Fragment key={dashboardRoute.name}>
           <Link to={dashboardRoute.path}>
@@ -35,7 +35,6 @@ const Main = () => {
               {/* TODO */}
             </Card>
           </Link>
-          <br />
         </Fragment>
       ))}
     </div>

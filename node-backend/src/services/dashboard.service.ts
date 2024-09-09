@@ -26,7 +26,7 @@ async function getSqlQuery(goal: string): Promise<{
     {
       [x: string]: string;
     }
-  > = await dashboardUtil.getSqlQueryChain();
+  > = await dashboardUtil.getSqlQueryChain(goal);
 
   return await sqlQueryChain.invoke({
     question: goal,

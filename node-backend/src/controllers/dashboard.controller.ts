@@ -11,7 +11,7 @@ export async function generateIndicator(
       goal: req.body.goal,
       result: await dashboardService.generateIndicator(req.body.goal),
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
     res.status(400).send({
       goal: req.body.goal,
@@ -26,9 +26,12 @@ export async function saveIndicator(
 ): Promise<void> {
   try {
     res.status(200).send({
-      result: await dashboardDbService.saveIndicator(req.body),
+      result: await dashboardDbService.saveIndicator({
+        ...req.body,
+        instructorId: res.locals.user.id,
+      }),
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
     res.status(400).send({
       error: error,
@@ -42,9 +45,10 @@ export async function getIndicators(
 ): Promise<void> {
   try {
     res.status(200).send({
-      result: await dashboardDbService.getIndicators(req.params.instructorId),
+      //result: await dashboardDbService.getIndicators(req.params.instructorId),
+      result: await dashboardDbService.getIndicators(res.locals.user.id),
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
     res.status(400).send({
       error: error,
@@ -68,13 +72,35 @@ export async function getIndicatorData(
   }
 }
 
+export async function editIndicator(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    res.status(200).send({
+      result: await dashboardDbService.editIndicator({
+        ...req.body,
+        instructorId: res.locals.user.id,
+      }),
+    });
+  } catch (error: any) {
+    console.log(error);
+    res.status(400).send({
+      error: error,
+    });
+  }
+}
+
 export async function deleteIndicator(
   req: Request,
   res: Response
 ): Promise<void> {
   try {
     res.status(200).send({
-      result: await dashboardDbService.deleteIndicator(req.params.indicatorId),
+      result: await dashboardDbService.deleteIndicator(
+        req.params.indicatorId,
+        res.locals.user.id
+      ),
     });
   } catch (error) {
     console.log(error);

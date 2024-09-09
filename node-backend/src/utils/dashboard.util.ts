@@ -7,6 +7,7 @@ import { ZodTypeAny, ZodObject, ZodString } from "zod";
 import { SQL_MSSQL_PROMPT } from "../prompt-templates/dashboard_prompt_template";
 import { OPENAI_CHAT_MODEL } from "../constants/openai.constants";
 import { OPENAI_API_KEY } from "../constants/app.constants";
+import { analyticalIndicatorContextRetrievalPipeline } from "./rag.util";
 import {
   AZURE_SQL_DATABASE,
   AZURE_SQL_HOST,
@@ -46,7 +47,7 @@ const jsonParser: StructuredOutputParser<
 
 let database: SqlDatabase | null = null;
 
-async function getSqlQueryChain(): Promise<
+async function getSqlQueryChain(goal: string): Promise<
   RunnableSequence<
     {
       question: string;
@@ -60,9 +61,22 @@ async function getSqlQueryChain(): Promise<
     await datasource.initialize();
     database = await SqlDatabase.fromDataSourceParams({
       appDataSource: datasource,
-      ignoreTables: ["database_firewall_rules"],
+      ignoreTables: [
+        "database_firewall_rules",
+        "analytical_indicator",
+        "tutorial_overview",
+      ],
     });
   }
+
+  /**
+   * @description Retrieve the contextually relevant tables based on user question
+   */
+  const tablesContext = await analyticalIndicatorContextRetrievalPipeline(
+    goal,
+    5
+  );
+  console.log("tablesContext", tablesContext);
 
   /**
    * Create a new RunnableSequence where we pipe the output from `db.getTableInfo()`
@@ -78,6 +92,7 @@ async function getSqlQueryChain(): Promise<
   > = RunnableSequence.from([
     {
       schema: async () => await database?.getTableInfo(),
+      contextuallyRelevantTables: () => tablesContext,
       formatInstructions: () => jsonParser.getFormatInstructions(),
       question: (input: { question: string }) => input.question,
       defaultQuery: () => "SELECT NULL",
@@ -90,41 +105,6 @@ async function getSqlQueryChain(): Promise<
   return sqlQueryChain;
 }
 
-interface Column {
-  name: string;
-  data_type: string;
-  description: string;
-}
-interface Table {
-  name: string;
-  description: string;
-  columns: Column[];
-}
-
-/**
- *  Function that converts the table information in JSON form into an array of metadata objects.
- */
-async function getTableMetadata(tableInformation: { table_info: Table[] }) {
-  return tableInformation.table_info.map((table) => {
-    const columns: Column[] = table.columns;
-
-    // Extract column details
-    const columnNames = columns.map((column) => column.name);
-    const columnDataTypes = columns.map((column) => column.data_type);
-    const columnDescriptions = columns.map((column) => column.description);
-
-    // Create metadata object
-    return {
-      table_name: table.name,
-      table_description: table.description,
-      column_names: JSON.stringify(columnNames),
-      data_types: JSON.stringify(columnDataTypes),
-      column_descriptions: JSON.stringify(columnDescriptions),
-    };
-  });
-}
-
 export const dashboardUtil = {
   getSqlQueryChain,
-  getTableMetadata,
 };

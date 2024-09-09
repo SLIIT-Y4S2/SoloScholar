@@ -3,6 +3,8 @@ import {
   createModuleHandler,
   getModuleByNameHandler,
 } from "../controllers/module.controller";
+import requireInstructorMiddleware from "../middlewares/requireInstructor.middleware";
+import requireUser from "../middlewares/requireUser.middleware";
 
 const moduleRouter = Router();
 
@@ -10,8 +12,8 @@ const moduleRouter = Router();
  * @route POST /api/v1/module/
  */
 
-moduleRouter.post("/", createModuleHandler);
+moduleRouter.post("/", requireInstructorMiddleware, createModuleHandler);
 
-moduleRouter.get("/:name", getModuleByNameHandler);
+moduleRouter.get("/:name", requireUser, getModuleByNameHandler);
 
 export default moduleRouter;

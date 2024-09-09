@@ -1,11 +1,9 @@
 import { Router } from "express";
 import {
-  generateTutorialHandler,
   getTutorialsByLearnerHandler,
   getTutorialByIdHandler,
   saveTutorialAnswerHandler,
   submitTutorialHandler,
-  requestFeedbackHandler,
   markTutorialAsCompletedHandler,
 } from "../controllers/tutorials.controller";
 import { validateData } from "../middlewares/zod.middleware";
@@ -14,6 +12,10 @@ import {
   getTutorialsByLearnerSchema,
   tutorialGenerationSchema,
 } from "../models/tutorial.schema";
+import {
+  generateTutorialHandler,
+  requestFeedbackHandler,
+} from "../controllers/tutorial/tutorial_synthesize.controller";
 
 const tutorialsRouter = Router();
 

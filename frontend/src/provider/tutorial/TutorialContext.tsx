@@ -29,6 +29,7 @@ export interface TutorialQuestion {
   type: "short-answer" | "mcq";
   answer: string;
   student_answer: string | null;
+  hint?: string;
   feedback_type?: "skip" | "basic" | "detailed";
   feedback?: string;
   is_student_answer_correct?: boolean;
