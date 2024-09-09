@@ -61,7 +61,11 @@ async function getSqlQueryChain(goal: string): Promise<
     await datasource.initialize();
     database = await SqlDatabase.fromDataSourceParams({
       appDataSource: datasource,
-      ignoreTables: ["database_firewall_rules", "analytical_indicator"],
+      ignoreTables: [
+        "database_firewall_rules",
+        "analytical_indicator",
+        "tutorial_overview",
+      ],
     });
   }
 
@@ -70,7 +74,7 @@ async function getSqlQueryChain(goal: string): Promise<
    */
   const tablesContext = await analyticalIndicatorContextRetrievalPipeline(
     goal,
-    3
+    5
   );
   console.log("tablesContext", tablesContext);
 

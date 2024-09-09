@@ -2,6 +2,7 @@ import DashboardSidebar from "../../Components/DashboardSidebar";
 import { Outlet } from "react-router-dom";
 import { Layout } from "antd";
 import { DashboardProvider } from "../../provider/DashboardContext";
+import { DashboardAnalyticsProvider } from "../../provider/DashboardAnalyticsContext";
 
 const Dashboard = () => {
   return (
@@ -9,7 +10,9 @@ const Dashboard = () => {
       <DashboardSidebar />
       <Layout>
         <DashboardProvider>
-          <Outlet />
+          <DashboardAnalyticsProvider>
+            <Outlet />
+          </DashboardAnalyticsProvider>
         </DashboardProvider>
       </Layout>
     </Layout>
