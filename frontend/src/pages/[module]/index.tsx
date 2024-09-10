@@ -2,7 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getModuleByName } from "../../services/module.service";
 import { Module as ModuleType } from "../../types/module.types";
-import { Spin } from "antd";
+import { Button, Spin } from "antd";
 import Error from "../../Components/Error";
 
 const Module = () => {
@@ -43,7 +43,12 @@ const Module = () => {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-4">{moduleData.name}</h1>
+      <div className="flex flex-row justify-between">
+        <h1 className="text-3xl font-bold mb-4">{moduleData.name}</h1>
+        <Button type="primary" className="mb-4 text-center">
+          <Link to={`discussion-forum`}>Discussion Forum</Link>
+        </Button>
+      </div>
       <p className="text-gray-600 mb-8">{moduleData.description}</p>
       <div className="flex flex-col gap-4">
         {moduleData.lessons.map((lesson, index) => (
