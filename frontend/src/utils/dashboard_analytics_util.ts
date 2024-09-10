@@ -52,7 +52,7 @@ export const getAffectiveStateTutorial = (results: any[]) => {
     (item) => item.feedback_type === "basic"
   );
   const inDetailFeedback = totalFeedback.filter(
-    (item) => item.feedback_type === "in-detail"
+    (item) => item.feedback_type === "detailed"
   );
 
   return {
