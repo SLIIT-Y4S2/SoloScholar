@@ -45,11 +45,11 @@ export const MessagesList = ({ currentSubLectureContent, currentSubLectureTopic 
         <div className="w-full" style={{ height: '660px', width:'1280px'}}>
             {loading ? (
                 <div className="flex items-center justify-center h-full">
-                    <p className="text-4xl">Loading slides...</p>
+                    <p className="text-4xl text-white">Loading slides...</p>
                 </div>
             ) : error ? (
                 <div className="flex items-center justify-center h-full">
-                    <p className="text-4xl text-red-500">Error: {error}</p>
+                    <p className="text-6xl text-red-500">Error: {error}</p>
                 </div>
             ) : slides.length > 0 ? (
                 <div className="relative h-full">

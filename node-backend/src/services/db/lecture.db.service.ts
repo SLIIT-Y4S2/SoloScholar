@@ -34,7 +34,6 @@ export const createLecture = async (
             },
           },
           learning_level,
-          completion_status: 0,
         },
       },
     },

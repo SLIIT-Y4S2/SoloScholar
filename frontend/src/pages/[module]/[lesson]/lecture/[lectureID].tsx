@@ -1,5 +1,5 @@
-import  { useEffect, useState } from "react";
-import { Layout, Spin, Menu, Button, Typography } from "antd";
+import { useEffect, useState } from "react";
+import { Layout, Spin, Menu, Button, Typography, Row, Col } from "antd";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import { ModuleProvider } from "../../../../provider/ModuleContext";
 import { CheckOutlined } from "@ant-design/icons";
@@ -7,19 +7,23 @@ import Assessment from "../../../../Components/lecture/Assessment";
 import { LectureProvider } from "../../../../provider/lecture/LectureContext";
 import { useLectureContext } from "../../../../provider/lecture/useLectureContext";
 
-const { Title} = Typography;
+const { Title, Text } = Typography;
 
 // @ts-ignore
 import { Experience } from "../../../../Components/lecture/Experience.jsx";
 
 // @ts-ignore
 import { useAITeacher } from "../../../../hooks/useAITeacher.js";
+import { useLocation, useParams } from "react-router-dom";
 
 const { Content, Sider } = Layout;
 
 function Lecture() {
+    const { id } = useParams<{ id: string }>();
+    const location = useLocation();
+    const { learningLevel } = location.state as { learningLevel: string };
     const lectureContext = useLectureContext();
-    const { lecture, isLoading, error, setSelectedKey, setCurrentSubLectureContent, setCurrentSubLectureTopic} = lectureContext;
+    const { lecture, isLoading, error, setSelectedKey, setCurrentSubLectureContent, setCurrentSubLectureTopic } = lectureContext;
 
     const [showEx1, setShowEx1] = useState(false);
 
@@ -47,7 +51,19 @@ function Lecture() {
         }
     }, [lectureContext.selectedKey]); // Update based on the selected key
 
-
+    // Function to return the appropriate color based on learning level
+    const getLearningLevelColor = (level: string): string => {
+        switch (level.toLowerCase()) {
+            case 'beginner':
+                return 'green';
+            case 'intermediate':
+                return 'orange';
+            case 'advanced':
+                return 'red';
+            default:
+                return 'black';
+        }
+    };
 
     const renderContent = (): JSX.Element => {
         if (showEx1) {
@@ -68,18 +84,22 @@ function Lecture() {
             (_, index: number) => `sub${index + 1}` === lectureContext.selectedKey
         );
 
-
-
         const currentSubContent = selectedSubLecture?.content ?? null;
         const currentSubTopic = selectedSubLecture?.topic ?? null;
         setCurrentSubLectureContent(currentSubContent);
         setCurrentSubLectureTopic(currentSubTopic);
 
-
-
         return (
             <div style={{ padding: '24px', borderRadius: '8px' }}>
-                <Title level={3}>{selectedSubLecture?.topic}</Title>
+                <Row>
+                    <Col flex={5}><Title level={3}>{selectedSubLecture?.topic}</Title></Col>
+                    <Col flex={0}>
+                        <Text style={{ color: getLearningLevelColor(learningLevel) }}>
+                            {learningLevel}
+                        </Text>
+                    </Col>
+                </Row>
+
                 <br />
                 <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                     <p style={{ width: '100%', justifyContent: 'center' }}>{selectedSubLecture?.content}</p>

@@ -76,7 +76,9 @@ const LectureView = () => {
         learningLevel,
       });
       const lectureId = response.data.id;
-      navigate(`./${lectureId}`);
+      //navigate(`./${lectureId}`);
+      navigate(`./`);
+      window.location.reload(); 
     } catch (error) {
       console.error("Error generating lecture:", error);
       setError("Failed to generate lecture. Please try again.");
@@ -102,25 +104,66 @@ const LectureView = () => {
         }}
         className="flex flex-col gap-4"
       >
-        <h1 className="text-2xl font-bold">Lecture</h1>
-        <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Nihil obcaecati officia esse eos a nulla, incidunt ea praesentium sint numquam sapiente tempora qui id nobis dolore accusamus cumque neque eius?
-          Velit aute reprehenderit fugiat occaecat sit aute amet labore laboris
-          occaecat deserunt officia. Aute anim ad aliquip minim eu dolore esse
-          non qui anim. Anim nulla in id eu aute nisi ex laborum ex nulla ea
-          aliquip do. Ex tempor do do labore est deserunt sunt cillum magna in
-          sunt dolor aliquip officia. Pariatur proident pariatur duis aliquip
-          exercitation ea anim aute duis ullamco magna fugiat incididunt mollit.
-          Cillum sit aute commodo occaecat proident laboris commodo. Mollit sit
-          voluptate exercitation adipisicing. Ipsum in quis Lorem in nostrud
-          ipsum. Amet tempor sit enim adipisicing esse esse. Labore qui Lorem
-          deserunt consectetur reprehenderit eu consectetur laboris labore nulla
-          nulla id ullamco nulla. Nulla officia irure voluptate exercitation
-          aute. Aute do cillum et labore. Esse aliquip est irure proident
-          laborum sit eiusmod dolor qui officia mollit nisi. Reprehenderit irure
-          nisi nisi laborum laborum ex duis. Reprehenderit sit amet ut anim
-          laboris eu non sint sunt adipisicing exercitation sunt magna do.
-        </p>
+        <h1 className="text-3xl font-bold">
+            <span className="text-gray-700"> Lecture for </span>
+            {toProperString(lesson ?? "")}
+          </h1>
+
+          <div
+            className="bg-gray-100
+          rounded-xl p-4"
+          >
+            <section className="mb-2">
+              <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+                How the Lecture Works
+              </h2>
+              <ol className="space-y-3 list-decimal list-inside text-gray-600">
+                <li>
+                  <strong>Lecture Presentation:</strong> You'll be presented
+                  with Lecture content tailored to your learning level and the
+                  lesson's objectives. And you have some Pre-Assestments and Post-assessments to test your understanding.
+                </li>
+                <li>
+                  <strong>View Lecture through 3D classromm</strong> You can view the lecture through 3D classroom with 3d avatar.
+                </li>
+                <li>
+                  <strong>Answering Pre-Assestment Questions:</strong> Here you will receive pre-assessment questions to test your knowledge before entering the lecture content. If you don't know the answers, please don't be afraid to select 'Don't know.
+                </li>
+                <li>
+                  <strong>Answering Post-assessment Questions:</strong> Here you will receive post-assessment questions to test your knowledge after lecture is done.
+                </li>
+                
+              </ol>
+            </section>
+
+            <section className="mb-2">
+              <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+                Disclaimer
+              </h2>
+              <ul className="space-y-1 list-disc list-inside text-gray-600">
+                <li>
+                  This Lecture uses AI to generate Lectures. While we strive for accuracy, please be aware that AI-generated content may occasionally contain errors.
+                </li>
+                <li>
+                  The Lecture is designed to supplement your learning. Always
+                  refer to your official course materials and instructors for
+                  authoritative information.
+                </li>
+                <li>
+                  Your interactions within this Lecture are for self-Learning and
+                  self-assessment only. They do not constitute formal grading or
+                  assessment for your course.
+                </li>
+              </ul>
+            </section>
+
+            <p className="text-sm text-gray-500 mt-6">
+              By proceeding, you acknowledge that you understand the nature of
+              this AI-assisted tutorial and agree to use it as a supplementary
+              learning tool.
+            </p>
+          </div>
+        
         <div className="flex justify-end">
           <Button
             type="primary"
@@ -182,45 +225,51 @@ const GenerateLectureModal = ({
   </Modal>
 );
 
-const PastLecturesTable = ({
-  pastLectures,
-}: {
-  pastLectures: Lecture[];
-}) => (
-  <div className="flex flex-col gap-4 overflow-x-auto">
-    <h2 className="text-xl font-bold">Generated Lectures</h2>
-    <Table
-      dataSource={pastLectures}
-      pagination={false}
-      className="max-w-4xl"
-      rowKey="id"
-    >
-      <Table.Column
-        title="Created"
-        dataIndex="created_at"
-        render={(text) => formatDate(new Date(text))}
-      />
-      <Table.Column
-        title="Learning Level"
-        dataIndex="learning_level"
-        render={(text) => text.charAt(0).toUpperCase() + text.slice(1)}
-      />
-      <Table.Column title="Status" dataIndex="status" />
-      <Table.Column
-        title="Action"
-        dataIndex="id"
-        render={(id: string, record: Lecture) =>
-          // record.status !== "generating" &&
-          (record.status as "feedback-generating" | "completed" | "pending") !== "feedback-generating" && (
-            <Link to={`./${id}`}>
-              <Button type="primary">View</Button>
-            </Link>
-          )
-        }
-      />
-    </Table>
-  </div>
-);
+const PastLecturesTable = ({ pastLectures }: { pastLectures: Lecture[] }) => {
+  const navigate = useNavigate();
+
+  const handleViewClick = (id: string, learningLevel: string) => {
+    navigate(`./${id}`, { state: { learningLevel } });
+  };
+
+  return (
+    <div className="flex flex-col gap-4 overflow-x-auto">
+      <h2 className="text-xl font-bold">Generated Lectures</h2>
+      <Table
+        dataSource={pastLectures}
+        pagination={false}
+        className="max-w-4xl"
+        rowKey="id"
+      >
+        <Table.Column
+          title="Created"
+          dataIndex="created_at"
+          render={(text) => formatDate(new Date(text))}
+        />
+        <Table.Column
+          title="Learning Level"
+          dataIndex="learning_level"
+          render={(text) => text.charAt(0).toUpperCase() + text.slice(1)}
+        />
+        <Table.Column title="Status" dataIndex="status" />
+        <Table.Column
+          title="Action"
+          dataIndex="id"
+          render={(id: string, record: Lecture) =>
+            (record.status as "feedback-generating" | "completed" | "pending") !== "feedback-generating" && (
+              <Button
+                type="primary"
+                onClick={() => handleViewClick(id, record.learning_level)}
+              >
+                View
+              </Button>
+            )
+          }
+        />
+      </Table>
+    </div>
+  );
+};
 
 const formatDate = (date: Date) => {
   const formattedDate = `${date.getMonth() + 1}/${date.getDate()}/${
@@ -280,4 +329,10 @@ function LectureLoading() {
       />
     </Content>
   );
+}
+
+function toProperString(input: string): string {
+  const words = input.split("-");
+  words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+  return words.join(" ");
 }
