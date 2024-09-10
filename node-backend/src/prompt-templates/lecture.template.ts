@@ -12,7 +12,7 @@ Make sure to attract the user to the topic by providing a real-world scenario re
 
 
 export const LearningOutcomesLecturePrompt = `
-You are an experienced lecturer at a University. generate the transcript for the learning outcomes section of the lecture.
+You are an experienced lecturer at a University. generate the transcript for the learning outcomes section of the lecture. Don't give markdown format.
 
 
 Lesson Title: {lesson_title}
@@ -94,31 +94,13 @@ Description: {description}
 {prevSections}
 </Previous Sections>
 
-if student is beginner level:
-- Use very simple language, avoiding jargon
-- Explain every new term thoroughly
-- Use abundant real-world examples and analogies
-- Include frequent summaries and checkpoints
-- Keep the content focused on foundational concepts only
-
-if student is intermediate level:
-- Use more technical language, briefly explaining new terms
-- Dive deeper into concepts, exploring some complexities
-- Discuss practical applications and industry relevance
-- Make connections between different aspects of the topic
-- Include some challenges or thought-provoking questions
-
-if stundent is advanced level:
-- Use highly technical language without explanations
-- Focus on cutting-edge concepts and current research
-- Discuss advanced applications and theoretical implications
-- Analyze complex relationships between different aspects of the topic
-- Include critical analysis and open research questions
-
+Level Information: 
+{levelInfo}
 
 Make sure to maintain a continuous flow between subtopics. Focus on delivering content without explicitly stating transitions like "Moving on to the next topic" or "Here are some questions". Don't ask students to ask questions at the end of the lecture and don't add any markdown formats.
 This transcript will be fed to a 3D avatar.
 `;
+
 
 
 // Prompt to generate lecture conclusion
@@ -135,7 +117,7 @@ Summarize the main points covered in the lecture and provide a final thought or 
 
 // Prompt to generate pre-assessment MCQ questions
 export const LectureMCQPrompt = `
-You are an experienced lecturer at a university. Generate 5 multiple-choice questions (MCQs) that assess understanding of the lecture content.
+You are an experienced lecturer at a university. Generate 5 multiple-choice questions (MCQs) that assess understanding of the lecture content. add extra answer option as don't know also.
 
 Lesson Title: {lesson_title}
 Generated Content:

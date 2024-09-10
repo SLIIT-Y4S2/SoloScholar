@@ -118,9 +118,44 @@ export async function generateLectureForSubtopic(
 ) {
     const context = await documentRetrievalPipeline(`${subtopic} ${description} ${learning_level}`);
 
+    function getLevelInfo(learning_level: string): string {
+        switch (learning_level.toLowerCase()) {
+            case 'beginner':
+                return `
+                - Use very simple language, avoiding jargon
+                - Explain every new term thoroughly
+                - Use abundant real-world examples and analogies
+                - Include frequent summaries and checkpoints
+                - Keep the content focused on foundational concepts only
+                `;
+            case 'intermediate':
+                return `
+                - Use more technical language, briefly explaining new terms
+                - Dive deeper into concepts, exploring some complexities
+                - Discuss practical applications and industry relevance
+                - Make connections between different aspects of the topic
+                - Include some challenges or thought-provoking questions
+                `;
+            case 'advanced':
+                return `
+                - Use highly technical language without explanations
+                - Focus on cutting-edge concepts and current research
+                - Discuss advanced applications and theoretical implications
+                - Analyze complex relationships between different aspects of the topic
+                - Include critical analysis and open research questions
+                `;
+            default:
+                return `
+                - Use clear and concise language, adjust explanations based on student needs
+                - Provide real-world examples where applicable
+                - Ensure content is adaptable to different learning levels
+                `;
+        }
+    }
+    
+
     // Generate content for each subtopics
-    const lectureSectionPrompt =
-        PromptTemplate.fromTemplate(Lecturesectionprompt);
+    const lectureSectionPrompt = PromptTemplate.fromTemplate(Lecturesectionprompt);
 
     // Create a runnable sequence for generating
     const realWorldScenarioPipeline = RunnableSequence.from([
@@ -130,6 +165,7 @@ export async function generateLectureForSubtopic(
             subtopic: (input) => input.subtopic,
             description: (input) => input.description,
             lesson_title: (input) => input.lesson_title,
+            levelInfo: (input) => input.levelInfo,
             prevSections: (input) => input.prevSections,
         },
         lectureSectionPrompt,
@@ -137,11 +173,16 @@ export async function generateLectureForSubtopic(
         new StringOutputParser(),
     ]);
 
+    const levelInfo = getLevelInfo(learning_level);
+
+
     const sectionTranscript = await realWorldScenarioPipeline.invoke({
         context: context,
         subtopic: subtopic,
         description: description,
         lesson_title: lesson_title,
+        learning_level: learning_level,
+        levelInfo: levelInfo,
         prevSections: prevSections.join("\n"),
     });
 
@@ -277,7 +318,7 @@ export async function generateLectureFromLearningOutcomes(
     const learningOutcomes = await getLearningOutcomesByLessonTitle(lesson_title);
 
     // Get related context
-   // const context = await documentRetrievalPipeline(`${lesson_title} ${learningOutcomes}`);
+    // const context = await documentRetrievalPipeline(`${lesson_title} ${learningOutcomes}`);
 
     // Create the prompt template
     const learningOutcomesLecturePrompt = PromptTemplate.fromTemplate(LearningOutcomesLecturePrompt);
