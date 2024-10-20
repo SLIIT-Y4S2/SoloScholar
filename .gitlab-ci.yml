@@ -1,0 +1,11 @@
+variables:
+  API_TOKEN: $DEPLOYMENT_TOKEN
+  APP_PATH: "$CI_PROJECT_DIR/frontend"
+  OUTPUT_PATH: "$CI_PROJECT_DIR/frontend/dist"
+  VITE_API_URL: $API_URL
+
+deploy:
+  stage: deploy
+  image: registry.gitlab.com/static-web-apps/azure-static-web-apps-deploy
+  script:
+    - echo "Frontend deployed successfully."
