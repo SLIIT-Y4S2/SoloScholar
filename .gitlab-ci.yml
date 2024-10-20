@@ -2,7 +2,7 @@ variables:
   API_TOKEN: $DEPLOYMENT_TOKEN
   APP_PATH: "$CI_PROJECT_DIR/frontend"
   OUTPUT_PATH: "$CI_PROJECT_DIR/frontend/dist"
-  VITE_API_URL: $API_URL
+  VITE_BACKEND_URL: $BACKEND_URL
 
 deploy:
   stage: deploy
