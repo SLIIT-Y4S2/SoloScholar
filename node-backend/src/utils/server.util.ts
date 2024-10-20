@@ -17,6 +17,7 @@ import { Server } from "socket.io";
 import http from "http";
 import dashboardAnalyticsRouter from "../routes/dashboardAnalytics.routes";
 import lectureRouter from "../routes/lecture.routes";
+import { DEPLOYMENT_ENV, PROD_CLIENT_DOMAIN } from "../constants/app.constants";
 
 const server = express();
 
@@ -25,7 +26,15 @@ const server = express();
 server.use(helmet());
 
 // cors
-server.use(cors({ origin:[ "http://localhost:3000","https://solo-scholar.netlify.app"], credentials: true,}));
+server.use(
+  cors({
+    origin:
+      DEPLOYMENT_ENV == "prod"
+        ? `https://${PROD_CLIENT_DOMAIN}`
+        : "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 // logger
 server.use(morgan("common"));

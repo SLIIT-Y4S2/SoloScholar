@@ -12,6 +12,18 @@ const JWT_SECRET: string = process.env.JWT_SECRET!;
 
 const WS_PORT: number = parseInt(process.env.WS_PORT!, 10);
 
+const PROD_CLIENT_DOMAIN: string = process.env.PROD_CLIENT_DOMAIN!;
+
+const DEPLOYMENT_ENV: string = process.env.DEPLOYMENT_ENV!;
+
 // process.env.LANGCHAIN_VERBOSE = "true";
 
-export { PORT, MONGO_URI, JWT_SECRET, OPENAI_API_KEY, WS_PORT };
+export {
+  PORT,
+  MONGO_URI,
+  JWT_SECRET,
+  OPENAI_API_KEY,
+  WS_PORT,
+  PROD_CLIENT_DOMAIN,
+  DEPLOYMENT_ENV,
+};

@@ -1,12 +1,9 @@
 import { Request, Response } from "express";
-import {
-  createSession,
-  // findSessions,
-  invalidateSession,
-} from "../services/session.service";
+import { createSession, invalidateSession } from "../services/session.service";
 import { validatePassword } from "../services/user.service";
 import { signJwt } from "../utils/jwt.utils";
 import { logger } from "../utils/logger.utils";
+import { DEPLOYMENT_ENV } from "../constants/app.constants";
 
 async function createUserSessionHandler(req: Request, res: Response) {
   // Validate the user's password
@@ -30,19 +27,28 @@ async function createUserSessionHandler(req: Request, res: Response) {
       { ...user, session: session.id },
       { expiresIn: "30d" }
     );
-
-    res.cookie("jwt", jwtToken, {
-      httpOnly: true,
-      // secure: true,
-      secure: false,
-      sameSite: "strict",
-      // sameSite: "none",
-      domain: "localhost",
-      // domain: "solo-scholar.netlify.app",
-
-      path: "/",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie(
+      "jwt",
+      jwtToken,
+      DEPLOYMENT_ENV === "prod"
+        ? {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            path: "/",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+          }
+        : {
+            httpOnly: true,
+            // secure: true,
+            secure: false,
+            sameSite: "strict",
+            // sameSite: "none",
+            domain: "localhost",
+            path: "/",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+          }
+    );
 
     return res.send(user);
   } catch (error) {
