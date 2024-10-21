@@ -19,14 +19,14 @@ import dashboardAnalyticsRouter from "../routes/dashboardAnalytics.routes";
 import lectureRouter from "../routes/lecture.routes";
 import { DEPLOYMENT_ENV, PROD_CLIENT_DOMAIN } from "../constants/app.constants";
 
-const server = express();
+const app = express();
 
 // middlewares
 // helmet
-server.use(helmet());
+app.use(helmet());
 
 // cors
-server.use(
+app.use(
   cors({
     origin:
       DEPLOYMENT_ENV == "prod"
@@ -37,49 +37,53 @@ server.use(
 );
 
 // logger
-server.use(morgan("common"));
+app.use(morgan("common"));
 
 // cookie parser
-server.use(cookieParser());
+app.use(cookieParser());
 
 // multer
 const uploads = multer();
-server.use(uploads.single("pdf_doc"));
+app.use(uploads.single("pdf_doc"));
 
 // body parser
-server.use(express.json());
+app.use(express.json());
 
 // routes
-server.use("/api/v1/ref-docs", documentRouter);
-server.use("/api/v1/auth", authRouter);
-server.use("/api/v1/lecture", requireUser, lectureRouter);
-server.use("/api/v1/tutorial", requireUser, tutorialsRouter);
-server.use("/api/v1/labs", requireUser, labRouter);
-server.use("/api/v1/discussions", requireUser, discussionRouter);
-server.use("/api/v1/dashboard", requireInstructor, dashboardRouter);
-server.use(
+app.use("/api/v1/ref-docs", documentRouter);
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/lecture", requireUser, lectureRouter);
+app.use("/api/v1/tutorial", requireUser, tutorialsRouter);
+app.use("/api/v1/labs", requireUser, labRouter);
+app.use("/api/v1/discussions", requireUser, discussionRouter);
+app.use("/api/v1/dashboard", requireInstructor, dashboardRouter);
+app.use(
   "/api/v1/dashboard-analytics",
   requireInstructor,
   dashboardAnalyticsRouter
 );
-server.use("/api/v1/module", moduleRouter);
-server.get("/api/v1/protected", requireUser, (req: Request, res: Response) => {
+app.use("/api/v1/module", moduleRouter);
+app.get("/api/v1/protected", requireUser, (req: Request, res: Response) => {
   res.json({ message: "Hello from protected route", user: res.locals.user });
 });
 
-server.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.log(req.path);
   res.status(500).json({ message: err.message });
 });
 
 // WebSocket server setup
-const wsServer = http.createServer();
-const io = new Server(wsServer, {
+const server = http.createServer(app);
+
+const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin:
+      DEPLOYMENT_ENV == "prod"
+        ? `https://${PROD_CLIENT_DOMAIN}`
+        : "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-export { server, io, wsServer };
+export { server, io };

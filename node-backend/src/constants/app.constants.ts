@@ -10,8 +10,6 @@ const OPENAI_API_KEY: string = process.env.OPENAI_API_KEY!;
 
 const JWT_SECRET: string = process.env.JWT_SECRET!;
 
-const WS_PORT: number = parseInt(process.env.WS_PORT!, 10);
-
 const PROD_CLIENT_DOMAIN: string = process.env.PROD_CLIENT_DOMAIN!;
 
 const DEPLOYMENT_ENV: string = process.env.DEPLOYMENT_ENV!;
@@ -23,7 +21,6 @@ export {
   MONGO_URI,
   JWT_SECRET,
   OPENAI_API_KEY,
-  WS_PORT,
   PROD_CLIENT_DOMAIN,
   DEPLOYMENT_ENV,
 };
