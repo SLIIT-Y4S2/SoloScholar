@@ -21,8 +21,7 @@ import { shuffle } from "lodash";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { z } from "zod";
 
-import { getLearningOutcomesByLessonTitle } from '../../../node-backend/src/services/db/lecture.db.service';
-
+import { getLearningOutcomesByLessonTitle } from "./db/lecture.db.service";
 // MARK: Detailed Lesson Outline
 /**
  * Document retrieval pipeline

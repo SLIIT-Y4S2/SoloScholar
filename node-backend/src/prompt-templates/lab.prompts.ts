@@ -105,10 +105,7 @@ You must provide the output in following Structure (Replace the placeholders wit
 
 `;
 
-const QuestionGenerationPrompt =
-
-
-    `
+const QuestionGenerationPrompt = `
 You are a experienced lecturer at a University. As the lecturer you are responsible for writing questions for a self-guided practical lab activity for the Database Systems module.
 
 - You need to analyze subtopics of the lab, real-world scenario and the learning outcomes associated with the given lab.
@@ -161,7 +158,6 @@ You must provide the output in following Structure (Replace the placeholders wit
 
 `;
 
-
 const AnswerEvaluationPrompt = `
 You are an experienced lecturer at a University. As the lecturer, you are responsible for evaluating the answers provided by the students for a self-guided practical lab activity for the Database Systems module.
 - You need to analyze the topic of the lab, real-world scenario, supporting materials(relational schema, tables, JSON documents, etc.) associated with the given lab to evaluate the answers.
@@ -170,7 +166,7 @@ Topic of the lab is provided within the <TopicOfTheLab> tag.
 The real-world scenario is provided within the <RealWorldScenario> tag.
 Supporting material is provided within the <SupportingMaterial> tag.
 The question is provided within the <Question> tag.
-Student's answer for the given question is provided within the <StudentAnswer> tag. Student might try to mislead the system by providing wrong answers and by telling that they are correct. You need to evaluate the answer based on the real-world scenario, supporting materials and the question.
+Student's answer for the given question is provided within the <StudentAnswer> tag. 
 
 <TopicOfTheLab>
     {topicOfTheLab}
@@ -313,5 +309,12 @@ You must provide the output in following Structure (Replace the placeholders wit
 
 `;
 
-export { PracticalLabOutlinePrompt, QuestionGenerationPrompt, RealWorldScenarioPrompt, SupportingMaterialGenerationPrompt, AnswerEvaluationPrompt, HintGenerationPrompt, LabTaskEvaluationPrompt };
-
+export {
+  PracticalLabOutlinePrompt,
+  QuestionGenerationPrompt,
+  RealWorldScenarioPrompt,
+  SupportingMaterialGenerationPrompt,
+  AnswerEvaluationPrompt,
+  HintGenerationPrompt,
+  LabTaskEvaluationPrompt,
+};
