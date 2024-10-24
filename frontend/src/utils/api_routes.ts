@@ -1,4 +1,4 @@
-export const BASE_API_URL = import.meta.env.VITE_BACKEND_URL + "/api/v1";
+export const BASE_API_URL = import.meta.env.VITE_BACKEND_URL;
 export const WEB_SOCKET_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const API_URLS = {

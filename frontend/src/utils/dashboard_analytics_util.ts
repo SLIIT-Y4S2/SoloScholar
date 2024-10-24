@@ -31,34 +31,70 @@ export const getAcademicPerformanceAndLearningStrategiesTutorial = (
   ).length;
 
   return {
-    correctMcqAvg: (correctMCQCount / mcqQuestions.length) * 100,
-    incorrectMcqAvg: (incorrectMCQCount / mcqQuestions.length) * 100,
-    correctShortAnswerQuestionAvg:
+    correctMcqPercentage: (correctMCQCount / mcqQuestions.length) * 100,
+    incorrectMcqPercentage: (incorrectMCQCount / mcqQuestions.length) * 100,
+    correctShortAnswerQuestionPercentage:
       (correctShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
-    incorrectShortAnswerQuestionAvg:
+    incorrectShortAnswerQuestionPercentage:
       (incorrectShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
-    unansweredMcqAvg: (unansweredMCQCount / mcqQuestions.length) * 100,
-    unansweredShortAnswerQuestionAvg:
+    unansweredMcqPercentage: (unansweredMCQCount / mcqQuestions.length) * 100,
+    unansweredShortAnswerQuestionPercentage:
       (unansweredShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
   };
 };
 
 export const getAffectiveStateTutorial = (results: any[]) => {
   const totalFeedback = results.filter((item) => item.feedback_type !== null);
-  const skippedFeedback = totalFeedback.filter(
+  if (totalFeedback.length === 0) {
+    return {
+      totalFeedbackCount: 0,
+    };
+  }
+
+  const totalSkippedFeedback = totalFeedback.filter(
     (item) => item.feedback_type === "skip"
   );
-  const basicFeedback = totalFeedback.filter(
+  const totalBasicFeedback = totalFeedback.filter(
     (item) => item.feedback_type === "basic"
   );
-  const inDetailFeedback = totalFeedback.filter(
+  const totalInDetailFeedback = totalFeedback.filter(
     (item) => item.feedback_type === "detailed"
+  );
+  const mcqSkippedFeedback = totalSkippedFeedback.filter(
+    (item) => item.tutorial_question_type === "mcq"
+  );
+  const mcqBasicFeedback = totalBasicFeedback.filter(
+    (item) => item.tutorial_question_type === "mcq"
+  );
+  const mcqInDetailFeedback = totalInDetailFeedback.filter(
+    (item) => item.tutorial_question_type === "mcq"
+  );
+  const shortAnswerSkippedFeedback = totalSkippedFeedback.filter(
+    (item) => item.tutorial_question_type === "short-answer"
+  );
+  const shortAnswerBasicFeedback = totalBasicFeedback.filter(
+    (item) => item.tutorial_question_type === "short-answer"
+  );
+  const shortAnswerInDetailFeedback = totalInDetailFeedback.filter(
+    (item) => item.tutorial_question_type === "short-answer"
   );
 
   return {
-    skippedFeedback: (skippedFeedback.length / totalFeedback.length) * 100,
-    basicFeedback: (basicFeedback.length / totalFeedback.length) * 100,
-    inDetailFeedback: (inDetailFeedback.length / totalFeedback.length) * 100,
+    skippedFeedbackPercentage: {
+      mcq: (mcqSkippedFeedback.length / totalFeedback.length) * 100,
+      shortAnswer:
+        (shortAnswerSkippedFeedback.length / totalFeedback.length) * 100,
+    },
+    basicFeedbackPercentage: {
+      mcq: (mcqBasicFeedback.length / totalFeedback.length) * 100,
+      shortAnswer:
+        (shortAnswerBasicFeedback.length / totalFeedback.length) * 100,
+    },
+    inDetailFeedbackPercentage: {
+      mcq: (mcqInDetailFeedback.length / totalFeedback.length) * 100,
+      shortAnswer:
+        (shortAnswerInDetailFeedback.length / totalFeedback.length) * 100,
+    },
   };
 };
 
@@ -114,5 +150,88 @@ export const getSummaryStatisticsTutorial = (results: any[]) => {
     totalTutorialCount: totalTutorialCount.size,
     tutorialScorePercentageAvg,
     tutorialCompletionRateAvg,
+  };
+};
+
+export const getLearnerPerformanceTutorial = (results: any[]) => {
+  const totalQuestions = results.length;
+  const mcqQuestions: any[] = results.filter(
+    (item) => item.tutorial_question_type === "mcq"
+  );
+  const shortAnswerQuestions: any[] = results.filter(
+    (item) => item.tutorial_question_type === "short-answer"
+  );
+
+  const attemptedMCQCount: number = mcqQuestions.filter(
+    (item) => item.student_answer !== null
+  ).length;
+  const unAttemptedMCQCount: number = mcqQuestions.length - attemptedMCQCount;
+
+  const attemptedShortAnswerQuestionCount = shortAnswerQuestions.filter(
+    (item) => item.student_answer !== null
+  ).length;
+  const unAttemptedShortAnswerQuestionCount: number =
+    shortAnswerQuestions.length - attemptedShortAnswerQuestionCount;
+
+  const totalQuestionsAttempted: number =
+    attemptedMCQCount + attemptedShortAnswerQuestionCount;
+  const totalQuestionsUnattempted: number =
+    totalQuestions - totalQuestionsAttempted;
+
+  return {
+    totalQuestionAttemptPercentage:
+      (totalQuestionsAttempted / totalQuestions) * 100,
+    mcqQuestionAttemptPercentage:
+      (attemptedMCQCount / totalQuestionsAttempted) * 100,
+    mcqUnAttemptedPercentage:
+      (unAttemptedMCQCount / totalQuestionsUnattempted) * 100,
+    shortAnswerQuestionAttemptPercentage:
+      (attemptedShortAnswerQuestionCount / totalQuestionsAttempted) * 100,
+    shortAnswerQuestionUnattemptedPercentage:
+      (unAttemptedShortAnswerQuestionCount / totalQuestionsUnattempted) * 100,
+    totalCorrectShortAnswerQuestionPercentage:
+      (shortAnswerQuestions.filter(
+        (item) =>
+          item.student_answer !== null &&
+          item.is_student_answer_correct === true
+      ).length /
+        shortAnswerQuestions.length) *
+      100,
+    totalIncorrectShortAnswerQuestionPercentage:
+      (shortAnswerQuestions.filter(
+        (item) =>
+          item.student_answer !== null &&
+          item.is_student_answer_correct === false
+      ).length /
+        shortAnswerQuestions.length) *
+      100,
+    totalUnansweredShortAnswerQuestionPercentage:
+      (unAttemptedShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
+    shortAnswerHintViewedPercentage: {
+      correct:
+        (shortAnswerQuestions.filter(
+          (item) =>
+            item.student_answer !== null &&
+            item.is_student_answer_correct === true &&
+            item.is_hint_viewed === true
+        ).length /
+          shortAnswerQuestions.length) *
+        100,
+      incorrect:
+        (shortAnswerQuestions.filter(
+          (item) =>
+            item.student_answer !== null &&
+            item.is_student_answer_correct === false &&
+            item.is_hint_viewed === true
+        ).length /
+          shortAnswerQuestions.length) *
+        100,
+      unanswered:
+        (shortAnswerQuestions.filter(
+          (item) => item.student_answer === null && item.is_hint_viewed === true
+        ).length /
+          shortAnswerQuestions.length) *
+        100,
+    },
   };
 };

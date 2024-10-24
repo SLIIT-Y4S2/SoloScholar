@@ -6,6 +6,7 @@ import { CustomMessage } from "../types/dashboard.types";
 import {
   getAcademicPerformanceAndLearningStrategiesTutorial,
   getAffectiveStateTutorial,
+  getLearnerPerformanceTutorial,
   getSummaryStatisticsTutorial,
 } from "../utils/dashboard_analytics_util";
 
@@ -35,22 +36,47 @@ export function DashboardAnalyticsProvider({
     academicPerformanceAndLearningStrategiesTutorial,
     setAcademicPerformanceAndLearningStrategiesTutorial,
   ] = useState<{
-    correctMcqAvg: number;
-    incorrectMcqAvg: number;
-    correctShortAnswerQuestionAvg: number;
-    incorrectShortAnswerQuestionAvg: number;
-    unansweredMcqAvg: number;
-    unansweredShortAnswerQuestionAvg: number;
+    correctMcqPercentage: number;
+    incorrectMcqPercentage: number;
+    correctShortAnswerQuestionPercentage: number;
+    incorrectShortAnswerQuestionPercentage: number;
+    unansweredMcqPercentage: number;
+    unansweredShortAnswerQuestionPercentage: number;
   } | null>(null);
   const [affectiveStateTutorial, setAffectiveStateTutorial] = useState<{
-    skippedFeedback: number;
-    basicFeedback: number;
-    inDetailFeedback: number;
+    totalFeedbackCount?: number;
+    skippedFeedbackPercentage?: {
+      mcq: number;
+      shortAnswer: number;
+    };
+    basicFeedbackPercentage?: {
+      mcq: number;
+      shortAnswer: number;
+    };
+    inDetailFeedbackPercentage?: {
+      mcq: number;
+      shortAnswer: number;
+    };
   } | null>(null);
   const [summaryStatisticsTutorial, setSummaryStatisticsTutorial] = useState<{
     totalTutorialCount: number;
     tutorialScorePercentageAvg: number;
     tutorialCompletionRateAvg: number;
+  } | null>(null);
+  const [learnerPerformanceTutorial, setLearnerPerformanceTutorial] = useState<{
+    totalQuestionAttemptPercentage: number;
+    mcqQuestionAttemptPercentage: number;
+    mcqUnAttemptedPercentage: number;
+    shortAnswerQuestionAttemptPercentage: number;
+    shortAnswerQuestionUnattemptedPercentage: number;
+    totalCorrectShortAnswerQuestionPercentage: number;
+    totalIncorrectShortAnswerQuestionPercentage: number;
+    totalUnansweredShortAnswerQuestionPercentage: number;
+    shortAnswerHintViewedPercentage: {
+      correct: number;
+      incorrect: number;
+      unanswered: number;
+    };
   } | null>(null);
 
   const getLessonsOfModule = async (moduleId: string) => {
@@ -109,6 +135,7 @@ export function DashboardAnalyticsProvider({
           );
           setAffectiveStateTutorial(getAffectiveStateTutorial(results));
           setSummaryStatisticsTutorial(getSummaryStatisticsTutorial(results));
+          setLearnerPerformanceTutorial(getLearnerPerformanceTutorial(results));
         } else {
           setCustomMessage({ type: "info", content: "No data to display." });
         }
@@ -125,6 +152,7 @@ export function DashboardAnalyticsProvider({
       academicPerformanceAndLearningStrategiesTutorial,
       affectiveStateTutorial,
       summaryStatisticsTutorial,
+      learnerPerformanceTutorial,
       customMessage,
     }),
     [
@@ -133,6 +161,7 @@ export function DashboardAnalyticsProvider({
       academicPerformanceAndLearningStrategiesTutorial,
       affectiveStateTutorial,
       summaryStatisticsTutorial,
+      learnerPerformanceTutorial,
       customMessage,
     ]
   );

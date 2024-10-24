@@ -7,7 +7,7 @@ import {
   Tooltip,
 } from "recharts";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const COLORS = ["#0088FE", "#4CAF50", "#FFBB28", "#FF8042"];
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({
@@ -44,16 +44,25 @@ const renderCustomizedLabel = ({
 
 const CustomLabeledPieChart = (props: {
   chartData: {
-    skippedFeedback: number;
-    basicFeedback: number;
-    inDetailFeedback: number;
+    skippedFeedbackPercentage: number;
+    basicFeedbackPercentage: number;
+    inDetailFeedbackPercentage: number;
   };
 }) => {
   const { chartData } = props;
   const data = [
-    { name: "Skipped", value: chartData?.skippedFeedback },
-    { name: "Basic", value: chartData?.basicFeedback },
-    { name: "In-Detail", value: chartData?.inDetailFeedback },
+    {
+      name: "Skipped",
+      value: chartData?.skippedFeedbackPercentage,
+    },
+    {
+      name: "Basic",
+      value: chartData?.basicFeedbackPercentage,
+    },
+    {
+      name: "In-Detail",
+      value: chartData?.inDetailFeedbackPercentage,
+    },
   ];
 
   return (
