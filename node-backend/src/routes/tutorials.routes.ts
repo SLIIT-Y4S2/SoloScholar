@@ -5,6 +5,7 @@ import {
   saveTutorialAnswerHandler,
   submitTutorialHandler,
   markTutorialAsCompletedHandler,
+  markHintAsViewedHandler,
 } from "../controllers/tutorials.controller";
 import { validateData } from "../middlewares/zod.middleware";
 import {
@@ -79,5 +80,12 @@ tutorialsRouter.post("/:tutorialId/feedback", requestFeedbackHandler);
  */
 
 tutorialsRouter.post("/:tutorialId/complete", markTutorialAsCompletedHandler);
+
+/**
+ * Mark hint as viewed
+ * @route PATCH /api/v1/tutorial/:tutorialId/:questionId/hint
+ */
+
+tutorialsRouter.patch("/:tutorialId/:questionId/hint", markHintAsViewedHandler);
 
 export default tutorialsRouter;
