@@ -46,9 +46,11 @@ const CustomBreadcrumb = () => {
     }),
   ];
   function itemRender(route: ItemType, _: unknown, routes: ItemType[]) {
-    const isLast = route?.path === routes[items.length - 1]?.path;
+    const isNotLink =
+      route?.path === routes[items.length - 1]?.path ||
+      (route?.path === routes[2]?.path && route?.title !== "Discussion forum");
 
-    return isLast ? (
+    return isNotLink ? (
       <span>{route.title}</span>
     ) : (
       <Link to={route.path ?? "/"}>{route.title}</Link>

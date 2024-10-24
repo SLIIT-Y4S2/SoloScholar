@@ -132,6 +132,7 @@ export const getTutorialByIdWithQuestions = async (
     is_student_answer_correct?: boolean;
     options: string[];
     sub_lesson_id: number;
+    is_hint_viewed: boolean;
   }[];
 }> => {
   const tutorial = await prisma.tutorial.findFirst({
@@ -413,6 +414,23 @@ export const updateTutorialStatus = async (
       options: q.options.map((o) => o.answer_option),
     })),
   };
+};
+
+export const updateQuestionHintViewedStatus = async (
+  questionId: number
+): Promise<void> => {
+  const tutorialQuestion = await prisma.tutorial_question.update({
+    where: {
+      id: questionId,
+    },
+    data: {
+      is_hint_viewed: true,
+    },
+  });
+
+  if (!tutorialQuestion) {
+    throw new Error("Tutorial question not found");
+  }
 };
 
 /**

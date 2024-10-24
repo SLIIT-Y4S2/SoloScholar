@@ -5,8 +5,12 @@ import { useTutorialContext } from "../../../../../provider/tutorial/useTutorial
 import { useState } from "react";
 import BulbOutlined from "@ant-design/icons/BulbOutlined";
 import SubmitTutorialButton from "./SubmitTutorialButton";
+import { useParams } from "react-router-dom";
+import { sendHintViewedEventService } from "../../../../../services/tutorial.service";
 
 const QuestionCardForTutorialAnswering = () => {
+  const { tutorialId } = useParams();
+
   const {
     submitAnswer,
     questions,
@@ -15,10 +19,32 @@ const QuestionCardForTutorialAnswering = () => {
     setStudentsAnswerForTheCurrentQuestion,
     isFetching: isLoading,
   } = useTutorialContext();
-  const { question, options, question_number, type, hint } =
-    questions[current_question - 1];
+  const {
+    id: questionId,
+    question,
+    options,
+    question_number,
+    type,
+    hint,
+  } = questions[current_question - 1];
 
   const [isHintModalVisible, setIsHintModalVisible] = useState(false);
+
+  const sendHintViewedEvent = async () => {
+    // send event to the backend
+    try {
+      // send the event to the backend
+      const response = await sendHintViewedEventService(
+        tutorialId ?? "",
+        questionId
+      );
+      if (response !== 200) {
+        throw new Error("Failed to send hint viewed event");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   if (isLoading || questions.length === 0) {
     return <>Loading...</>;
@@ -43,7 +69,10 @@ const QuestionCardForTutorialAnswering = () => {
           <Button
             type="default"
             icon={<BulbOutlined />}
-            onClick={() => setIsHintModalVisible(true)}
+            onClick={() => {
+              sendHintViewedEvent();
+              setIsHintModalVisible(true);
+            }}
             className="hover:bg-yellow-100 transition-colors duration-300"
           >
             Hint
