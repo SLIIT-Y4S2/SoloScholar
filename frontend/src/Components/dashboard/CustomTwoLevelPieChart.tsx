@@ -1,5 +1,12 @@
 import { Typography } from "antd";
-import { Cell, Legend, Pie, PieChart, Tooltip } from "recharts";
+import {
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 
 const { Text } = Typography;
 
@@ -111,178 +118,194 @@ const CustomTwoLevelPieChart = (props: {
     <div className="flex justify-between">
       <div>
         <Text>Total Question Attempt Distribution</Text>
-        <PieChart width={400} height={400}>
-          <Pie
-            data={allQuestions}
-            dataKey="value"
-            cx={200}
-            cy={200}
-            outerRadius={60}
-          >
-            {allQuestions.map((_, index) => (
-              <Cell fill={MAIN_COLORS[index % MAIN_COLORS.length]} />
-            ))}
-          </Pie>
+        <ResponsiveContainer height={400} width={400}>
+          <PieChart width={400} height={400}>
+            <Pie
+              data={allQuestions}
+              dataKey="value"
+              cx={200}
+              cy={200}
+              outerRadius={60}
+            >
+              {allQuestions.map((_, index) => (
+                <Cell fill={MAIN_COLORS[index % MAIN_COLORS.length]} />
+              ))}
+            </Pie>
 
-          <Pie
-            data={questionTypesAttempted}
-            dataKey="value"
-            cx={200}
-            cy={200}
-            innerRadius={70}
-            outerRadius={90}
-            startAngle={0}
-            endAngle={360 * (chartData?.totalQuestionAttemptPercentage / 100)}
-          >
-            {questionTypesAttempted.map((_, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={SUB_COLORS[index % SUB_COLORS.length]}
-              />
-            ))}
-          </Pie>
+            <Pie
+              data={questionTypesAttempted}
+              dataKey="value"
+              cx={200}
+              cy={200}
+              innerRadius={70}
+              outerRadius={90}
+              startAngle={0}
+              endAngle={360 * (chartData?.totalQuestionAttemptPercentage / 100)}
+            >
+              {questionTypesAttempted.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={SUB_COLORS[index % SUB_COLORS.length]}
+                />
+              ))}
+            </Pie>
 
-          <Pie
-            data={questionTypesUnattempted}
-            dataKey="value"
-            cx={200}
-            cy={200}
-            innerRadius={70}
-            outerRadius={90}
-            startAngle={360 * (chartData?.totalQuestionAttemptPercentage / 100)}
-          >
-            {questionTypesUnattempted.map((_, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={SUB_COLORS[index % SUB_COLORS.length]}
-              />
-            ))}
-          </Pie>
-          <Legend
-            payload={[
-              { value: "Attempted (%)", type: "square", color: MAIN_COLORS[0] },
-              {
-                value: "Unattempted (%)",
-                type: "square",
-                color: MAIN_COLORS[1],
-              },
-              { value: "MCQ (%)", type: "square", color: SUB_COLORS[0] },
-              {
-                value: "Short-Answer (%)",
-                type: "square",
-                color: SUB_COLORS[1],
-              },
-            ]}
-          />
-          <Tooltip />
-        </PieChart>
+            <Pie
+              data={questionTypesUnattempted}
+              dataKey="value"
+              cx={200}
+              cy={200}
+              innerRadius={70}
+              outerRadius={90}
+              startAngle={
+                360 * (chartData?.totalQuestionAttemptPercentage / 100)
+              }
+            >
+              {questionTypesUnattempted.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={SUB_COLORS[index % SUB_COLORS.length]}
+                />
+              ))}
+            </Pie>
+            <Legend
+              payload={[
+                {
+                  value: "Attempted (%)",
+                  type: "square",
+                  color: MAIN_COLORS[0],
+                },
+                {
+                  value: "Unattempted (%)",
+                  type: "square",
+                  color: MAIN_COLORS[1],
+                },
+                { value: "MCQ (%)", type: "square", color: SUB_COLORS[0] },
+                {
+                  value: "Short-Answer (%)",
+                  type: "square",
+                  color: SUB_COLORS[1],
+                },
+              ]}
+            />
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Hint View Distribution */}
       <div>
         <Text>Total Hint Distribution in Short-Answer Questions</Text>
-        <PieChart width={400} height={400}>
-          <Pie
-            data={shortAnswerQuestions}
-            dataKey="value"
-            cx={200}
-            cy={200}
-            outerRadius={60}
-          >
-            {shortAnswerQuestions.map((_, index) => (
-              <Cell fill={MAIN_COLORS[index % MAIN_COLORS.length]} />
-            ))}
-          </Pie>
+        <ResponsiveContainer height={400} width={400}>
+          <PieChart width={400} height={400}>
+            <Pie
+              data={shortAnswerQuestions}
+              dataKey="value"
+              cx={200}
+              cy={200}
+              outerRadius={60}
+            >
+              {shortAnswerQuestions.map((_, index) => (
+                <Cell fill={MAIN_COLORS[index % MAIN_COLORS.length]} />
+              ))}
+            </Pie>
 
-          <Pie
-            data={correctShortAnswerQuestionHints}
-            dataKey="value"
-            cx={200}
-            cy={200}
-            innerRadius={70}
-            outerRadius={90}
-            startAngle={0}
-            endAngle={
-              360 * (chartData?.totalCorrectShortAnswerQuestionPercentage / 100)
-            }
-          >
-            {correctShortAnswerQuestionHints.map((_, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={SUB_COLORS[index % SUB_COLORS.length]}
-              />
-            ))}
-          </Pie>
+            <Pie
+              data={correctShortAnswerQuestionHints}
+              dataKey="value"
+              cx={200}
+              cy={200}
+              innerRadius={70}
+              outerRadius={90}
+              startAngle={0}
+              endAngle={
+                360 *
+                (chartData?.totalCorrectShortAnswerQuestionPercentage / 100)
+              }
+            >
+              {correctShortAnswerQuestionHints.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={SUB_COLORS[index % SUB_COLORS.length]}
+                />
+              ))}
+            </Pie>
 
-          <Pie
-            data={incorrectShortAnswerQuestionHints}
-            dataKey="value"
-            cx={200}
-            cy={200}
-            innerRadius={70}
-            outerRadius={90}
-            startAngle={
-              360 * (chartData?.totalCorrectShortAnswerQuestionPercentage / 100)
-            }
-            endAngle={
-              360 *
-                (chartData?.totalCorrectShortAnswerQuestionPercentage / 100) +
-              360 *
-                (chartData?.totalIncorrectShortAnswerQuestionPercentage / 100)
-            }
-          >
-            {incorrectShortAnswerQuestionHints.map((_, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={SUB_COLORS[index % SUB_COLORS.length]}
-              />
-            ))}
-          </Pie>
+            <Pie
+              data={incorrectShortAnswerQuestionHints}
+              dataKey="value"
+              cx={200}
+              cy={200}
+              innerRadius={70}
+              outerRadius={90}
+              startAngle={
+                360 *
+                (chartData?.totalCorrectShortAnswerQuestionPercentage / 100)
+              }
+              endAngle={
+                360 *
+                  (chartData?.totalCorrectShortAnswerQuestionPercentage / 100) +
+                360 *
+                  (chartData?.totalIncorrectShortAnswerQuestionPercentage / 100)
+              }
+            >
+              {incorrectShortAnswerQuestionHints.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={SUB_COLORS[index % SUB_COLORS.length]}
+                />
+              ))}
+            </Pie>
 
-          <Pie
-            data={unansweredShortAnswerQuestionHints}
-            dataKey="value"
-            cx={200}
-            cy={200}
-            innerRadius={70}
-            outerRadius={90}
-            startAngle={
-              360 *
-                (chartData?.totalCorrectShortAnswerQuestionPercentage / 100) +
-              360 *
-                (chartData?.totalIncorrectShortAnswerQuestionPercentage / 100)
-            }
-          >
-            {unansweredShortAnswerQuestionHints.map((_, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={SUB_COLORS[index % SUB_COLORS.length]}
-              />
-            ))}
-          </Pie>
-          <Legend
-            payload={[
-              { value: "Correct (%)", type: "square", color: MAIN_COLORS[0] },
-              { value: "Incorrect (%)", type: "square", color: MAIN_COLORS[1] },
-              {
-                value: "Unanswered (%)",
-                type: "square",
-                color: MAIN_COLORS[2],
-              },
-              {
-                value: "Hint Viewed (%)",
-                type: "square",
-                color: SUB_COLORS[0],
-              },
-              {
-                value: "Hint Not Viewed (%)",
-                type: "square",
-                color: SUB_COLORS[1],
-              },
-            ]}
-          />
-          <Tooltip />
-        </PieChart>
+            <Pie
+              data={unansweredShortAnswerQuestionHints}
+              dataKey="value"
+              cx={200}
+              cy={200}
+              innerRadius={70}
+              outerRadius={90}
+              startAngle={
+                360 *
+                  (chartData?.totalCorrectShortAnswerQuestionPercentage / 100) +
+                360 *
+                  (chartData?.totalIncorrectShortAnswerQuestionPercentage / 100)
+              }
+            >
+              {unansweredShortAnswerQuestionHints.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={SUB_COLORS[index % SUB_COLORS.length]}
+                />
+              ))}
+            </Pie>
+            <Legend
+              payload={[
+                { value: "Correct (%)", type: "square", color: MAIN_COLORS[0] },
+                {
+                  value: "Incorrect (%)",
+                  type: "square",
+                  color: MAIN_COLORS[1],
+                },
+                {
+                  value: "Unanswered (%)",
+                  type: "square",
+                  color: MAIN_COLORS[2],
+                },
+                {
+                  value: "Hint Viewed (%)",
+                  type: "square",
+                  color: SUB_COLORS[0],
+                },
+                {
+                  value: "Hint Not Viewed (%)",
+                  type: "square",
+                  color: SUB_COLORS[1],
+                },
+              ]}
+            />
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

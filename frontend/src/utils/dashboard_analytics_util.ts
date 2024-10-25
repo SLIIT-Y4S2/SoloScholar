@@ -1,3 +1,6 @@
+/**
+ * For tutorial component
+ */
 export const getAcademicPerformanceAndLearningStrategiesTutorial = (
   results: any[]
 ) => {
@@ -233,5 +236,79 @@ export const getLearnerPerformanceTutorial = (results: any[]) => {
           shortAnswerQuestions.length) *
         100,
     },
+  };
+};
+
+/**
+ * For lab component
+ */
+export const getAcademicPerformanceAndLearningStrategiesLab = (
+  results: any[]
+) => {
+  const totalQuestionCount = results.length;
+  const totalCorrectAnswerCount = results.filter(
+    (item) => item.is_student_answer_submitted && item.is_student_answer_correct
+  ).length;
+  const totalIncorrectAnswerCount = results.filter(
+    (item) =>
+      item.is_student_answer_submitted && !item.is_student_answer_correct
+  ).length;
+  const totalUnansweredCount = results.filter(
+    (item) => !item.is_student_answer_submitted
+  ).length;
+
+  return {
+    correctAnswerPercentage:
+      (totalCorrectAnswerCount / totalQuestionCount) * 100,
+    incorrectAnswerPercentage:
+      (totalIncorrectAnswerCount / totalQuestionCount) * 100,
+    unansweredPercentage: (totalUnansweredCount / totalQuestionCount) * 100,
+  };
+};
+
+export const getSummaryStatisticsLab = (results: any[]) => {
+  const totalLabsheetCount = new Set(results.map((item) => item.labsheet_id))
+    .size;
+  const labsheets = results.reduce((acc, item) => {
+    acc[item.labsheet_id] = acc[item.labsheet_id] || [];
+    acc[item.labsheet_id].push(item);
+    return acc;
+  }, {});
+
+  const labsheetCompletionPercentages = Object.values(labsheets).map(
+    (labsheetQuestions: any) => {
+      const totalQuestions = labsheetQuestions.length;
+      const answeredQuestions = labsheetQuestions.filter(
+        (item: any) => item.is_student_answer_submitted
+      ).length;
+      return (answeredQuestions / totalQuestions) * 100;
+    }
+  );
+
+  const labsheetScorePercentages = Object.values(labsheets).map(
+    (labsheetQuestions: any) => {
+      const totalQuestions = labsheetQuestions.length;
+      const correctQuestions = labsheetQuestions.filter(
+        (item: any) => item.is_student_answer_correct
+      ).length;
+      return (correctQuestions / totalQuestions) * 100;
+    }
+  );
+
+  const totalPercentages = labsheetCompletionPercentages.reduce(
+    (sum, percentage) => sum + percentage,
+    0
+  );
+
+  const totalScores = labsheetScorePercentages.reduce(
+    (sum, percentage) => sum + percentage,
+    0
+  );
+
+  return {
+    totalLabsheetCount: totalLabsheetCount,
+    labsheetScorePercentageAvg: totalScores / labsheetScorePercentages.length,
+    labsheetCompletionRateAvg:
+      totalPercentages / labsheetCompletionPercentages.length,
   };
 };
