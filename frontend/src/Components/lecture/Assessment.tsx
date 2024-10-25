@@ -90,6 +90,7 @@ const Assessment = ({ type }: { type: "pre" | "post" }) => {
       }
       message.success('All answers saved successfully!');
       setQuizCompleted(true);
+      window.location.reload();
     } catch (error) {
       message.error('An error occurred while saving the answers.');
       console.error('Error saving answers:', error);
@@ -152,6 +153,9 @@ const Assessment = ({ type }: { type: "pre" | "post" }) => {
   return (
     <div style={{ padding: '24px', backgroundColor: '#fff', borderRadius: '8px' }}>
       <Title level={3}>{type === "pre" ? "Pre-Assessment" : "Post-Assessment"}</Title>
+      {type === "pre" && (
+        <p style={{marginTop:"20px", fontSize:"18px", marginBottom:"20px"}}>We're here to test your knowledge before the lecture begins to see how well you know the facts related to this topic.</p>
+      )}
       <Progress percent={progressPercentage} status="active" style={{ marginBottom: '16px' }} />
       <p style={{ fontWeight: 'bold' }}>
         Question {currentQuestionIndex + 1} of {questions.length}

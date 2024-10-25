@@ -148,10 +148,96 @@ Generate the questions without adding introductory phrases or transitions. Focus
 
 // prompt-templates/lecture.template.ts
 
+// export const MarkdownPPTSlidePrompt = `
+// Lesson Title: {lesson_title}
+// Content: {content}
+
+// Generate a visually structured markdown presentation for the above content. Follow these guidelines:
+
+// 1. Create a title slide with the lesson title.
+// 2. Break the content into logical sections, each on its own slide.
+// 3. Use headings (# and ##) to structure the content hierarchy.
+// 4. Utilize bullet points and numbered lists for easy readability.
+// 5. Keep each slide focused on a single concept or idea.
+// 6. Include simple ASCII diagrams or tables where appropriate to visualize concepts.
+// 7. End with a summary or key takeaways slide.
+
+// Example structure:
+
+// \`\`\`markdown
+// ## {lesson_title}
+
+// ---
+
+// ## Introduction
+// - Brief overview of the topic
+// - Why it's important
+
+// ---
+
+// ## Key Concept 1
+// - Definition
+// - Examples
+// - Use cases
+
+// ---
+
+// ## Key Concept 2
+// - Explanation
+// - Comparison with Concept 1
+// - ASCII diagram (if applicable)
+
+// ---
+
+// ## Summary
+// - Recap of main points
+// - Next steps or further reading
+
+// \`\`\`
+
+// Generate the slides based on this structure, adapting as necessary to fit the specific content of the lesson.
+// `;
+
+
+
 export const MarkdownPPTSlidePrompt = `
-
 Lesson Title: {lesson_title}
-content : {content}
+Content: {content}
 
-generate markdown presentation for above content
+go through the content and identify slides to make. after that create me a html div like below. This is sample output. So no need to have exact same thing in every title. and no need to include \`\`\`html. just the div structure is enough.
+
+Example output:
+\`\`\`html
+<div class="slides">
+    
+    <section>
+        <h2>Introduction</h2>
+        <ul>
+            <li>Brief overview of the topic</li>
+            <li>Why it's important</li>
+        </ul>
+    </section>
+    <section>
+        <h2>Key Concept 1</h2>
+        <ul>
+            <li>Definition</li>
+            <li>Examples</li>
+            <li>Use cases</li>
+        </ul>
+    </section>
+    <section>
+        <h2>Key Concept 2</h2>
+        <ul>
+            <li>Explanation</li>
+            <li>Comparison with Concept 1</li>
+            <li>ASCII diagram (if applicable)</li>
+        </ul>
+    </section>
+    <section>
+        <h2>Summary</h2>
+        <ul>
+            <li>Recap of main points</li>
+            <li>Next steps or further reading</li>
+        </ul>
+    </section>
 `;

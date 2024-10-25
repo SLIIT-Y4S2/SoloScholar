@@ -21,7 +21,11 @@ const { Content, Sider } = Layout;
 function Lecture() {
     const { id } = useParams<{ id: string }>();
     const location = useLocation();
-    const { learningLevel } = location.state as { learningLevel: string };
+    const { learningLevel12 } = useAITeacher();
+
+    //console.log("aaaaaaaaaaaaa",learningLevel12);
+    
+    const  learningLevel1  = learningLevel12
     const lectureContext = useLectureContext();
     const { lecture, isLoading, error, setSelectedKey, setCurrentSubLectureContent, setCurrentSubLectureTopic } = lectureContext;
 
@@ -94,15 +98,15 @@ function Lecture() {
                 <Row>
                     <Col flex={5}><Title level={3}>{selectedSubLecture?.topic}</Title></Col>
                     <Col flex={0}>
-                        <Text style={{ color: getLearningLevelColor(learningLevel) }}>
-                            {learningLevel}
+                        <Text style={{ color: getLearningLevelColor(learningLevel1) }}>
+                            {learningLevel1}
                         </Text>
                     </Col>
                 </Row>
 
                 <br />
                 <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                    <p style={{ width: '100%', justifyContent: 'center' }}>{selectedSubLecture?.content}</p>
+                    <p style={{ width: '100%', justifyContent: 'center', fontSize:"16px"}}>{selectedSubLecture?.content}</p>
                 </div>
             </div>
         );

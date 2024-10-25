@@ -43,7 +43,7 @@ export const BoardSettings = () => {
         >
           Default classroom
         </button>
-        <button
+        {/* <button
           className={` ${
             classroom === "alternative"
               ? "text-white bg-slate-900/40 "
@@ -52,7 +52,7 @@ export const BoardSettings = () => {
           onClick={() => setClassroom("alternative")}
         >
           Alternative classroom
-        </button>
+        </button> */}
       </div>
     </>
   );

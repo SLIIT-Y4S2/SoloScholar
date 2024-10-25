@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import axios from 'axios';
 import axiosInstance from '../utils/axiosInstance';
 import { API_URLS } from '../utils/api_routes';
 
@@ -10,7 +9,9 @@ export const useAITeacher = create((set, get) => ({
   currentMessage: null,
   teacher: teachers[0],
   isPlaying: false,
-  avatarState: 'idle', // New state to manage avatar animation
+  avatarState: 'idle', // State to manage avatar animation
+  isComplete: false, // New boolean variable
+  learningLevel12: "beginner", // New string variable
   setTeacher: (teacher) => {
     set(() => ({
       teacher,
@@ -24,6 +25,16 @@ export const useAITeacher = create((set, get) => ({
   setClassroom: (classroom) => {
     set(() => ({
       classroom,
+    }));
+  },
+  setLearningLevel: (level) => {
+    set(() => ({
+      learningLevel12: level, // Update learningLevel12
+    }));
+  },
+  setIsComplete: (completeStatus) => {
+    set(() => ({
+      isComplete: completeStatus, // Update isComplete
     }));
   },
   loading: false,
@@ -54,21 +65,18 @@ export const useAITeacher = create((set, get) => ({
     }
   },
 
-// Add a stop function that resets all audio-related states
-stopLecture: () => {
-  const currentMessage = get().currentMessage;
-  if (currentMessage && currentMessage.audioPlayer) {
-    currentMessage.audioPlayer.pause();
-    currentMessage.audioPlayer.currentTime = 0; // Reset the audio
-  }
-  set({
-    isPlaying: false,
-    avatarState: 'idle',
-    currentMessage: null, // Clear the current message
-  });
-},
-
-
+  stopLecture: () => {
+    const currentMessage = get().currentMessage;
+    if (currentMessage && currentMessage.audioPlayer) {
+      currentMessage.audioPlayer.pause();
+      currentMessage.audioPlayer.currentTime = 0; // Reset the audio
+    }
+    set({
+      isPlaying: false,
+      avatarState: 'idle',
+      currentMessage: null, // Clear the current message
+    });
+  },
 
   resumeLecture: () => {
     const currentMessage = get().currentMessage;
