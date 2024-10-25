@@ -23,7 +23,7 @@ import LabsOverview from "../pages/dashboard/LabsOverview";
 import MyIndicators from "../pages/dashboard/MyIndicators";
 import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
-import Main from "../pages/dashboard/Main";
+// import Main from "../pages/dashboard/Main";
 import { LabSessionLayout } from "../pages/[module]/[lesson]/lab/LabSessionLayout";
 import { LabLayout } from "../pages/[module]/[lesson]/lab/LabLayout";
 import { SupportMaterialsForLab } from "../Components/lab/SupportMaterialsForLab";
@@ -100,7 +100,7 @@ const Routes = () => {
           children: [
             {
               path: "",
-              element: <Main />,
+              element: <LecturesOverview />, // TODO: Change if needed
             },
             {
               path: "lectures-overview",

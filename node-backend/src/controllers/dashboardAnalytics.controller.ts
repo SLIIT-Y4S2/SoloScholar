@@ -46,8 +46,15 @@ export async function getLectureAnalytics(
   res: Response
 ): Promise<void> {
   try {
+    const { moduleId, learningLevel, lessonId, lessonTitle } = req.body;
+
     res.status(200).send({
-      result: await dashboardAnalyticsDbService.getLectureAnalytics(),
+      result: await dashboardAnalyticsDbService.getLectureAnalytics({
+        moduleId,
+        learningLevel,
+        lessonId,
+        lessonTitle,
+      }),
     });
   } catch (error: any) {
     console.log(error);
@@ -60,9 +67,15 @@ export async function getLabAnalytics(
   req: Request,
   res: Response
 ): Promise<void> {
+  const { moduleId, learningLevel, lessonId, lessonTitle } = req.body;
   try {
     res.status(200).send({
-      result: await dashboardAnalyticsDbService.getLabAnalytics(),
+      result: await dashboardAnalyticsDbService.getLabAnalytics({
+        moduleId,
+        learningLevel,
+        lessonId,
+        lessonTitle,
+      }),
     });
   } catch (error: any) {
     console.log(error);

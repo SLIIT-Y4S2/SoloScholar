@@ -4,9 +4,11 @@ import { AxiosResponse } from "axios";
 import axiosInstance from "../utils/axiosInstance";
 import { CustomMessage } from "../types/dashboard.types";
 import {
+  getAcademicPerformanceAndLearningStrategiesLab,
   getAcademicPerformanceAndLearningStrategiesTutorial,
   getAffectiveStateTutorial,
   getLearnerPerformanceTutorial,
+  getSummaryStatisticsLab,
   getSummaryStatisticsTutorial,
 } from "../utils/dashboard_analytics_util";
 
@@ -32,6 +34,8 @@ export function DashboardAnalyticsProvider({
   const [customMessage, setCustomMessage] = useState<CustomMessage | null>(
     null
   );
+
+  // For tutorial component
   const [
     academicPerformanceAndLearningStrategiesTutorial,
     setAcademicPerformanceAndLearningStrategiesTutorial,
@@ -79,6 +83,21 @@ export function DashboardAnalyticsProvider({
     };
   } | null>(null);
 
+  // For lab component
+  const [
+    academicPerformanceAndLearningStrategiesLab,
+    setAcademicPerformanceAndLearningStrategiesLab,
+  ] = useState<{
+    correctAnswerPercentage: number;
+    incorrectAnswerPercentage: number;
+    unansweredPercentage: number;
+  } | null>(null);
+  const [summaryStatisticsLab, setSummaryStatisticsLab] = useState<{
+    totalLabsheetCount: number;
+    labsheetScorePercentageAvg: number;
+    labsheetCompletionRateAvg: number;
+  } | null>(null);
+
   const getLessonsOfModule = async (moduleId: string) => {
     try {
       const response: AxiosResponse = await axiosInstance.get(
@@ -99,6 +118,7 @@ export function DashboardAnalyticsProvider({
     }
   };
 
+  // For tutorial analytics
   const getTutorialAnalytics = async ({
     moduleId,
     learningLevel,
@@ -145,22 +165,75 @@ export function DashboardAnalyticsProvider({
     }
   };
 
+  // For lab analytics
+  const getLabAnalytics = async ({
+    moduleId,
+    learningLevel,
+    lessonId,
+    lessonTitle,
+  }: {
+    moduleId: number;
+    learningLevel: string;
+    lessonId: number;
+    lessonTitle: string;
+  }) => {
+    try {
+      const response: AxiosResponse = await axiosInstance.post(
+        DASHBOARD_ANALYTICS_API_URLS.LAB_ANALYTICS,
+        {
+          moduleId,
+          learningLevel,
+          lessonId,
+          lessonTitle,
+        }
+      );
+      const responseData: { result?: any[]; error?: any } = await response.data;
+      if (responseData.error) {
+        setCustomMessage({
+          type: "error",
+          content: "Sorry, an unexpected server error occurred",
+        });
+      } else {
+        const results: any[] = await response.data.result;
+        if (results.length > 0) {
+          setCustomMessage(null);
+          setAcademicPerformanceAndLearningStrategiesLab(
+            getAcademicPerformanceAndLearningStrategiesLab(results)
+          );
+          // setAffectiveStateTutorial(getAffectiveStateTutorial(results));
+          setSummaryStatisticsLab(getSummaryStatisticsLab(results));
+          // setLearnerPerformanceTutorial(getLearnerPerformanceTutorial(results));
+        } else {
+          setCustomMessage({ type: "info", content: "No data to display." });
+        }
+      }
+    } catch (error: any) {
+      setCustomMessage({ type: "error", content: error.message });
+    }
+  };
+
   const contextValue = useMemo(
     () => ({
       getLessonsOfModule,
       getTutorialAnalytics,
+      getLabAnalytics,
       academicPerformanceAndLearningStrategiesTutorial,
+      academicPerformanceAndLearningStrategiesLab,
       affectiveStateTutorial,
       summaryStatisticsTutorial,
+      summaryStatisticsLab,
       learnerPerformanceTutorial,
       customMessage,
     }),
     [
       getLessonsOfModule,
       getTutorialAnalytics,
+      getLabAnalytics,
       academicPerformanceAndLearningStrategiesTutorial,
+      academicPerformanceAndLearningStrategiesLab,
       affectiveStateTutorial,
       summaryStatisticsTutorial,
+      summaryStatisticsLab,
       learnerPerformanceTutorial,
       customMessage,
     ]
