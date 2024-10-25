@@ -59,8 +59,22 @@ const CustomStackedBarChart = (props: {
           />
         </YAxis>
         <Tooltip />
-        <Legend />
-        <Bar label="correct" dataKey="correct" stackId="a" fill="#4CAF50" />
+        <Legend
+          payload={[
+            { value: "Correct", type: "square", color: "#4CAF50 " },
+            {
+              value: "Incorrect",
+              type: "square",
+              color: "#FF0000",
+            },
+            {
+              value: "Unanswered",
+              type: "square",
+              color: "#0088FE",
+            },
+          ]}
+        />
+        <Bar label="Correct" dataKey="correct" stackId="a" fill="#4CAF50" />
         <Bar dataKey="incorrect" stackId="a" fill="#FF0000" />
         <Bar dataKey="unanswered" stackId="a" fill="#0088FE" />
       </BarChart>

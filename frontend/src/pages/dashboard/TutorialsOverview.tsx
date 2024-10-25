@@ -205,9 +205,7 @@ const TutorialsOverview = () => {
               title={customMessage.content}
             />
           ) : (
-            <Fragment>
-              <CustomTwoLevelPieChart chartData={learnerPerformanceTutorial} />
-            </Fragment>
+            <CustomTwoLevelPieChart chartData={learnerPerformanceTutorial} />
           )}
         </Card>
         <Text>
