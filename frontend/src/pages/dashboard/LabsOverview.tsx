@@ -1,15 +1,17 @@
-import { useContext, useEffect, useState } from "react";
-import BreadCrumb from "../../Components/BreadCrumb";
-import { Fragment } from "react/jsx-runtime";
-import { DashboardAnalyticsContext } from "../../provider/DashboardAnalyticsContext";
-import { Card, Col, Result, Row, Select, Statistic, Typography } from "antd";
-import { ResultStatusType } from "antd/es/result";
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
   BookOutlined,
 } from "@ant-design/icons";
+import { Card, Col, Result, Row, Select, Statistic, Typography } from "antd";
+import { ResultStatusType } from "antd/es/result";
+import { useContext, useEffect, useState } from "react";
+import { Fragment } from "react/jsx-runtime";
+import BreadCrumb from "../../Components/BreadCrumb";
+import CustomLabeledPieChartLab from "../../Components/dashboard/CustomLabeledPieChartLab";
+import CustomScatterChartLab from "../../Components/dashboard/CustomScatterChartLab";
 import CustomSimpleBarChartLab from "../../Components/dashboard/CustomSimpleBarChartLab";
+import { DashboardAnalyticsContext } from "../../provider/DashboardAnalyticsContext";
 
 const { Text } = Typography;
 
@@ -43,7 +45,9 @@ const LabsOverview = () => {
     getLessonsOfModule,
     getLabAnalytics,
     academicPerformanceAndLearningStrategiesLab,
+    affectiveStateLab,
     summaryStatisticsLab,
+    learnerPerformanceLab,
     customMessage,
   } = useContext(DashboardAnalyticsContext);
 
@@ -61,10 +65,6 @@ const LabsOverview = () => {
     })();
   }, []);
 
-  console.log(
-    "academicPerformanceAndLearningStrategiesLab",
-    academicPerformanceAndLearningStrategiesLab
-  );
   return (
     <Fragment>
       <BreadCrumb sidebarOption={{ label: "Labs Overview" }} />
@@ -191,6 +191,28 @@ const LabsOverview = () => {
         </Card>
         <Text>
           <br />
+          <b>Learner Performance</b>
+        </Text>
+        : Learner attempts and average hint views per labsheet question
+        <Card>
+          {customMessage ? (
+            <Result
+              status={customMessage.type as ResultStatusType}
+              title={customMessage.content}
+            />
+          ) : (
+            <Fragment>
+              <Text>
+                <i>* Each data point corresponds to the no.of questions</i>
+              </Text>
+              <br />
+              <br />
+              <CustomScatterChartLab chartData={learnerPerformanceLab} />
+            </Fragment>
+          )}
+        </Card>
+        <Text>
+          <br />
           <b>Academic Performance & Learning Strategies</b>
         </Text>
         : Learner attempts and performance with labsheet questions
@@ -207,6 +229,21 @@ const LabsOverview = () => {
           )}
         </Card>
         <br />
+        <Text>
+          <b>Affective State</b>:{" "}
+        </Text>
+        Distribution of student reflections for correct answers and generated
+        labsheet types
+        <Card>
+          {customMessage ? (
+            <Result
+              status={customMessage.type as ResultStatusType}
+              title={customMessage.content}
+            />
+          ) : (
+            <CustomLabeledPieChartLab chartData={affectiveStateLab} />
+          )}
+        </Card>
       </div>
     </Fragment>
   );
