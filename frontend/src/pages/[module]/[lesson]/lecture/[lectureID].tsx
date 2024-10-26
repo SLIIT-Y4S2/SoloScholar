@@ -14,13 +14,13 @@ import { Experience } from "../../../../Components/lecture/Experience.jsx";
 
 // @ts-ignore
 import { useAITeacher } from "../../../../hooks/useAITeacher.js";
-import { useLocation, useParams } from "react-router-dom";
+//import { useLocation, useParams } from "react-router-dom";
 
 const { Content, Sider } = Layout;
 
 function Lecture() {
-    const { id } = useParams<{ id: string }>();
-    const location = useLocation();
+    //const { id } = useParams<{ id: string }>();
+    //const location = useLocation();
     const { learningLevel12 } = useAITeacher();
 
     //console.log("aaaaaaaaaaaaa",learningLevel12);

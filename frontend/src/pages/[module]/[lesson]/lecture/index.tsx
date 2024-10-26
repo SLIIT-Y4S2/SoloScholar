@@ -1,7 +1,7 @@
 import { Button, Form, Layout, Modal, Select, Skeleton, Table } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../../../utils/axiosInstance";
 import { API_URLS } from "../../../../utils/api_routes";
 import { AxiosError, AxiosResponse } from "axios";
@@ -108,12 +108,12 @@ const LectureView = () => {
 
     try {
       setGeneratingNewLecture(true);
-      const response = await axiosInstance.post(API_URLS.LectureGenerate, {
+      await axiosInstance.post(API_URLS.LectureGenerate, {
         moduleName: module.replace(/-/g, " "),
         lessonTitle: lesson.replace(/-/g, " "),
         learningLevel,
       });
-      const lectureId = response.data.id;
+      //const lectureId = response.data.id;
       //navigate(`./${lectureId}`);
       navigate(`./`);
       window.location.reload(); 
@@ -163,7 +163,7 @@ const LectureView = () => {
                   lesson's objectives. And you have some Pre-Assestments and Post-assessments to test your understanding.
                 </li>
                 <li>
-                  <strong>View Lecture through 3D classromm</strong> You can view the lecture through 3D classroom with 3d avatar.
+                  <strong>View Lecture through 3D classroom:</strong> You can view the lecture through 3D classroom with 3d avatar.
                 </li>
                 <li>
                   <strong>Answering Pre-Assestment Questions:</strong> Here you will receive pre-assessment questions to test your knowledge before entering the lecture content. If you don't know the answers, please don't be afraid to select 'Don't know.
@@ -198,7 +198,7 @@ const LectureView = () => {
 
             <p className="text-sm text-gray-500 mt-6">
               By proceeding, you acknowledge that you understand the nature of
-              this AI-assisted tutorial and agree to use it as a supplementary
+              this AI-assisted Lecture and agree to use it as a supplementary
               learning tool.
             </p>
           </div>
@@ -243,7 +243,7 @@ const GenerateLectureModal = ({
 
   return (
     <Modal
-      title="Generate New Tutorial"
+      title="Generate New Lecture"
       open={visible}
       onCancel={onCancel}
       footer={null}
@@ -300,7 +300,7 @@ const GenerateLectureModal = ({
 
         <Form.Item>
           <Button type="primary" htmlType="submit" block>
-            Generate Tutorial
+            Generate Lecture
           </Button>
         </Form.Item>
       </Form>

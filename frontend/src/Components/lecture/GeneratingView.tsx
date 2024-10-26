@@ -10,7 +10,7 @@ const GeneratingView = () => {
           clearInterval(interval);
           return 100;
         }
-        return prev + 1;
+        return prev + (100/225);
       });
     }, 800);
     return () => clearInterval(interval);

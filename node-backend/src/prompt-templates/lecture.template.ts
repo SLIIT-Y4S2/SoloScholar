@@ -117,7 +117,7 @@ Summarize the main points covered in the lecture and provide a final thought or 
 
 // Prompt to generate pre-assessment MCQ questions
 export const LectureMCQPrompt = `
-You are an experienced lecturer at a university. Generate 5 multiple-choice questions (MCQs) that assess understanding of the lecture content. add extra answer option as don't know also.
+You are an experienced lecturer at a university. Generate 5 multiple-choice questions (MCQs) that assess understanding of the lecture content. Need to have 4 answer options. add extra answer option as don't know also.
 
 Lesson Title: {lesson_title}
 Generated Content:
