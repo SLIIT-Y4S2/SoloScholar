@@ -26,7 +26,7 @@ const CustomScatterChartLab = (props: {
             angle={0}
             offset={0}
             style={{ textAnchor: "middle" }}
-            value="No.of Question Attempts"
+            value="No.of Attempts per Question"
             position="insideBottom"
           />
         </XAxis>
@@ -47,17 +47,20 @@ const CustomScatterChartLab = (props: {
               const { questionAttemptCount, averageHintViews } =
                 payload[0].payload;
               return (
-                <div className="custom-tooltip">
-                  <p>{`No.of Question Attempts: ${questionAttemptCount}`}</p>
-                  <p>{`Average Hint Views: ${averageHintViews}`}</p>
-                  <p>{`No.of Questions: ${
-                    chartData.filter(
-                      (d) =>
-                        d.questionAttemptCount === questionAttemptCount &&
-                        d.averageHintViews === averageHintViews
-                    ).length
-                  }`}</p>
-                </div>
+                <ul className="bg-white border-black border-[1px] shadow-sm p-4">
+                  <p>No.of Attempts: {questionAttemptCount}</p>
+                  <p>Average Hint Views: {averageHintViews}</p>
+                  <p>
+                    No.of Questions:{" "}
+                    {
+                      chartData.filter(
+                        (d) =>
+                          d.questionAttemptCount === questionAttemptCount &&
+                          d.averageHintViews === averageHintViews
+                      ).length
+                    }
+                  </p>
+                </ul>
               );
             }
             return null;

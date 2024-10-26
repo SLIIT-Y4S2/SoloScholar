@@ -100,7 +100,7 @@ const Routes = () => {
           children: [
             {
               path: "",
-              element: <LecturesOverview />, // TODO: Change if needed
+              element: <TutorialsOverview />, // TODO: Change if needed
             },
             {
               path: "lectures-overview",

@@ -2,7 +2,7 @@
   "table_info": [
     {
       "name": "person",
-      "description": "This table contains general information about the users. It has an id(primary key), first_name(first name of the user), last_name(last name of the user), email(email of the user), password(password of the user), and role(role of the user: 'learner' or 'instructor') as columns."
+      "description": "This table contains general information about the users, both learners and instructors. It has an id(primary key), first_name(first name of the user), last_name(last name of the user), email(email of the user), password(password of the user), and role(role of the user: 'learner' or 'instructor') as columns."
     },
     {
       "name": "module",
@@ -10,75 +10,91 @@
     },
     {
       "name": "lesson",
-      "description": "This table contains general information about lessons of modules. It has an id(primary key), title(the title of the lesson), description(a short description of the lesson), and module_id(a foreign key referencing the 'id' column of module table)."
+      "description": "This table contains general information about lessons of modules. It has an id(primary key), title(the title of the lesson), description(a short description of the lesson), and module_id(a foreign key referencing the 'id' column of 'module' table)."
     },
     {
       "name": "sub_lesson",
-      "description": "This table contains information about sub-lessons of lessons. It has an id(primary key), topic(the topic of the sub-lesson), description(a short description of the sub-lesson), and lesson_id(a foreign key referencing the 'id' column of lesson table)."
+      "description": "This table contains information about sub-lessons of lessons. It has an id(primary key), topic(the topic of the sub-lesson), description(a short description of the sub-lesson), and lesson_id(a foreign key referencing the 'id' column of 'lesson' table)."
     },
     {
       "name": "learning_outcome",
-      "description": "This table contains general information about learning outcomes belonging to lessons. It has id(primary key), description(description of the learning outcome), and cognitive_level_id(a foreign key referencing the 'id' column of cognitive_level table) as columns."
+      "description": "This table contains general information about learning outcomes belonging to lessons and the associated cognitive level id for each. It has id(primary key), description(description of the learning outcome), and cognitive_level_id(a foreign key referencing the 'id' column of 'cognitive_level' table) as columns."
     },
     {
       "name": "lesson_learning_outcome",
-      "description": "This table contains information about the relationship between lessons and learning outcomes. It has lesson_id(a foreign key referencing the 'id' column of lesson table) and learning_outcome_id(a foreign key referencing the 'id' column of learning_outcome table) as columns. These two columns together form the composite primary key of this table."
+      "description": "This table contains information about the relationship between lessons and learning outcomes. It has lesson_id(a foreign key referencing the 'id' column of 'lesson' table) and learning_outcome_id(a foreign key referencing the 'id' column of 'learning_outcome' table) as columns. These two columns together form the composite primary key of this table."
     },
     {
       "name": "cognitive_level",
-      "description": "This table contains different Blooms Taxonomy cognitive levels: 'Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'."
-    },
-    {
-      "name": "learning_outcome_cognitive_level",
-      "description": "This table contains information about the relationship between learning outcomes and cognitive levels."
+      "description": "This table contains different Blooms Taxonomy cognitive levels: 'Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'. It has an id(primary key) and level(the Bloom's Taxonomy cognitive level) as columns."
     },
     {
       "name": "learning_material",
-      "description": "This table contains common information belonging to all lecture, tutorial and labsheet tables. It has an id(primary key), learning_level(the learner's learning level: 'Beginner', 'Intermediate', 'Advanced'), learner_id(a foreign key referencing the 'id' column of the learner table), created_at(the date and time when the learning material was created), and lesson_id(a foreign key referencing the 'id' column of the lesson table) as columns."
+      "description": "This table contains common information belonging to all 'lecture', 'tutorial' and 'labsheet' tables. It has an id(primary key), learning_level(the learner's learning level: 'beginner', 'intermediate', 'advanced'), learner_id(a foreign key referencing the 'id' column of the 'person' table), created_at(the date and time when the learning material was created), and lesson_id(a foreign key referencing the 'id' column of the 'lesson table') as columns."
+    },
+    {
+      "name": "lecture",
+      "description": "This table contains information about lectures, which is a type of learning material. It has an id(primary key, which is a foreign key reference to the 'id' column of the 'learning_material' table) and status(the status of the lecture: 'generating', 'generated', 'in-progress', 'submitting', 'submitted', 'feedback-generating', 'feedback-generated', 'completed') as columns."
+    },
+    {
+      "name": "sub_lecture",
+      "description": "This table contains information about sub-lectures of a lecture. It has an id(primary key), topic(the topic of the sub-lecture), content(the content of the sub-lecture), is_completed(whether the sub-lecture has been completely watched or not) and lecture_id(a foreign key referencing the 'id' column of the 'lecture' table) as columns."
+    },
+    {
+      "name": "lecture_assesstment_question",
+      "description": "This table contains information about the pre-assessment and post-assessment questions for a lecture. It has an id(primary key), type(the type of the question: 'pre' or 'post'), question(the actual question content), question_number(the question number of the question), answer(the correct answer for the question), student_answer(the learner's answer to the question) and lecture_id(a foreign key referencing the 'id' column of the 'lecture' table) as columns."
+    },
+    {
+      "name": "lecture_assesstment_question_option",
+      "description": "This table contains the answer options for the pre-assessment and post-assessment questions for a lecture. It has an id(primary key), answer_option(the answer option for the question), and lecture_question_id(a foreign key referencing the 'id' column of the 'lecture_assesstment_question' table) as columns."
     },
     {
       "name": "tutorial",
-      "description": "This table contains information about tutorials, which is a type of learning material. It has id(primary key, which is a foreign key reference to the 'id' column of the learning_material table), status(the status of the tutorial: 'generating', 'generated', 'in-progress', 'submitting', 'submitted', 'feedback-generating', 'feedback-generated', 'completed') and current_question(the current question of the tutorial) as columns."
+      "description": "This table contains information about tutorials, which is a type of learning material. It has id(primary key, which is a foreign key reference to the 'id' column of the 'learning_material' table), status(the status of the tutorial: 'generating', 'generated', 'in-progress', 'submitting', 'submitted', 'feedback-generating', 'feedback-generated', 'completed') and current_question(the current question number of the tutorial) as columns."
     },
     {
       "name": "tutorial_question",
-      "description": "This table contains information about questions belonging to tutorials. It has an id(primary key), question(the actual question content), question_number(question number corresponding to the question), answer(the expected correct answer for the question), hint(a hint for the question), is_hint_viewed(whether a learner has viewed the hint or not), student_answer(the learner's answer to the question), is_student_answer_correct(whether the learner's answer is correct or not), feedback_type(the type of feedback requested by the learner: 'skipped', 'basic', 'in-detailed'), feedback(the actual feedback content), type(the type of the question: 'MCQ' or 'short-answer'), tutorial_id(a foreign key referencing the 'id' column of the tutorial table), and sub_lesson_id(a foreign key referencing the 'id' column of the sub_lesson table) as columns."
+      "description": "This table contains information about questions belonging to tutorials. It has an id(primary key), question(the actual question content), question_number(question number corresponding to the question), answer(the correct answer for the question), hint(a hint for the question), is_hint_viewed(whether a learner has viewed the hint or not), student_answer(the learner's answer to the question), is_student_answer_correct(whether the learner's answer is correct or not), feedback_type(the type of feedback requested by the learner: 'skipped', 'basic', 'in-detailed'), feedback(the actual feedback content), type(the type of the question: 'MCQ' or 'short-answer'), tutorial_id(a foreign key referencing the 'id' column of the 'tutorial' table), and sub_lesson_id(a foreign key referencing the 'id' column of the 'sub_lesson' table) as columns."
     },
     {
       "name": "mcq_tutorial_question_option",
-      "description": "This table contains the answer options for the MCQ type questions of the tutorial_question table. It has an id(primary key), answer_option(the answer option), and tutorial_questionId(a foreign key referencing the 'id' column of the tutorial_question table) as columns."
+      "description": "This table contains the answer options for the MCQ type questions of the 'tutorial_question' table. It has an id(primary key), answer_option(the answer option), and tutorial_questionId(a foreign key referencing the 'id' column of the 'tutorial_question table') as columns."
     },
     {
       "name": "tutorial_question_cognitive_level",
-      "description": "This table contains the relationship between tutorial_question and cognitive_level tables. It has tutorial_question_id(a foreign key referencing the 'id' column of the tutorial_question table), and cognitive_level_id(a foreign key referencing the 'id' column of the cognitive_level table) as columns. These two columns form the composite primary key of this table."
+      "description": "This table contains the relationship between tutorial_question and cognitive_level tables. It has tutorial_question_id(a foreign key referencing the 'id' column of the 'tutorial_question table'), and cognitive_level_id(a foreign key referencing the 'id' column of the 'cognitive_level table') as columns. These two columns form the composite primary key of this table."
     },
     {
       "name": "labsheet",
-      "description": "This table contains information about labsheets, which is a type of learning material. It has an id(primary key, which is a foreign key reference to the 'id' column of the learning_material table), real_world_scenario(a passage containing the problem scenario for the labsheet), support_material(metadata required for the real_world_scenario), current_question_index(the current question of the labsheet), and status(GENERATING, GENERATED, IN_PROGRESS, EVALUATING, EVALUATED and COMPLETED) as columns."
+      "description": "This table contains information about labsheets, which is a type of learning material. It has an id(primary key, which is a foreign key reference to the 'id' column of the 'learning_material' table), real_world_scenario(a passage containing the problem scenario for the labsheet), support_material(metadata required for the real_world_scenario), current_question_index(the current question of the labsheet), status(GENERATING, GENERATED, IN_PROGRESS, EVALUATING, EVALUATED and COMPLETED), overall_score(the overall score for the labsheet of status COMPLETED), strengths(a short passage describing the strengths of the learner), areas_for_improvement(a short passage describing the areas the learner should improve on), recommendations(a short passage that includes some recommendations for the learner) and is_feedback_enabled(to indicated whether the labsheet is a feedback-enabled one or not) as columns."
     },
     {
       "name": "labsheet_question",
-      "description": "This table contains information about questions and associated answers of labsheets. It has an id(primary key), question_number(question number corresponding to each question), question(the actual question content), answer(the expected correct answer for the question), is_correct(whether the learner's provided answer to this question is correct or not), is_answer_submitted(whether the learner has submitted the answer successfully to this question or not), reflection_on_answer(the learner's reflection text for their own answer) and labsheet_id(a foreign key referencing the 'id' column of labsheet table) as columns."
+      "description": "This table contains information about questions and answers of labsheets. It has an id(primary key), question_number(question number corresponding to each question), question(the actual question content), answer(the correct answer for the question), is_correct(whether the learner's answer to this question is correct or not), is_answer_submitted(whether the learner has submitted the answer to this question or not), hint_views(the number of hints that a learner has viewed for a question), reflection_on_answer(the learner's reflection text for a correct answer) and labsheet_id(a foreign key referencing the 'id' column of 'labsheet' table) as columns."
+    },
+    {
+      "name": "student_answer",
+      "description": "This table contains all the answers provided by learners to each labsheet question only. It has an id(primary key), student_answer(the answer provided by the learner), and labsheet_question_id(a foreign key reference to the 'id' column of 'labsheet_question' table) as columns."
     },
     {
       "name": "session",
-      "description": "This table contains information about the user session. It has an id(primary key), user_agent(the type of browser used, eg - Mozilla, Google Chrome etc), is_valid(whether it is a valid sessions), created_at(the date and time the session was created), updated_at(the date and time the session was updated), and person_id(a foreign key referencing the 'id' column of person table) as columns."
+      "description": "This table contains information about the user sessions, both learners and instructors. It has an id(primary key), user_agent(the type of browser used, eg - Mozilla, Google Chrome etc), is_valid(whether it is a valid session or not), created_at(the date and time the session was created), updated_at(the date and time the session was updated), and person_id(a foreign key referencing the 'id' column of 'person' table) as columns."
     },
     {
       "name": "discussion",
-      "description": "This table contains information about the discssions between persons. It has an id(primary key), title(the title of the discussion), content(the discussion content), created_at(the date and time the discussion thread was created), updated_at(the date and time the discussion thread was updated), module_id(a foreign key referencing the 'id' column of the module table), and creator_id(a foreign key referencing the 'id' column of person table) as columns."
+      "description": "This table contains information about the discussions/discussion-threads between learners. It has an id(primary key), title(the title of the discussion), content(the discussion content), created_at(the date and time the discussion thread was created), updated_at(the date and time the discussion thread was updated), module_id(a foreign key referencing the 'id' column of the 'module' table), and creator_id(a foreign key referencing the 'id' column of 'person' table) as columns."
     },
     {
       "name": "discussion_comment",
-      "description": "This table contains information about the comments/posts on the discussion threads. It has an id(primary key), content(the comment/post content), created_at(the date and time the comment/post was created), updated_at(the date and time the comment/post was updated), discussion_id(a foreign key referencing the 'id' column of discussion table), and creator_id(a foreign key referencing the 'id' column of person table) as columns."
+      "description": "This table contains information about the comments/posts on the discussion threads. It has an id(primary key), content(the comment/post content), created_at(the date and time the comment/post was created), updated_at(the date and time the comment/post was updated), discussion_id(a foreign key referencing the 'id' column of 'discussion' table), and creator_id(a foreign key referencing the 'id' column of 'person' table) as columns."
     },
     {
       "name": "discussion_like",
-      "description": "This table contains information about the likes on the discussion threads. It has an id(primary key), created_at(the date and time the like was created), discussion_id(a foreign key referencing the 'id' column of discussion table), and person_id(a foreign key referencing the 'id' column of person table) as columns."
+      "description": "This table contains information about the likes on the discussion threads. It has an id(primary key), created_at(the date and time the like was created), discussion_id(a foreign key referencing the 'id' column of 'discussion' table), and person_id(a foreign key referencing the 'id' column of 'person table') as columns."
     },
     {
       "name": "discussion_comment_like",
-      "description": "This table contains information about the likes on the comments/posts on the discussion threads. It has an id(primary key), created_at(the date and time the like was created), comment_id(a foreign key referencing the 'id' column of discussion_comment table), and person_id(a foreign key referencing the 'id' column of person table) as columns."
+      "description": "This table contains information about the likes on the comments/posts in the discussion threads. It has an id(primary key), created_at(the date and time the like was created), comment_id(a foreign key referencing the 'id' column of 'discussion_comment' table), and person_id(a foreign key referencing the 'id' column of 'person' table) as columns."
     }
   ]
 }
