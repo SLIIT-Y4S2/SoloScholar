@@ -20,10 +20,10 @@ model labsheet {
   support_material       String?             @db.VarChar(Max)
   current_question_index Int                 @default(1)
   status                 String              @db.VarChar(20)
-  overall_score          Int?                @default(0)
-  strengths              String?             @db.VarChar(500)
-  areas_for_improvement  String?             @db.VarChar(500)
-  recommendations        String?             @db.VarChar(500)
+  overall_score          Int?
+  strengths              String?             @db.VarChar(Max)
+  areas_for_improvement  String?             @db.VarChar(Max)
+  recommendations        String?             @db.VarChar(Max)
   is_feedback_enabled    Boolean             @default(false)
   labsheet_question      labsheet_question[]
   learning_material      learning_material   @relation(fields: [id], references: [id], onUpdate: NoAction)
@@ -46,7 +46,7 @@ model labsheet_question {
 //TODO: change name to "labsheet_question_student_answer"
 model student_answer {
   id                   Int               @id @default(autoincrement())
-  student_answer       String            @db.VarChar(500)
+  student_answer       String?           @db.VarChar(500)
   labsheet_question    labsheet_question @relation(fields: [labsheet_question_id], references: [id])
   labsheet_question_id Int
 }

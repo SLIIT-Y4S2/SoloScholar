@@ -57,8 +57,8 @@ function highLevelChatModel(): ChatOpenAI {
           const promptTokens = output?.llmOutput?.tokenUsage.promptTokens;
           const completionTokens =
             output?.llmOutput?.tokenUsage.completionTokens;
-          const inputTokenPrice = 5;
-          const outputTokenPrice = 15;
+          const inputTokenPrice = 2.5;
+          const outputTokenPrice = 10;
           const totalCost =
             (promptTokens / 1000000) * inputTokenPrice +
             (completionTokens / 1000000) * outputTokenPrice;

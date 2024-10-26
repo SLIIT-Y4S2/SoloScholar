@@ -567,6 +567,7 @@ You are an experienced lecturer at a University. As the lecturer, you are respon
 Topic of the lab is provided within the <TopicOfTheLab> tag.
 The real-world scenario is provided within the <RealWorldScenario> tag.
 Supporting material is provided within the <SupportingMaterial> tag.
+The previous questions and answers are provided within the <PreviousQuestionsAndAnswers> tag. Because are some questions are based on the previous questions and answers. So you need to analyze the previous questions and answers to evaluate the given answer.
 The question is provided within the <Question> tag.
 Student's answer for the given question is provided within the <StudentAnswer> tag.
 
@@ -581,6 +582,10 @@ Student's answer for the given question is provided within the <StudentAnswer> t
 <SupportingMaterial>
     {supportingMaterial}
 </SupportingMaterial>
+
+<PreviousQuestionsAndAnswers>
+    {previousQuestionsAndAnswers}
+</PreviousQuestionsAndAnswers>
 
 <Question>
     {question}

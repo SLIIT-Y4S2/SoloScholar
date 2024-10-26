@@ -22,8 +22,6 @@ export type SupportingMaterial = {
 interface LabQuestion {
     question: string;
     answer: string;
-    exampleQuestion: string;
-    exampleAnswer: string;
     isCorrect: boolean;
     studentAnswers: string[];
     currentAnswer: string | null;

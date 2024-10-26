@@ -75,8 +75,6 @@ export const zodSchemaForQuestions = z.array(
     z.object({
         question: z.string().describe("The question for the lab activity"),
         answer: z.string().describe("The answer to the question"),
-        exampleQuestion: z.string().describe("An example question that covers the same topic as the question"),
-        exampleAnswer: z.string().describe("Answer to the example question"),
     })
 ).describe("A list of questions for the lab activity");
 
