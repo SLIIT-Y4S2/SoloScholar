@@ -118,7 +118,11 @@ export function DashboardProvider({
         }
       }
     } catch (error: any) {
-      setCustomMessage({ type: "error", content: error.message });
+      setCustomMessage({
+        type: "error",
+        content:
+          "Sorry, an eror occured during generation due to insufficent context. Please refine your goal and try again.",
+      });
     }
   };
 

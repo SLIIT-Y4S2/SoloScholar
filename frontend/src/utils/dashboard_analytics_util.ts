@@ -34,15 +34,24 @@ export const getAcademicPerformanceAndLearningStrategiesTutorial = (
   ).length;
 
   return {
-    correctMcqPercentage: (correctMCQCount / mcqQuestions.length) * 100,
-    incorrectMcqPercentage: (incorrectMCQCount / mcqQuestions.length) * 100,
-    correctShortAnswerQuestionPercentage:
-      (correctShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
-    incorrectShortAnswerQuestionPercentage:
-      (incorrectShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
-    unansweredMcqPercentage: (unansweredMCQCount / mcqQuestions.length) * 100,
-    unansweredShortAnswerQuestionPercentage:
-      (unansweredShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
+    correctMcqPercentage: Math.round(
+      (correctMCQCount / mcqQuestions.length) * 100
+    ),
+    incorrectMcqPercentage: Math.round(
+      (incorrectMCQCount / mcqQuestions.length) * 100
+    ),
+    correctShortAnswerQuestionPercentage: Math.round(
+      (correctShortAnswerQuestionCount / shortAnswerQuestions.length) * 100
+    ),
+    incorrectShortAnswerQuestionPercentage: Math.round(
+      (incorrectShortAnswerQuestionCount / shortAnswerQuestions.length) * 100
+    ),
+    unansweredMcqPercentage: Math.round(
+      (unansweredMCQCount / mcqQuestions.length) * 100
+    ),
+    unansweredShortAnswerQuestionPercentage: Math.round(
+      (unansweredShortAnswerQuestionCount / shortAnswerQuestions.length) * 100
+    ),
   };
 };
 
@@ -84,19 +93,24 @@ export const getAffectiveStateTutorial = (results: any[]) => {
 
   return {
     skippedFeedbackPercentage: {
-      mcq: (mcqSkippedFeedback.length / totalFeedback.length) * 100,
-      shortAnswer:
-        (shortAnswerSkippedFeedback.length / totalFeedback.length) * 100,
+      mcq: Math.round((mcqSkippedFeedback.length / totalFeedback.length) * 100),
+      shortAnswer: Math.round(
+        (shortAnswerSkippedFeedback.length / totalFeedback.length) * 100
+      ),
     },
     basicFeedbackPercentage: {
-      mcq: (mcqBasicFeedback.length / totalFeedback.length) * 100,
-      shortAnswer:
-        (shortAnswerBasicFeedback.length / totalFeedback.length) * 100,
+      mcq: Math.round((mcqBasicFeedback.length / totalFeedback.length) * 100),
+      shortAnswer: Math.round(
+        (shortAnswerBasicFeedback.length / totalFeedback.length) * 100
+      ),
     },
     inDetailFeedbackPercentage: {
-      mcq: (mcqInDetailFeedback.length / totalFeedback.length) * 100,
-      shortAnswer:
-        (shortAnswerInDetailFeedback.length / totalFeedback.length) * 100,
+      mcq: Math.round(
+        (mcqInDetailFeedback.length / totalFeedback.length) * 100
+      ),
+      shortAnswer: Math.round(
+        (shortAnswerInDetailFeedback.length / totalFeedback.length) * 100
+      ),
     },
   };
 };
@@ -178,32 +192,38 @@ export const getLearnerPerformanceTutorial = (results: any[]) => {
     attemptedMCQCount + attemptedShortAnswerQuestionCount;
 
   return {
-    totalQuestionAttemptPercentage:
-      (totalQuestionsAttempted / totalQuestions) * 100,
-    mcqQuestionAttemptPercentage:
-      (attemptedMCQCount / totalQuestionsAttempted) * 100,
-    shortAnswerQuestionAttemptPercentage:
-      (attemptedShortAnswerQuestionCount / totalQuestionsAttempted) * 100,
-    totalCorrectShortAnswerQuestionPercentage:
+    totalQuestionAttemptPercentage: Math.round(
+      (totalQuestionsAttempted / totalQuestions) * 100
+    ),
+    mcqQuestionAttemptPercentage: Math.round(
+      (attemptedMCQCount / totalQuestionsAttempted) * 100
+    ),
+    shortAnswerQuestionAttemptPercentage: Math.round(
+      (attemptedShortAnswerQuestionCount / totalQuestionsAttempted) * 100
+    ),
+    totalCorrectShortAnswerQuestionPercentage: Math.round(
       (shortAnswerQuestions.filter(
         (item) =>
           item.student_answer !== null &&
           item.is_student_answer_correct === true
       ).length /
         shortAnswerQuestions.length) *
-      100,
-    totalIncorrectShortAnswerQuestionPercentage:
+        100
+    ),
+    totalIncorrectShortAnswerQuestionPercentage: Math.round(
       (shortAnswerQuestions.filter(
         (item) =>
           item.student_answer !== null &&
           item.is_student_answer_correct === false
       ).length /
         shortAnswerQuestions.length) *
-      100,
-    totalUnansweredShortAnswerQuestionPercentage:
-      (unAttemptedShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
+        100
+    ),
+    totalUnansweredShortAnswerQuestionPercentage: Math.round(
+      (unAttemptedShortAnswerQuestionCount / shortAnswerQuestions.length) * 100
+    ),
     shortAnswerHintViewedPercentage: {
-      correct:
+      correct: Math.round(
         (shortAnswerQuestions.filter(
           (item) =>
             item.student_answer !== null &&
@@ -211,8 +231,9 @@ export const getLearnerPerformanceTutorial = (results: any[]) => {
             item.is_hint_viewed === true
         ).length /
           shortAnswerQuestions.length) *
-        100,
-      incorrect:
+          100
+      ),
+      incorrect: Math.round(
         (shortAnswerQuestions.filter(
           (item) =>
             item.student_answer !== null &&
@@ -220,13 +241,15 @@ export const getLearnerPerformanceTutorial = (results: any[]) => {
             item.is_hint_viewed === true
         ).length /
           shortAnswerQuestions.length) *
-        100,
-      unanswered:
+          100
+      ),
+      unanswered: Math.round(
         (shortAnswerQuestions.filter(
           (item) => item.student_answer === null && item.is_hint_viewed === true
         ).length /
           shortAnswerQuestions.length) *
-        100,
+          100
+      ),
     },
   };
 };
@@ -250,11 +273,15 @@ export const getAcademicPerformanceAndLearningStrategiesLab = (
   ).length;
 
   return {
-    correctAnswerPercentage:
-      (totalCorrectAnswerCount / totalQuestionCount) * 100,
-    incorrectAnswerPercentage:
-      (totalIncorrectAnswerCount / totalQuestionCount) * 100,
-    unansweredPercentage: (totalUnansweredCount / totalQuestionCount) * 100,
+    correctAnswerPercentage: Math.round(
+      (totalCorrectAnswerCount / totalQuestionCount) * 100
+    ),
+    incorrectAnswerPercentage: Math.round(
+      (totalIncorrectAnswerCount / totalQuestionCount) * 100
+    ),
+    unansweredPercentage: Math.round(
+      (totalUnansweredCount / totalQuestionCount) * 100
+    ),
   };
 };
 
@@ -320,8 +347,9 @@ export const getAffectiveStateLab = (results: any[]) => {
     return {
       totalCorrectAnswerCount: 0,
       correctAnswerReflectionPercentage: 0,
-      totalFeedbackEnabledLabsheetPercentage:
-        (totalFeedbackEnabledLabCount / Object.keys(labsheets).length) * 100,
+      totalFeedbackEnabledLabsheetPercentage: Math.round(
+        (totalFeedbackEnabledLabCount / Object.keys(labsheets).length) * 100
+      ),
     };
   }
 
@@ -331,10 +359,12 @@ export const getAffectiveStateLab = (results: any[]) => {
 
   return {
     totalCorrectAnswerCount: totalCorrectAnswers.length,
-    correctAnswerReflectionPercentage:
-      (totalCorrectAnswerReflectionCount / totalCorrectAnswers.length) * 100,
-    totalFeedbackEnabledLabsheetPercentage:
-      (totalFeedbackEnabledLabCount / Object.keys(labsheets).length) * 100,
+    correctAnswerReflectionPercentage: Math.round(
+      (totalCorrectAnswerReflectionCount / totalCorrectAnswers.length) * 100
+    ),
+    totalFeedbackEnabledLabsheetPercentage: Math.round(
+      (totalFeedbackEnabledLabCount / Object.keys(labsheets).length) * 100
+    ),
   };
 };
 
