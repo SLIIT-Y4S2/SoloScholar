@@ -23,7 +23,7 @@ import LabsOverview from "../pages/dashboard/LabsOverview";
 import MyIndicators from "../pages/dashboard/MyIndicators";
 import Tutorial from "../pages/[module]/[lesson]/tutorial";
 import TutorialView from "../pages/[module]/[lesson]/tutorial/[tutorialID]";
-import Main from "../pages/dashboard/Main";
+// import Main from "../pages/dashboard/Main";
 import { LabSessionLayout } from "../pages/[module]/[lesson]/lab/LabSessionLayout";
 import { LabLayout } from "../pages/[module]/[lesson]/lab/LabLayout";
 import { SupportMaterialsForLab } from "../Components/lab/SupportMaterialsForLab";
@@ -31,7 +31,6 @@ import LabOverview from "../pages/[module]/[lesson]/lab";
 import LabSession from "../pages/[module]/[lesson]/lab/[labID]";
 import Module from "../pages/[module]";
 import { Button, Result } from "antd";
-import Lesson from "../pages/[module]/[lesson]";
 import DiscussionForum from "../pages/[module]/[lesson]/discussionForum";
 import { DiscussionForumProvider } from "../provider/DiscussionForumContext";
 import { WebSocketProvider } from "../provider/WebSocketContext";
@@ -101,7 +100,7 @@ const Routes = () => {
           children: [
             {
               path: "",
-              element: <Main />,
+              element: <LecturesOverview />, // TODO: Change if needed
             },
             {
               path: "lectures-overview",
@@ -130,12 +129,24 @@ const Routes = () => {
           children: [
             {
               path: "",
-              element: <WebSocketProvider><DiscussionForumProvider><DiscussionForum /></DiscussionForumProvider></WebSocketProvider>
+              element: (
+                <WebSocketProvider>
+                  <DiscussionForumProvider>
+                    <DiscussionForum />
+                  </DiscussionForumProvider>
+                </WebSocketProvider>
+              ),
             },
             {
               path: ":discussionId",
-              element: <WebSocketProvider><DiscussionForumProvider><Discussion /></DiscussionForumProvider></WebSocketProvider>
-            }
+              element: (
+                <WebSocketProvider>
+                  <DiscussionForumProvider>
+                    <Discussion />
+                  </DiscussionForumProvider>
+                </WebSocketProvider>
+              ),
+            },
           ],
         },
         {
@@ -143,7 +154,7 @@ const Routes = () => {
           children: [
             {
               path: "",
-              element: <Lesson />,
+              element: <Navigate to="/database-systems" />,
             },
             {
               path: "tutorial",

@@ -1,16 +1,17 @@
-import BreadCrumb from "../../Components/BreadCrumb";
-import { Fragment } from "react/jsx-runtime";
-import { Card, Col, Result, Row, Select, Statistic, Typography } from "antd";
-import { useContext, useEffect, useState } from "react";
-import CustomStackedBarChart from "../../Components/dashboard/CustomStackedBarChart";
-import { DashboardAnalyticsContext } from "../../provider/DashboardAnalyticsContext";
-import { ResultStatusType } from "antd/es/result";
-import CustomLabeledPieChart from "../../Components/dashboard/CustomLabeledPieChart";
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
   BookOutlined,
 } from "@ant-design/icons";
+import { Card, Col, Result, Row, Select, Statistic, Typography } from "antd";
+import { ResultStatusType } from "antd/es/result";
+import { useContext, useEffect, useState } from "react";
+import { Fragment } from "react/jsx-runtime";
+import BreadCrumb from "../../Components/BreadCrumb";
+import CustomLabeledPieChart from "../../Components/dashboard/CustomLabeledPieChart";
+import CustomStackedBarChart from "../../Components/dashboard/CustomStackedBarChart";
+import CustomTwoLevelPieChart from "../../Components/dashboard/CustomTwoLevelPieChart";
+import { DashboardAnalyticsContext } from "../../provider/DashboardAnalyticsContext";
 
 const { Text } = Typography;
 
@@ -46,6 +47,7 @@ const TutorialsOverview = () => {
     academicPerformanceAndLearningStrategiesTutorial,
     affectiveStateTutorial,
     summaryStatisticsTutorial,
+    learnerPerformanceTutorial,
     customMessage,
   } = useContext(DashboardAnalyticsContext);
 
@@ -148,8 +150,8 @@ const TutorialsOverview = () => {
                     precision={2}
                     valueStyle={
                       summaryStatisticsTutorial?.tutorialCompletionRateAvg < 50
-                        ? { color: "#cf1322" }
-                        : { color: "#3f8600 " }
+                        ? { color: "#FF0000" }
+                        : { color: "#4CAF50 " }
                     }
                     prefix={
                       summaryStatisticsTutorial?.tutorialCompletionRateAvg <
@@ -173,8 +175,8 @@ const TutorialsOverview = () => {
                     precision={2}
                     valueStyle={
                       summaryStatisticsTutorial?.tutorialScorePercentageAvg < 50
-                        ? { color: "#cf1322" }
-                        : { color: "#3f8600" }
+                        ? { color: "#FF0000" }
+                        : { color: "#4CAF50" }
                     }
                     prefix={
                       summaryStatisticsTutorial?.tutorialScorePercentageAvg <
@@ -193,9 +195,24 @@ const TutorialsOverview = () => {
         </Card>
         <Text>
           <br />
+          <b>Learner Performance</b>
+        </Text>
+        : Learner attempts and engagement with tutorial questions
+        <Card>
+          {customMessage ? (
+            <Result
+              status={customMessage.type as ResultStatusType}
+              title={customMessage.content}
+            />
+          ) : (
+            <CustomTwoLevelPieChart chartData={learnerPerformanceTutorial} />
+          )}
+        </Card>
+        <Text>
+          <br />
           <b>Academic Performance & Learning Strategies</b>
         </Text>
-        : Average learner engagment with tutorial questions
+        : Learner attempts and performance with tutorial questions
         <Card>
           {customMessage ? (
             <Result
@@ -210,17 +227,69 @@ const TutorialsOverview = () => {
         </Card>
         <br />
         <Text>
-          <b>Affective State</b>: Average feedback distribution for tutorial
-          questions
+          <b>Affective State</b>:{" "}
         </Text>
+        Feedback distribution for tutorial questions
         <Card>
           {customMessage ? (
             <Result
               status={customMessage.type as ResultStatusType}
               title={customMessage.content}
             />
+          ) : affectiveStateTutorial?.totalFeedbackCount === 0 ? (
+            <Result status="info" title="No data to display." />
           ) : (
-            <CustomLabeledPieChart chartData={affectiveStateTutorial} />
+            // <Fragment>
+            <div className="flex justify-between">
+              <div>
+                <Text>Total Feedback Distribution</Text>
+                <CustomLabeledPieChart
+                  chartData={{
+                    skippedFeedbackPercentage:
+                      affectiveStateTutorial?.skippedFeedbackPercentage?.mcq +
+                      affectiveStateTutorial?.skippedFeedbackPercentage
+                        ?.shortAnswer,
+                    basicFeedbackPercentage:
+                      affectiveStateTutorial?.basicFeedbackPercentage.mcq +
+                      affectiveStateTutorial?.basicFeedbackPercentage
+                        ?.shortAnswer,
+                    inDetailFeedbackPercentage:
+                      affectiveStateTutorial?.inDetailFeedbackPercentage?.mcq +
+                      affectiveStateTutorial?.inDetailFeedbackPercentage
+                        ?.shortAnswer,
+                  }}
+                />
+              </div>
+              <div>
+                <Text>Total MCQ Feedback Distribution</Text>
+                <CustomLabeledPieChart
+                  chartData={{
+                    skippedFeedbackPercentage:
+                      affectiveStateTutorial?.skippedFeedbackPercentage?.mcq,
+                    basicFeedbackPercentage:
+                      affectiveStateTutorial?.basicFeedbackPercentage.mcq,
+                    inDetailFeedbackPercentage:
+                      affectiveStateTutorial?.inDetailFeedbackPercentage?.mcq,
+                  }}
+                />
+              </div>
+              <div>
+                <Text>Total Short-Answer Question Feedback Distribution</Text>
+                <CustomLabeledPieChart
+                  chartData={{
+                    skippedFeedbackPercentage:
+                      affectiveStateTutorial?.skippedFeedbackPercentage
+                        ?.shortAnswer,
+                    basicFeedbackPercentage:
+                      affectiveStateTutorial?.basicFeedbackPercentage
+                        .shortAnswer,
+                    inDetailFeedbackPercentage:
+                      affectiveStateTutorial?.inDetailFeedbackPercentage
+                        ?.shortAnswer,
+                  }}
+                />
+              </div>
+            </div>
           )}
         </Card>
       </div>

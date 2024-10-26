@@ -24,12 +24,36 @@ const getTutorialAnalytics = async (requestBody: {
   return tutorialAnalytics;
 };
 
-const getLectureAnalytics = async () => {
-  // TODO
+const getLectureAnalytics = async (requestBody: {
+  moduleId: number;
+  learningLevel: string;
+  lessonId: number;
+  lessonTitle: string;
+}) => {
+  const lectureAnalytics = await prisma.$queryRawUnsafe(
+    `SELECT * FROM lecture_overview
+    WHERE module_id = ${requestBody.moduleId}
+    AND learning_level = '${requestBody.learningLevel}'
+    AND lesson_id = ${requestBody.lessonId}
+    AND lesson_title = '${requestBody.lessonTitle}'`
+  );
+  return lectureAnalytics;
 };
 
-const getLabAnalytics = async () => {
-  // TODO
+const getLabAnalytics = async (requestBody: {
+  moduleId: number;
+  learningLevel: string;
+  lessonId: number;
+  lessonTitle: string;
+}) => {
+  const labAnalytics = await prisma.$queryRawUnsafe(
+    `SELECT * FROM lab_overview
+    WHERE module_id = ${requestBody.moduleId}
+    AND learning_level = '${requestBody.learningLevel}'
+    AND lesson_id = ${requestBody.lessonId}
+    AND lesson_title = '${requestBody.lessonTitle}'`
+  );
+  return labAnalytics;
 };
 
 export const dashboardAnalyticsDbService = {

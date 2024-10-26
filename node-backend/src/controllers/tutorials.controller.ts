@@ -12,6 +12,7 @@ import {
   saveTutorialAnswer,
   updateTutorialQuestionResult,
   updateTutorialStatus,
+  updateQuestionHintViewedStatus,
 } from "../services/db/tutorial.db.service";
 import {
   getModuleByName,
@@ -309,6 +310,54 @@ export const markTutorialAsCompletedHandler = async (
     res.status(200).json({
       message: "Tutorial marked as completed",
       data: updatedTutorial,
+    });
+  } catch (error) {
+    const message = (error as Error).message;
+    res.status(500).json({ message });
+    logger.error({ message });
+  }
+};
+
+/**
+ * Mark Hint for question as viewed
+ * @param req
+ * @param res
+ * @returns
+ */
+
+export const markHintAsViewedHandler = async (req: Request, res: Response) => {
+  try {
+    const { id: learner_id } = res.locals.user; // verify if the learner is the owner of the tutorial
+    const { tutorialId, questionId } = req.params;
+
+    if (!tutorialId || !questionId) {
+      return res.status(400).json({
+        message: "Invalid request body",
+      });
+    }
+
+    const tutorial = await getTutorialByIdWithQuestions(tutorialId, learner_id);
+
+    const question = tutorial.questions.find(
+      (q) => q.id === parseInt(questionId)
+    );
+
+    if (!question) {
+      return res.status(404).json({
+        message: "Question not found",
+      });
+    }
+
+    if (question.is_hint_viewed) {
+      return res.status(200).json({
+        message: "Hint already viewed",
+      });
+    }
+
+    await updateQuestionHintViewedStatus(parseInt(questionId));
+
+    res.status(200).json({
+      message: "Hint marked as viewed",
     });
   } catch (error) {
     const message = (error as Error).message;
