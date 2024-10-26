@@ -168,8 +168,6 @@ export const getLearnerPerformanceTutorial = (results: any[]) => {
   const attemptedMCQCount: number = mcqQuestions.filter(
     (item) => item.student_answer !== null
   ).length;
-  const unAttemptedMCQCount: number = mcqQuestions.length - attemptedMCQCount;
-
   const attemptedShortAnswerQuestionCount = shortAnswerQuestions.filter(
     (item) => item.student_answer !== null
   ).length;
@@ -178,20 +176,14 @@ export const getLearnerPerformanceTutorial = (results: any[]) => {
 
   const totalQuestionsAttempted: number =
     attemptedMCQCount + attemptedShortAnswerQuestionCount;
-  const totalQuestionsUnattempted: number =
-    totalQuestions - totalQuestionsAttempted;
 
   return {
     totalQuestionAttemptPercentage:
       (totalQuestionsAttempted / totalQuestions) * 100,
     mcqQuestionAttemptPercentage:
       (attemptedMCQCount / totalQuestionsAttempted) * 100,
-    mcqUnAttemptedPercentage:
-      (unAttemptedMCQCount / totalQuestionsUnattempted) * 100,
     shortAnswerQuestionAttemptPercentage:
       (attemptedShortAnswerQuestionCount / totalQuestionsAttempted) * 100,
-    shortAnswerQuestionUnattemptedPercentage:
-      (unAttemptedShortAnswerQuestionCount / totalQuestionsUnattempted) * 100,
     totalCorrectShortAnswerQuestionPercentage:
       (shortAnswerQuestions.filter(
         (item) =>
@@ -286,13 +278,7 @@ export const getSummaryStatisticsLab = (results: any[]) => {
   );
 
   const labsheetScorePercentages = Object.values(labsheets).map(
-    (labsheetQuestions: any) => {
-      const totalQuestions = labsheetQuestions.length;
-      const correctQuestions = labsheetQuestions.filter(
-        (item: any) => item.is_student_answer_correct
-      ).length;
-      return (correctQuestions / totalQuestions) * 100;
-    }
+    (labsheet: any) => labsheet[0].labsheet_score
   );
 
   const totalPercentages = labsheetCompletionPercentages.reduce(
@@ -301,7 +287,7 @@ export const getSummaryStatisticsLab = (results: any[]) => {
   );
 
   const totalScores = labsheetScorePercentages.reduce(
-    (sum, percentage) => sum + percentage,
+    (sum: number, percentage: number) => sum + percentage,
     0
   );
 
@@ -311,4 +297,71 @@ export const getSummaryStatisticsLab = (results: any[]) => {
     labsheetCompletionRateAvg:
       totalPercentages / labsheetCompletionPercentages.length,
   };
+};
+
+export const getAffectiveStateLab = (results: any[]) => {
+  // Group results by labsheet_id
+  const labsheets = results.reduce((acc, item) => {
+    acc[item.labsheet_id] = acc[item.labsheet_id] || [];
+    acc[item.labsheet_id].push(item);
+    return acc;
+  }, {});
+
+  // Find the number of labsheets where is_feedback_enabled is true
+  const totalFeedbackEnabledLabCount = Object.values(labsheets).filter(
+    (labsheet: any) => labsheet.some((item: any) => item.is_feedback_enabled)
+  ).length;
+
+  const totalCorrectAnswers = results.filter(
+    (item) => item.is_student_answer_submitted && item.is_student_answer_correct
+  );
+
+  if (totalCorrectAnswers.length === 0) {
+    return {
+      totalCorrectAnswerCount: 0,
+      correctAnswerReflectionPercentage: 0,
+      totalFeedbackEnabledLabsheetPercentage:
+        (totalFeedbackEnabledLabCount / Object.keys(labsheets).length) * 100,
+    };
+  }
+
+  const totalCorrectAnswerReflectionCount = totalCorrectAnswers.filter(
+    (item) => item.student_reflection
+  ).length;
+
+  return {
+    totalCorrectAnswerCount: totalCorrectAnswers.length,
+    correctAnswerReflectionPercentage:
+      (totalCorrectAnswerReflectionCount / totalCorrectAnswers.length) * 100,
+    totalFeedbackEnabledLabsheetPercentage:
+      (totalFeedbackEnabledLabCount / Object.keys(labsheets).length) * 100,
+  };
+};
+
+export const getLearnerPerformanceLab = (results: any[]) => {
+  // Group by labsheet_question_id
+  const labsheetQuestions = results.reduce((acc, item) => {
+    acc[item.labsheet_question_id] = acc[item.labsheet_question_id] || [];
+    acc[item.labsheet_question_id].push(item);
+    return acc;
+  }, {});
+
+  // Format the data where average hint views on the Y-axis and the number of attempts on the X-axis
+  const data: {
+    questionAttemptCount: number;
+    averageHintViews: number;
+  }[] = Object.values(labsheetQuestions).map((questionAttempts: any) => {
+    return {
+      questionAttemptCount: questionAttempts.length,
+      averageHintViews: Math.round(
+        questionAttempts.reduce(
+          (sum: number, questionAttempt: any) =>
+            sum + questionAttempt.hint_views,
+          0
+        ) / questionAttempts.length
+      ),
+    };
+  });
+
+  return data;
 };
