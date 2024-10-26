@@ -75,7 +75,7 @@ export function DashboardProvider({
         setCustomMessage({
           type: "error",
           content:
-            "Sorry, an unexpected error occurred. Please re-check your analysis goal or try again later.",
+            "Sorry, an eror occured during generation due to insufficent context. Please refine your goal and try again.",
         });
       } else {
         const {
@@ -121,7 +121,7 @@ export function DashboardProvider({
       setCustomMessage({
         type: "error",
         content:
-          "Sorry, an eror occured during generation due to insufficent context. Please refine your goal and try again.",
+          "Sorry, an unexpected server eror occured. Please try again later.",
       });
     }
   };
