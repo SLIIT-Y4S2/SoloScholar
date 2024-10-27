@@ -6,7 +6,7 @@ import {
   submitTutorialHandler,
   markTutorialAsCompletedHandler,
   markHintAsViewedHandler,
-} from "../controllers/tutorials.controller";
+} from "../controllers/tutorial/tutorial.controller";
 import { validateData } from "../middlewares/zod.middleware";
 import {
   getTutorialByIdSchema,
