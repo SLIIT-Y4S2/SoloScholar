@@ -49,7 +49,3 @@ never include any imaginary tables or columns of your choice. Instead, simply re
     "defaultQuery",
   ],
 });
-
-// 3. Pay attention to only use the column names you can see in the tables. Also, pay attention to which column is in which table.
-// 4. Only use the following original database schema:
-// {schema}
