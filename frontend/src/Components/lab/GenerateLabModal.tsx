@@ -1,4 +1,4 @@
-import { Modal, Form, Select, Button } from "antd";
+import { Modal, Form, Select, Button, Switch } from "antd";
 import { useState } from "react";
 
 const learningLevelDetails = {
@@ -6,7 +6,6 @@ const learningLevelDetails = {
         title: "Beginner Level",
         borderColor: "border-green-500",
         textColor: "text-green-500",
-
         points: [
             "You're just starting or need a review of the basics.",
             "Focus on learning basic ideas and terms.",
@@ -43,23 +42,28 @@ const GenerateLabModal = ({
 }: {
     visible: boolean;
     onCancel: () => void;
-    onSubmit: (values: { learningLevel: string }) => void;
+    onSubmit: (values: { learningLevel: string; enableFeedback: boolean }) => void;
     options: ["beginner" | "intermediate" | "advanced"];
 }) => {
     const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+    const [enableFeedback, setEnableFeedback] = useState<boolean>(false);
 
     const handleLevelChange = (value: string) => {
         setSelectedLevel(value);
     };
 
+    const handleSubmit = (values: { learningLevel: string }) => {
+        onSubmit({ ...values, enableFeedback });
+    };
+
     return (
         <Modal
-            title="Generate New Tutorial"
+            title="Generate New Lab Sheet"
             open={visible}
             onCancel={onCancel}
             footer={null}
         >
-            <Form layout="vertical" onFinish={onSubmit}>
+            <Form layout="vertical" onFinish={handleSubmit}>
                 <Form.Item
                     name="learningLevel"
                     label="Select Learning Level"
@@ -77,7 +81,6 @@ const GenerateLabModal = ({
                     />
                 </Form.Item>
 
-                {/* Show the full description for the selected learning level */}
                 {selectedLevel && (
                     <div
                         className={`border-l-4 pl-4 mb-4 ${learningLevelDetails[
@@ -107,9 +110,24 @@ const GenerateLabModal = ({
                     </div>
                 )}
 
+                <Form.Item
+                    label="Feedback Settings"
+                    className="mb-4"
+                >
+                    <div className="flex items-center space-x-2">
+                        <Switch
+                            checked={enableFeedback}
+                            onChange={setEnableFeedback}
+                        />
+                        <span className="text-sm text-gray-700">
+                            Enable feedback for the lab sheet
+                        </span>
+                    </div>
+                </Form.Item>
+
                 <Form.Item>
                     <Button type="primary" htmlType="submit" block>
-                        Generate Tutorial
+                        Generate Lab Sheet
                     </Button>
                 </Form.Item>
             </Form>

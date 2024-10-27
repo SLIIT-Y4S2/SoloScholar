@@ -14,7 +14,7 @@ const PROGRAMMING_LANGUAGES = ["javascript", "sql"];
 export function CodeEditor({ handleCodeOnChange, currentSnippet }: CodeEditorProps) {
     const [code, setCode] = useState(currentSnippet);
     const [language, setLanguage] = useState("sql");
-    const [codeEditorWidth, setCodeEditorWidth] = useState<string | null>("1136px");
+    const [codeEditorWidth, setCodeEditorWidth] = useState<string | null>("1440px");
     const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
     const { isAnsForCurrQuesCorrect, currentQuestionIndex, questions } = useLabSessionContext();
@@ -22,7 +22,10 @@ export function CodeEditor({ handleCodeOnChange, currentSnippet }: CodeEditorPro
 
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth > 1280) {
+            if (window.innerWidth > 1600) {
+                setCodeEditorWidth(`${1440}px`);
+            }
+            else if (window.innerWidth > 1280) {
                 setCodeEditorWidth(`${1136}px`);
             } else {
                 setCodeEditorWidth(`${window.innerWidth * 0.9}px`);
@@ -46,7 +49,10 @@ export function CodeEditor({ handleCodeOnChange, currentSnippet }: CodeEditorPro
             editor.focus();
         }
 
-        if (window.innerWidth > 1280) {
+        if (window.innerWidth > 1600) {
+            setCodeEditorWidth(`${1440}px`);
+        }
+        else if (window.innerWidth > 1280) {
             setCodeEditorWidth(`${1136}px`);
         } else {
             setCodeEditorWidth(`${window.innerWidth * 0.9}px`);
