@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { Breadcrumb } from "antd";
-import { APP_ROUTES } from "../utils/app_routes";
+// import { APP_ROUTES } from "../utils/app_routes";
 import { BreadCrumbProp } from "../types/dashboard.types";
 
 const convertToTitleCase = (str: string) =>
@@ -24,9 +24,10 @@ const BreadCrumb = (props: BreadCrumbProp) => {
       <Breadcrumb.Item>
         <Link to={`/${module}`}>{convertToTitleCase(module ?? "")}</Link>
       </Breadcrumb.Item>
-      <Breadcrumb.Item>
+      {/* TODO Uncomment if needed */}
+      {/* <Breadcrumb.Item>
         <Link to={`/${APP_ROUTES.ds}/${APP_ROUTES.DASHBOARD}`}>Dashboard</Link>
-      </Breadcrumb.Item>
+      </Breadcrumb.Item> */}{" "}
       <Breadcrumb.Item>{sidebarOption.label}</Breadcrumb.Item>
     </Breadcrumb>
   );

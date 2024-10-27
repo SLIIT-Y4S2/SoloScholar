@@ -9,7 +9,7 @@ interface SidebarItem {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: "Lectures Overview", linkTo: "lectures-overview" },
+  // { label: "Lectures Overview", linkTo: "lectures-overview" },
   { label: "Tutorials Overview", linkTo: "tutorials-overview" },
   { label: "Labs Overview", linkTo: "labs-overview" },
   {

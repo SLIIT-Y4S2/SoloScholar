@@ -1,3 +1,6 @@
+/**
+ * For tutorial component
+ */
 export const getAcademicPerformanceAndLearningStrategiesTutorial = (
   results: any[]
 ) => {
@@ -31,34 +34,84 @@ export const getAcademicPerformanceAndLearningStrategiesTutorial = (
   ).length;
 
   return {
-    correctMcqAvg: (correctMCQCount / mcqQuestions.length) * 100,
-    incorrectMcqAvg: (incorrectMCQCount / mcqQuestions.length) * 100,
-    correctShortAnswerQuestionAvg:
-      (correctShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
-    incorrectShortAnswerQuestionAvg:
-      (incorrectShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
-    unansweredMcqAvg: (unansweredMCQCount / mcqQuestions.length) * 100,
-    unansweredShortAnswerQuestionAvg:
-      (unansweredShortAnswerQuestionCount / shortAnswerQuestions.length) * 100,
+    correctMcqPercentage: Math.round(
+      (correctMCQCount / mcqQuestions.length) * 100
+    ),
+    incorrectMcqPercentage: Math.round(
+      (incorrectMCQCount / mcqQuestions.length) * 100
+    ),
+    correctShortAnswerQuestionPercentage: Math.round(
+      (correctShortAnswerQuestionCount / shortAnswerQuestions.length) * 100
+    ),
+    incorrectShortAnswerQuestionPercentage: Math.round(
+      (incorrectShortAnswerQuestionCount / shortAnswerQuestions.length) * 100
+    ),
+    unansweredMcqPercentage: Math.round(
+      (unansweredMCQCount / mcqQuestions.length) * 100
+    ),
+    unansweredShortAnswerQuestionPercentage: Math.round(
+      (unansweredShortAnswerQuestionCount / shortAnswerQuestions.length) * 100
+    ),
   };
 };
 
 export const getAffectiveStateTutorial = (results: any[]) => {
   const totalFeedback = results.filter((item) => item.feedback_type !== null);
-  const skippedFeedback = totalFeedback.filter(
+  if (totalFeedback.length === 0) {
+    return {
+      totalFeedbackCount: 0,
+    };
+  }
+
+  const totalSkippedFeedback = totalFeedback.filter(
     (item) => item.feedback_type === "skip"
   );
-  const basicFeedback = totalFeedback.filter(
+  const totalBasicFeedback = totalFeedback.filter(
     (item) => item.feedback_type === "basic"
   );
-  const inDetailFeedback = totalFeedback.filter(
+  const totalInDetailFeedback = totalFeedback.filter(
     (item) => item.feedback_type === "detailed"
+  );
+  const mcqSkippedFeedback = totalSkippedFeedback.filter(
+    (item) => item.tutorial_question_type === "mcq"
+  );
+  const mcqBasicFeedback = totalBasicFeedback.filter(
+    (item) => item.tutorial_question_type === "mcq"
+  );
+  const mcqInDetailFeedback = totalInDetailFeedback.filter(
+    (item) => item.tutorial_question_type === "mcq"
+  );
+  const shortAnswerSkippedFeedback = totalSkippedFeedback.filter(
+    (item) => item.tutorial_question_type === "short-answer"
+  );
+  const shortAnswerBasicFeedback = totalBasicFeedback.filter(
+    (item) => item.tutorial_question_type === "short-answer"
+  );
+  const shortAnswerInDetailFeedback = totalInDetailFeedback.filter(
+    (item) => item.tutorial_question_type === "short-answer"
   );
 
   return {
-    skippedFeedback: (skippedFeedback.length / totalFeedback.length) * 100,
-    basicFeedback: (basicFeedback.length / totalFeedback.length) * 100,
-    inDetailFeedback: (inDetailFeedback.length / totalFeedback.length) * 100,
+    skippedFeedbackPercentage: {
+      mcq: Math.round((mcqSkippedFeedback.length / totalFeedback.length) * 100),
+      shortAnswer: Math.round(
+        (shortAnswerSkippedFeedback.length / totalFeedback.length) * 100
+      ),
+    },
+    basicFeedbackPercentage: {
+      mcq: Math.round((mcqBasicFeedback.length / totalFeedback.length) * 100),
+      shortAnswer: Math.round(
+        (shortAnswerBasicFeedback.length / totalFeedback.length) * 100
+      ),
+    },
+    inDetailFeedbackPercentage: {
+      mcq: Math.round(
+        (mcqInDetailFeedback.length / totalFeedback.length) * 100
+      ),
+      shortAnswer: Math.round(
+        (shortAnswerInDetailFeedback.length / totalFeedback.length) * 100
+      ),
+    },
   };
 };
 
@@ -115,4 +168,230 @@ export const getSummaryStatisticsTutorial = (results: any[]) => {
     tutorialScorePercentageAvg,
     tutorialCompletionRateAvg,
   };
+};
+
+export const getLearnerPerformanceTutorial = (results: any[]) => {
+  const totalQuestions = results.length;
+  const mcqQuestions: any[] = results.filter(
+    (item) => item.tutorial_question_type === "mcq"
+  );
+  const shortAnswerQuestions: any[] = results.filter(
+    (item) => item.tutorial_question_type === "short-answer"
+  );
+
+  const attemptedMCQCount: number = mcqQuestions.filter(
+    (item) => item.student_answer !== null
+  ).length;
+  const attemptedShortAnswerQuestionCount = shortAnswerQuestions.filter(
+    (item) => item.student_answer !== null
+  ).length;
+  const unAttemptedShortAnswerQuestionCount: number =
+    shortAnswerQuestions.length - attemptedShortAnswerQuestionCount;
+
+  const totalQuestionsAttempted: number =
+    attemptedMCQCount + attemptedShortAnswerQuestionCount;
+
+  return {
+    totalQuestionAttemptPercentage: Math.round(
+      (totalQuestionsAttempted / totalQuestions) * 100
+    ),
+    mcqQuestionAttemptPercentage: Math.round(
+      (attemptedMCQCount / totalQuestionsAttempted) * 100
+    ),
+    shortAnswerQuestionAttemptPercentage: Math.round(
+      (attemptedShortAnswerQuestionCount / totalQuestionsAttempted) * 100
+    ),
+    totalCorrectShortAnswerQuestionPercentage: Math.round(
+      (shortAnswerQuestions.filter(
+        (item) =>
+          item.student_answer !== null &&
+          item.is_student_answer_correct === true
+      ).length /
+        shortAnswerQuestions.length) *
+        100
+    ),
+    totalIncorrectShortAnswerQuestionPercentage: Math.round(
+      (shortAnswerQuestions.filter(
+        (item) =>
+          item.student_answer !== null &&
+          item.is_student_answer_correct === false
+      ).length /
+        shortAnswerQuestions.length) *
+        100
+    ),
+    totalUnansweredShortAnswerQuestionPercentage: Math.round(
+      (unAttemptedShortAnswerQuestionCount / shortAnswerQuestions.length) * 100
+    ),
+    shortAnswerHintViewedPercentage: {
+      correct: Math.round(
+        (shortAnswerQuestions.filter(
+          (item) =>
+            item.student_answer !== null &&
+            item.is_student_answer_correct === true &&
+            item.is_hint_viewed === true
+        ).length /
+          shortAnswerQuestions.length) *
+          100
+      ),
+      incorrect: Math.round(
+        (shortAnswerQuestions.filter(
+          (item) =>
+            item.student_answer !== null &&
+            item.is_student_answer_correct === false &&
+            item.is_hint_viewed === true
+        ).length /
+          shortAnswerQuestions.length) *
+          100
+      ),
+      unanswered: Math.round(
+        (shortAnswerQuestions.filter(
+          (item) => item.student_answer === null && item.is_hint_viewed === true
+        ).length /
+          shortAnswerQuestions.length) *
+          100
+      ),
+    },
+  };
+};
+
+/**
+ * For lab component
+ */
+export const getAcademicPerformanceAndLearningStrategiesLab = (
+  results: any[]
+) => {
+  const totalQuestionCount = results.length;
+  const totalCorrectAnswerCount = results.filter(
+    (item) => item.is_student_answer_submitted && item.is_student_answer_correct
+  ).length;
+  const totalIncorrectAnswerCount = results.filter(
+    (item) =>
+      item.is_student_answer_submitted && !item.is_student_answer_correct
+  ).length;
+  const totalUnansweredCount = results.filter(
+    (item) => !item.is_student_answer_submitted
+  ).length;
+
+  return {
+    correctAnswerPercentage: Math.round(
+      (totalCorrectAnswerCount / totalQuestionCount) * 100
+    ),
+    incorrectAnswerPercentage: Math.round(
+      (totalIncorrectAnswerCount / totalQuestionCount) * 100
+    ),
+    unansweredPercentage: Math.round(
+      (totalUnansweredCount / totalQuestionCount) * 100
+    ),
+  };
+};
+
+export const getSummaryStatisticsLab = (results: any[]) => {
+  const totalLabsheetCount = new Set(results.map((item) => item.labsheet_id))
+    .size;
+  const labsheets = results.reduce((acc, item) => {
+    acc[item.labsheet_id] = acc[item.labsheet_id] || [];
+    acc[item.labsheet_id].push(item);
+    return acc;
+  }, {});
+
+  const labsheetCompletionPercentages = Object.values(labsheets).map(
+    (labsheetQuestions: any) => {
+      const totalQuestions = labsheetQuestions.length;
+      const answeredQuestions = labsheetQuestions.filter(
+        (item: any) => item.is_student_answer_submitted
+      ).length;
+      return (answeredQuestions / totalQuestions) * 100;
+    }
+  );
+
+  const labsheetScorePercentages = Object.values(labsheets).map(
+    (labsheet: any) => labsheet[0].labsheet_score
+  );
+
+  const totalPercentages = labsheetCompletionPercentages.reduce(
+    (sum, percentage) => sum + percentage,
+    0
+  );
+
+  const totalScores = labsheetScorePercentages.reduce(
+    (sum: number, percentage: number) => sum + percentage,
+    0
+  );
+
+  return {
+    totalLabsheetCount: totalLabsheetCount,
+    labsheetScorePercentageAvg: totalScores / labsheetScorePercentages.length,
+    labsheetCompletionRateAvg:
+      totalPercentages / labsheetCompletionPercentages.length,
+  };
+};
+
+export const getAffectiveStateLab = (results: any[]) => {
+  // Group results by labsheet_id
+  const labsheets = results.reduce((acc, item) => {
+    acc[item.labsheet_id] = acc[item.labsheet_id] || [];
+    acc[item.labsheet_id].push(item);
+    return acc;
+  }, {});
+
+  // Find the number of labsheets where is_feedback_enabled is true
+  const totalFeedbackEnabledLabCount = Object.values(labsheets).filter(
+    (labsheet: any) => labsheet.some((item: any) => item.is_feedback_enabled)
+  ).length;
+
+  const totalCorrectAnswers = results.filter(
+    (item) => item.is_student_answer_submitted && item.is_student_answer_correct
+  );
+
+  if (totalCorrectAnswers.length === 0) {
+    return {
+      totalCorrectAnswerCount: 0,
+      correctAnswerReflectionPercentage: 0,
+      totalFeedbackEnabledLabsheetPercentage: Math.round(
+        (totalFeedbackEnabledLabCount / Object.keys(labsheets).length) * 100
+      ),
+    };
+  }
+
+  const totalCorrectAnswerReflectionCount = totalCorrectAnswers.filter(
+    (item) => item.student_reflection
+  ).length;
+
+  return {
+    totalCorrectAnswerCount: totalCorrectAnswers.length,
+    correctAnswerReflectionPercentage: Math.round(
+      (totalCorrectAnswerReflectionCount / totalCorrectAnswers.length) * 100
+    ),
+    totalFeedbackEnabledLabsheetPercentage: Math.round(
+      (totalFeedbackEnabledLabCount / Object.keys(labsheets).length) * 100
+    ),
+  };
+};
+
+export const getLearnerPerformanceLab = (results: any[]) => {
+  // Group by labsheet_question_id
+  const labsheetQuestions = results.reduce((acc, item) => {
+    acc[item.labsheet_question_id] = acc[item.labsheet_question_id] || [];
+    acc[item.labsheet_question_id].push(item);
+    return acc;
+  }, {});
+
+  // Format the data where average hint views on the Y-axis and the number of attempts on the X-axis
+  const data: {
+    questionAttemptCount: number;
+    averageHintViews: number;
+  }[] = Object.values(labsheetQuestions).map((questionAttempts: any) => {
+    return {
+      questionAttemptCount: questionAttempts.length,
+      averageHintViews: Math.round(
+        questionAttempts.reduce(
+          (sum: number, questionAttempt: any) =>
+            sum + questionAttempt.hint_views,
+          0
+        ) / questionAttempts.length
+      ),
+    };
+  });
+
+  return data;
 };

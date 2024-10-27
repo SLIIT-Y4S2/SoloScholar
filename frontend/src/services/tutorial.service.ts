@@ -48,3 +48,13 @@ export const completeTutorialService = async (tutorialId: string) => {
   const response = await axiosInstance.post(`/tutorial/${tutorialId}/complete`);
   return response.data.data;
 };
+
+export const sendHintViewedEventService = async (
+  tutorialId: string,
+  questionId: number
+) => {
+  const response = await axiosInstance.patch(
+    `/tutorial/${tutorialId}/${questionId}/hint`
+  );
+  return response.status;
+};

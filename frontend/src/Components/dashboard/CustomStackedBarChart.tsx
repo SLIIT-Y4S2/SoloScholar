@@ -12,27 +12,27 @@ import {
 
 const CustomStackedBarChart = (props: {
   chartData: {
-    correctMcqAvg: number;
-    incorrectMcqAvg: number;
-    correctShortAnswerQuestionAvg: number;
-    incorrectShortAnswerQuestionAvg: number;
-    unansweredMcqAvg: number;
-    unansweredShortAnswerQuestionAvg: number;
+    correctMcqPercentage: number;
+    incorrectMcqPercentage: number;
+    correctShortAnswerQuestionPercentage: number;
+    incorrectShortAnswerQuestionPercentage: number;
+    unansweredMcqPercentage: number;
+    unansweredShortAnswerQuestionPercentage: number;
   };
 }) => {
   const { chartData } = props;
   const data = [
     {
       name: "MCQs",
-      correct: chartData?.correctMcqAvg,
-      incorrect: chartData?.incorrectMcqAvg,
-      unanswered: chartData?.unansweredMcqAvg,
+      correct: chartData?.correctMcqPercentage,
+      incorrect: chartData?.incorrectMcqPercentage,
+      unanswered: chartData?.unansweredMcqPercentage,
     },
     {
       name: "Short Answer Questions",
-      correct: chartData?.correctShortAnswerQuestionAvg,
-      incorrect: chartData?.incorrectShortAnswerQuestionAvg,
-      unanswered: chartData?.unansweredShortAnswerQuestionAvg,
+      correct: chartData?.correctShortAnswerQuestionPercentage,
+      incorrect: chartData?.incorrectShortAnswerQuestionPercentage,
+      unanswered: chartData?.unansweredShortAnswerQuestionPercentage,
     },
   ];
 
@@ -54,14 +54,28 @@ const CustomStackedBarChart = (props: {
             angle={-90}
             offset={0}
             style={{ textAnchor: "middle" }}
-            value="Average &nbsp;Percentage (%)"
+            value="Percentage (%)"
             position="left"
           />
         </YAxis>
         <Tooltip />
-        <Legend />
-        <Bar label="correct" dataKey="correct" stackId="a" fill="#00C49F" />
-        <Bar dataKey="incorrect" stackId="a" fill="#c90808" />
+        <Legend
+          payload={[
+            { value: "Correct", type: "square", color: "#4CAF50 " },
+            {
+              value: "Incorrect",
+              type: "square",
+              color: "#FF0000",
+            },
+            {
+              value: "Unanswered",
+              type: "square",
+              color: "#0088FE",
+            },
+          ]}
+        />
+        <Bar label="Correct" dataKey="correct" stackId="a" fill="#4CAF50" />
+        <Bar dataKey="incorrect" stackId="a" fill="#FF0000" />
         <Bar dataKey="unanswered" stackId="a" fill="#0088FE" />
       </BarChart>
     </ResponsiveContainer>
