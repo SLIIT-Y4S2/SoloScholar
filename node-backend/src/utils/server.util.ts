@@ -17,7 +17,11 @@ import { Server } from "socket.io";
 import http from "http";
 import dashboardAnalyticsRouter from "../routes/dashboardAnalytics.routes";
 import lectureRouter from "../routes/lecture.routes";
-import { DEPLOYMENT_ENV, PROD_CLIENT_DOMAIN } from "../constants/app.constants";
+import {
+  DEPLOYMENT_ENV,
+  PROD_CLIENT_DOMAIN,
+  PROD_CLIENT_DOMAIN_2,
+} from "../constants/app.constants";
 
 const app = express();
 
@@ -30,7 +34,7 @@ app.use(
   cors({
     origin:
       DEPLOYMENT_ENV == "prod"
-        ? `https://${PROD_CLIENT_DOMAIN}`
+        ? [`https://${PROD_CLIENT_DOMAIN}`, `https://${PROD_CLIENT_DOMAIN_2}`]
         : "http://localhost:3000",
     credentials: true,
   })
@@ -79,7 +83,7 @@ const io = new Server(server, {
   cors: {
     origin:
       DEPLOYMENT_ENV == "prod"
-        ? `https://${PROD_CLIENT_DOMAIN}`
+        ? [`https://${PROD_CLIENT_DOMAIN}`, `https://${PROD_CLIENT_DOMAIN_2}`]
         : "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
