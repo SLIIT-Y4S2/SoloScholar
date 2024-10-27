@@ -20,7 +20,7 @@ const CustomSimpleBarChartLab = (props: {
   const { chartData } = props;
   const data = [
     {
-      name: "Problem-Solving Exercises",
+      name: "Questions",
       correct: chartData?.correctAnswerPercentage,
       incorrect: chartData?.incorrectAnswerPercentage,
       unanswered: chartData?.unansweredPercentage,

@@ -6,7 +6,9 @@ import { CustomMessage } from "../types/dashboard.types";
 import {
   getAcademicPerformanceAndLearningStrategiesLab,
   getAcademicPerformanceAndLearningStrategiesTutorial,
+  getAffectiveStateLab,
   getAffectiveStateTutorial,
+  getLearnerPerformanceLab,
   getLearnerPerformanceTutorial,
   getSummaryStatisticsLab,
   getSummaryStatisticsTutorial,
@@ -70,9 +72,7 @@ export function DashboardAnalyticsProvider({
   const [learnerPerformanceTutorial, setLearnerPerformanceTutorial] = useState<{
     totalQuestionAttemptPercentage: number;
     mcqQuestionAttemptPercentage: number;
-    mcqUnAttemptedPercentage: number;
     shortAnswerQuestionAttemptPercentage: number;
-    shortAnswerQuestionUnattemptedPercentage: number;
     totalCorrectShortAnswerQuestionPercentage: number;
     totalIncorrectShortAnswerQuestionPercentage: number;
     totalUnansweredShortAnswerQuestionPercentage: number;
@@ -92,11 +92,23 @@ export function DashboardAnalyticsProvider({
     incorrectAnswerPercentage: number;
     unansweredPercentage: number;
   } | null>(null);
+  const [affectiveStateLab, setAffectiveStateLab] = useState<{
+    totalCorrectAnswerCount: number;
+    correctAnswerReflectionPercentage: number;
+    totalFeedbackEnabledLabsheetPercentage: number;
+  } | null>(null);
   const [summaryStatisticsLab, setSummaryStatisticsLab] = useState<{
     totalLabsheetCount: number;
     labsheetScorePercentageAvg: number;
     labsheetCompletionRateAvg: number;
   } | null>(null);
+  const [learnerPerformanceLab, setLearnerPerformanceLab] = useState<
+    | {
+        questionAttemptCount: number;
+        averageHintViews: number;
+      }[]
+    | null
+  >(null);
 
   const getLessonsOfModule = async (moduleId: string) => {
     try {
@@ -200,9 +212,9 @@ export function DashboardAnalyticsProvider({
           setAcademicPerformanceAndLearningStrategiesLab(
             getAcademicPerformanceAndLearningStrategiesLab(results)
           );
-          // setAffectiveStateTutorial(getAffectiveStateTutorial(results));
+          setAffectiveStateLab(getAffectiveStateLab(results));
           setSummaryStatisticsLab(getSummaryStatisticsLab(results));
-          // setLearnerPerformanceTutorial(getLearnerPerformanceTutorial(results));
+          setLearnerPerformanceLab(getLearnerPerformanceLab(results));
         } else {
           setCustomMessage({ type: "info", content: "No data to display." });
         }
@@ -220,9 +232,11 @@ export function DashboardAnalyticsProvider({
       academicPerformanceAndLearningStrategiesTutorial,
       academicPerformanceAndLearningStrategiesLab,
       affectiveStateTutorial,
+      affectiveStateLab,
       summaryStatisticsTutorial,
       summaryStatisticsLab,
       learnerPerformanceTutorial,
+      learnerPerformanceLab,
       customMessage,
     }),
     [
@@ -232,9 +246,11 @@ export function DashboardAnalyticsProvider({
       academicPerformanceAndLearningStrategiesTutorial,
       academicPerformanceAndLearningStrategiesLab,
       affectiveStateTutorial,
+      affectiveStateLab,
       summaryStatisticsTutorial,
       summaryStatisticsLab,
       learnerPerformanceTutorial,
+      learnerPerformanceLab,
       customMessage,
     ]
   );

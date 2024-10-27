@@ -102,7 +102,6 @@ const CustomAnalyticalIndicatorSecondary = (props: {
                 >
                   Retry
                 </Button>
-                :
               </Fragment>
             )
           ) : (
