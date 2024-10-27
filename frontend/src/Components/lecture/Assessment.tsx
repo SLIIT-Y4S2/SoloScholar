@@ -146,7 +146,7 @@ const Assessment = ({ type }: { type: "pre" | "post" }) => {
             <div className="w-full sm:w-1/2 lg:w-1/4 px-2 mb-4">
               <StatisticCard
                 title="Total Questions"
-                value="5"
+                value={type==="pre" ? 5 : 10}
                 icon={<QuestionCircleOutlined />}
                 color="text-blue-500"
               />
