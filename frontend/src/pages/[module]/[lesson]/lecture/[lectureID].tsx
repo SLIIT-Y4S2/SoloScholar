@@ -1,57 +1,87 @@
 import { useEffect, useState } from "react";
-import { Layout, Spin, Menu, Button, Typography, Row, Col } from "antd";
+import { Layout, Spin, Menu, Button, Typography, Row, Col, message } from "antd";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import { ModuleProvider } from "../../../../provider/ModuleContext";
 import { CheckOutlined } from "@ant-design/icons";
 import Assessment from "../../../../Components/lecture/Assessment";
 import { LectureProvider } from "../../../../provider/lecture/LectureContext";
 import { useLectureContext } from "../../../../provider/lecture/useLectureContext";
+import { SubLecture } from "../../../../provider/lecture/LectureContext"; // Import the SubLecture type
 
 const { Title, Text } = Typography;
+const { Content, Sider } = Layout;
 
 // @ts-ignore
 import { Experience } from "../../../../Components/lecture/Experience.jsx";
-
 // @ts-ignore
 import { useAITeacher } from "../../../../hooks/useAITeacher.js";
-import { useLocation, useParams } from "react-router-dom";
-
-const { Content, Sider } = Layout;
 
 function Lecture() {
-    const { id } = useParams<{ id: string }>();
-    const location = useLocation();
-    const { learningLevel } = location.state as { learningLevel: string };
     const lectureContext = useLectureContext();
-    const { lecture, isLoading, error, setSelectedKey, setCurrentSubLectureContent, setCurrentSubLectureTopic } = lectureContext;
+    const { 
+        lecture, 
+        isLoading, 
+        error, 
+        setSelectedKey, 
+        setCurrentSubLectureContent, 
+        setCurrentSubLectureTopic,
+        selectedKey,
+        markSubLectureAsCompleted
+    } = lectureContext;
 
     const [showEx1, setShowEx1] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
-    const stopLecture = useAITeacher((state: { stopLecture: any; }) => state.stopLecture); // Get stopLecture from useAITeacher
+    const stopLecture = useAITeacher((state: { stopLecture: any; }) => state.stopLecture);
 
     const handleMenuClick = (e: { key: string }): void => {
-        stopLecture(); // Stop the current lecture when the user clicks a new sub-lecture
-
+        stopLecture();
         setShowEx1(false);
-        setSelectedKey(e.key); // Switch the selected key
+        setSelectedKey(e.key);
     };
 
     const handleCompleteLecture = () => {
         setShowEx1(true);
     };
 
+    const handleMarkAsCompleted = async () => {
+        if (!lecture) {
+            message.error("Lecture data not available");
+            return;
+        }
+
+        const selectedSubLecture = lecture.sub_lecture.find(
+            (_, index) => `sub${index + 1}` === selectedKey
+        );
+
+        if (!selectedSubLecture?.id) {
+            message.error("Unable to find selected sub-lecture");
+            return;
+        }
+
+        setIsUpdating(true);
+        try {
+            await markSubLectureAsCompleted(selectedSubLecture.id);
+        } catch (error) {
+            console.error("Error marking lecture as completed:", error);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
     useEffect(() => {
-        const selectedSubLecture = lecture?.sub_lecture?.find(
-            (_, index: number) => `sub${index + 1}` === lectureContext.selectedKey
+        if (!lecture?.sub_lecture) return;
+
+        const selectedSubLecture = lecture.sub_lecture.find(
+            (_, index) => `sub${index + 1}` === selectedKey
         );
 
         if (selectedSubLecture) {
             setCurrentSubLectureContent(selectedSubLecture.content);
             setCurrentSubLectureTopic(selectedSubLecture.topic);
         }
-    }, [lectureContext.selectedKey]); // Update based on the selected key
+    }, [selectedKey, lecture]);
 
-    // Function to return the appropriate color based on learning level
     const getLearningLevelColor = (level: string): string => {
         switch (level.toLowerCase()) {
             case 'beginner':
@@ -65,6 +95,12 @@ function Lecture() {
         }
     };
 
+    const calculateReadingTime = (text: string): number => {
+        const wordsPerMinute = 200;
+        const wordCount = text.trim().split(/\s+/).length;
+        return Math.ceil(wordCount / wordsPerMinute);
+    };
+
     const renderContent = (): JSX.Element => {
         if (showEx1) {
             return <Experience />;
@@ -74,35 +110,40 @@ function Lecture() {
             return <div>No content available</div>;
         }
 
-        if (lectureContext.selectedKey === "pre-assessment") {
+        if (selectedKey === "pre-assessment") {
             return <Assessment type="pre" />;
-        } else if (lectureContext.selectedKey === "post-assessment") {
+        } else if (selectedKey === "post-assessment") {
             return <Assessment type="post" />;
         }
 
         const selectedSubLecture = lecture.sub_lecture.find(
-            (_, index: number) => `sub${index + 1}` === lectureContext.selectedKey
+            (_, index) => `sub${index + 1}` === selectedKey
         );
 
-        const currentSubContent = selectedSubLecture?.content ?? null;
-        const currentSubTopic = selectedSubLecture?.topic ?? null;
-        setCurrentSubLectureContent(currentSubContent);
-        setCurrentSubLectureTopic(currentSubTopic);
+        if (!selectedSubLecture) {
+            return <div>No content available</div>;
+        }
 
         return (
             <div style={{ padding: '24px', borderRadius: '8px' }}>
                 <Row>
-                    <Col flex={5}><Title level={3}>{selectedSubLecture?.topic}</Title></Col>
+                    <Col flex={5}><Title level={3}>{selectedSubLecture.topic}</Title></Col>
                     <Col flex={0}>
-                        <Text style={{ color: getLearningLevelColor(learningLevel) }}>
-                            {learningLevel}
+                        <Text style={{ color: getLearningLevelColor(lecture.learning_material.learning_level) }}>
+                            {lecture.learning_material.learning_level}
                         </Text>
                     </Col>
                 </Row>
+                
+                <Text type="secondary" style={{ marginBottom: '16px', display: 'block' }}>
+                    Estimated reading time: {calculateReadingTime(selectedSubLecture.content)} min
+                </Text>
 
                 <br />
-                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                    <p style={{ width: '100%', justifyContent: 'center' }}>{selectedSubLecture?.content}</p>
+                <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                    <p style={{ width: '100%', justifyContent: 'center', fontSize: "16px"}}>
+                        {selectedSubLecture.content}
+                    </p>
                 </div>
             </div>
         );
@@ -124,62 +165,98 @@ function Lecture() {
         return <div>No lecture data available</div>;
     }
 
+    const renderMenuItem = (sub_lecture: SubLecture, index: number) => ({
+        key: `sub${index + 1}`,
+        label: (
+            <span style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between',
+                width: '100%'
+            }}>
+                <span style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '230px' 
+                }}>
+                    {sub_lecture.topic}
+                </span>
+                {sub_lecture.is_completed && (
+                    <CheckOutlined style={{ color: "blue", flexShrink: 0 }} />
+                )}
+            </span>
+        ),
+    });
+
+    const menuItems = lecture.sub_lecture.flatMap((sub_lecture, index) => {
+        const items = [renderMenuItem(sub_lecture, index)];
+
+        if (index === 0) {
+            items.push({
+                key: "pre-assessment",
+                label: (
+                    <span style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        width: '100%'
+                    }}>
+                        <span>Pre-Assessment</span>
+                    </span>
+                ),
+            });
+        }
+
+        if (index === lecture.sub_lecture.length - 1) {
+            items.push({
+                key: "post-assessment",
+                label: (
+                    <span style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        width: '100%'
+                    }}>
+                        <span>Post-Assessment</span>
+                    </span>
+                ),
+            });
+        }
+
+        return items;
+    });
+
     return (
         <ModuleProvider>
             <Layout className="flex flex-col gap-8 my-6 mx-4 h-max container mx-auto mt-3">
                 <CustomBreadcrumb />
                 <Layout style={{ padding: "24px 0", background: "#fff" }}>
-                    <Sider style={{ background: "#fff" }} width={200}>
+                    <Sider style={{ background: "#fff" }} width={250}>
                         <Menu
                             mode="inline"
-                            selectedKeys={[lectureContext.selectedKey]}
+                            selectedKeys={[selectedKey]}
                             defaultOpenKeys={["sub1"]}
                             style={{ height: "100%" }}
-                            onClick={handleMenuClick} // Updated to stop the lecture
-                            items={[
-                                ...lecture.sub_lecture.flatMap((sub_lecture: any, index: number) => {
-                                    const items = [
-                                        {
-                                            key: `sub${index + 1}`,
-                                            label: (
-                                                <span>
-                                                    {sub_lecture.topic}
-                                                    {sub_lecture.is_completed && (
-                                                        <CheckOutlined style={{ color: "blue", marginLeft: 8 }} />
-                                                    )}
-                                                </span>
-                                            ),
-                                        },
-                                    ];
-
-                                    if (index === 0) {
-                                        items.push({
-                                            key: "pre-assessment",
-                                            label: <span>Pre-Assessment</span>,
-                                        });
-                                    }
-
-                                    if (index === lecture.sub_lecture.length - 1) {
-                                        items.push({
-                                            key: "post-assessment",
-                                            label: <span>Post-Assessment</span>,
-                                        });
-                                    }
-
-                                    return items;
-                                }),
-                            ]}
+                            onClick={handleMenuClick}
+                            items={menuItems}
                         />
                     </Sider>
 
-                    <Content style={{ padding: "24px", minHeight: 530 }}>
+                    <Content style={{ padding: "24px", minHeight: 530}}>
                         {renderContent()}
-                        {lectureContext.selectedKey !== "pre-assessment" &&
-                            lectureContext.selectedKey !== "post-assessment" &&
+                        {selectedKey !== "pre-assessment" &&
+                            selectedKey !== "post-assessment" &&
                             !showEx1 && (
                                 <div style={{ padding: '24px' }}>
                                     <Button type="primary" onClick={handleCompleteLecture}>
                                         View Lecture
+                                    </Button>
+
+                                    <Button 
+                                        onClick={handleMarkAsCompleted} 
+                                        style={{marginLeft: "10px"}}
+                                        loading={isUpdating}
+                                        disabled={isUpdating}
+                                    >
+                                        Mark as completed
                                     </Button>
                                 </div>
                             )}

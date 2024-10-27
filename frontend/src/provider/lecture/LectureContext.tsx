@@ -3,6 +3,8 @@ import {
   getLectureByIndex,
   submitAnswerByQuestionId,
   completeLectureService,
+  updateSubLectureCompletion
+  
 } from "../../services/lecture.service";
 import { useParams } from "react-router-dom";
 import { AxiosError } from "axios";
@@ -10,6 +12,9 @@ import { message } from "antd";
 
 interface LectureProviderProps {
   children: ReactNode;
+}
+interface LectureContextType {
+  markSubLectureAsCompleted: (subLectureId: number) => Promise<void>;
 }
 
 export interface Lecture {
@@ -105,6 +110,29 @@ export function LectureProvider({ children }: LectureProviderProps) {
   const [messageApi, contextHolder] = message.useMessage();
 
   const displayedSubLecture = lecture?.sub_lecture[current_sub_lecture - 1];
+
+  const markSubLectureAsCompleted = async (subLectureId: number) => {
+    if (!lecture?.id) return;
+    
+    try {
+      await updateSubLectureCompletion(lecture.id, subLectureId.toString(), true);
+      
+      // Update local state to reflect the change
+      setLecture((prevLecture) => 
+        prevLecture ? {
+          ...prevLecture,
+          sub_lecture: prevLecture.sub_lecture.map((sub) =>
+            sub.id === subLectureId ? { ...sub, is_completed: true } : sub
+          )
+        } : null
+      );
+      
+      messageApi.success("Lecture marked as completed");
+    } catch (error) {
+      messageApi.error("Failed to mark lecture as completed");
+      console.error("Error marking lecture as completed:", error);
+    }
+  };
 
   useEffect(() => {
     setIsFetching(true);
@@ -217,6 +245,7 @@ export function LectureProvider({ children }: LectureProviderProps) {
         selectedKey,
         setSelectedKey,
         setCurrentSubLectureTopic,
+        markSubLectureAsCompleted,
       }}
     >
       {contextHolder}

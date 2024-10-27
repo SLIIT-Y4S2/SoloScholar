@@ -4,7 +4,6 @@ export const APP_ROUTES = {
   PROFILE: "/profile",
   LOGOUT: "/logout",
   LOGIN: "/login",
-  //TODO: TEMPORARY
   ds: "database-systems",
   lab: "database-systems/xml/lab",
   DASHBOARD: "dashboard",

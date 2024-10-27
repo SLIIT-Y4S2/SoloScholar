@@ -64,7 +64,7 @@ const CustomAnalyticalIndicatorPrimary = () => {
                   className="font-normal text-[14px] rounded-[5px] resize-none"
                   autoSize={{ minRows: 3 }}
                   placeholder="Enter your analysis goal here...
-E.g. I want to see how many beginner level students have scored more than average for each tutorial"
+E.g. I need to see how many correct answers have been given to each tutorial"
                   value={analysisGoal}
                   onChange={(e: any) => setAnalysisGoal(e.target.value)}
                 />

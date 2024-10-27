@@ -17,9 +17,7 @@ const CustomTwoLevelPieChart = (props: {
   chartData: {
     totalQuestionAttemptPercentage: number;
     mcqQuestionAttemptPercentage: number;
-    mcqUnAttemptedPercentage: number;
     shortAnswerQuestionAttemptPercentage: number;
-    shortAnswerQuestionUnattemptedPercentage: number;
     totalCorrectShortAnswerQuestionPercentage: number;
     totalIncorrectShortAnswerQuestionPercentage: number;
     totalUnansweredShortAnswerQuestionPercentage: number;
@@ -58,11 +56,11 @@ const CustomTwoLevelPieChart = (props: {
   const questionTypesUnattempted = [
     {
       name: "MCQ (%)",
-      value: chartData?.mcqUnAttemptedPercentage, // Unattempted
+      value: 100 - chartData?.mcqQuestionAttemptPercentage, // Unattempted
     },
     {
       name: "Short-Answer (%)",
-      value: chartData?.shortAnswerQuestionUnattemptedPercentage, // Unattempted
+      value: 100 - chartData?.shortAnswerQuestionAttemptPercentage, // Unattempted
     },
   ];
 

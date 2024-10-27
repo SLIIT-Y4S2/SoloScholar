@@ -10,7 +10,7 @@ const GeneratingView = () => {
           clearInterval(interval);
           return 100;
         }
-        return prev + 1;
+        return prev + (100/225);
       });
     }, 800);
     return () => clearInterval(interval);
@@ -24,7 +24,7 @@ const GeneratingView = () => {
         showInfo={false}
         className="w-1/2"
       />
-      <p>Loading... Please wait for about 2 minutes.</p>
+      <p>Generating the content... Please wait for about 2 minutes.</p>
     </div>
   );
 };

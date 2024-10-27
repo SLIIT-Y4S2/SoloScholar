@@ -61,11 +61,7 @@ async function getSqlQueryChain(goal: string): Promise<
     await datasource.initialize();
     database = await SqlDatabase.fromDataSourceParams({
       appDataSource: datasource,
-      ignoreTables: [
-        "database_firewall_rules",
-        "analytical_indicator",
-        "tutorial_overview",
-      ],
+      ignoreTables: ["database_firewall_rules", "analytical_indicator"],
     });
   }
 

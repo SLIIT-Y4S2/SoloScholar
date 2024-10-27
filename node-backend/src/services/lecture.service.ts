@@ -137,6 +137,8 @@ export async function generateLectureForSubtopic(
                 `;
             case 'advanced':
                 return `
+                - no need to explain terms
+                - use academic language
                 - Use highly technical language without explanations
                 - Focus on cutting-edge concepts and current research
                 - Discuss advanced applications and theoretical implications
@@ -248,35 +250,39 @@ export async function generateMCQsForLecture(
 
     // Generate MCQ questions using the related context and subtopics
     const lectureMCQPrompt = PromptTemplate.fromTemplate(
-        type == "pre" ? LectureMCQPrompt : PostAssessmentMCQPrompt
-    );
+    type == "pre" ? LectureMCQPrompt : PostAssessmentMCQPrompt
+);
 
-    // Create a runnable sequence for generating MCQs
-    const mcqPipeline = RunnableSequence.from([
-        {
-            context: (input) => input.context,
-            lesson_title: (input) => input.lesson_title,
-            generated_content: (input) => input.generated_content.join("\n"),
-            format_instructions: (input) => input.format_instructions,
-        },
-        lectureMCQPrompt,
-        getChatModel,
-        jsonParser,
-    ]);
+// Create a runnable sequence for generating MCQs
+const mcqPipeline = RunnableSequence.from([
+    {
+        context: (input) => input.context,
+        lesson_title: (input) => input.lesson_title,
+        generated_content: (input) => input.generated_content.join("\n"),
+        format_instructions: (input) => input.format_instructions,
+    },
+    lectureMCQPrompt,
+    getChatModel,
+    jsonParser,
+]);
 
-    const mcqQuestions = await mcqPipeline.invoke({
-        context: context,
-        lesson_title: lesson_title,
-        generated_content: generatedContent,
-        format_instructions: jsonParser.getFormatInstructions(),
-    });
+const mcqQuestions = await mcqPipeline.invoke({
+    context: context,
+    lesson_title: lesson_title,
+    generated_content: generatedContent,
+    format_instructions: jsonParser.getFormatInstructions(),
+});
 
-    return mcqQuestions.map((mcq, index) => ({
-        ...mcq,
-        question_number: index + 1,
-        type: type,
-        options: shuffle([mcq.answer, ...mcq.distractors]),
-    }));
+return mcqQuestions.map((mcq, index) => ({
+    ...mcq,
+    question_number: index + 1,
+    type: type,
+    options: shuffle([
+        mcq.answer,
+        ...mcq.distractors,
+        ...(type === "pre" ? ["Don't know"] : [])
+    ]),
+}));
 }
 
 
@@ -367,13 +373,15 @@ export async function generateMarkdownPPTSlidesFromContent(
     });
 
     // Clean up excessive newlines (you may also adjust spacing between headers and paragraphs)
-    markdownSlides = markdownSlides
-        .replace(/\\n/g, '\n')            // Replace literal "\n" with real newlines
-        .replace(/\n{3,}/g, '\n\n')       // Limit multiple newlines to two
-        .replace(/---\n\n/g, '---\n')     // Remove extra line breaks after dividers (if any)
-        .replace(/\n\s*\n/g, '\n\n');     // Ensure there is exactly one blank line between paragraphs
+    // markdownSlides = markdownSlides
+    //     .replace(/\\n/g, '\n')            // Replace literal "\n" with real newlines
+    //     .replace(/\n{3,}/g, '\n\n')       // Limit multiple newlines to two
+    //     .replace(/---\n\n/g, '---\n')     // Remove extra line breaks after dividers (if any)
+    //     .replace(/\n\s*\n/g, '\n\n');     // Ensure there is exactly one blank line between paragraphs
 
-    return markdownSlides;
+    
+    console.log("markdownSlides", markdownSlides);
+        return markdownSlides;
 }
 
 

@@ -1,7 +1,7 @@
 import { Button, Form, Layout, Modal, Select, Skeleton, Table } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../../../utils/axiosInstance";
 import { API_URLS } from "../../../../utils/api_routes";
 import { AxiosError, AxiosResponse } from "axios";
@@ -9,6 +9,41 @@ import { Lecture } from "../../../../provider/lecture/LectureContext";
 import CustomBreadcrumb from "../../../../Components/CustomBreadcrumb";
 import Error from "../../../../Components/Error";
 import GeneratingView from "../../../../Components/lecture/GeneratingView";
+
+// @ts-ignore
+import { useAITeacher } from "../../../../hooks/useAITeacher";
+
+
+const learningLevelDetails = {
+  beginner: {
+    title: "Beginner Level",
+    borderColor: "border-green-500",
+    textColor: "text-green-500",
+
+    points: [
+      "Ideal if you're new to the topic. ",
+      "The content will be simple, using everyday language with detailed explanations."
+    ],
+  },
+  intermediate: {
+    title: "Intermediate Level",
+    borderColor: "border-blue-500",
+    textColor: "text-blue-500",
+    points: [
+      "If you have some prior knowledge, this level dives deeper into the subject, explaining technical terms briefly and discussing practical applications.",
+      "You'll explore more complex ideas and connections.",
+    ],
+  },
+  advanced: {
+    title: "Advanced Level",
+    borderColor: "border-red-500",
+    textColor: "text-red-500",
+    points: [
+      "For those with significant expertise.",
+      "The content is technical and assumes familiarity with advanced concepts, emphasizing theoretical analysis and in-depth exploration.",
+    ],
+  },
+};
 
 const LectureView = () => {
   const { module, lesson } = useParams<{ module: string; lesson: string }>();
@@ -70,12 +105,12 @@ const LectureView = () => {
 
     try {
       setGeneratingNewLecture(true);
-      const response = await axiosInstance.post(API_URLS.LectureGenerate, {
+      await axiosInstance.post(API_URLS.LectureGenerate, {
         moduleName: module.replace(/-/g, " "),
         lessonTitle: lesson.replace(/-/g, " "),
         learningLevel,
       });
-      const lectureId = response.data.id;
+      //const lectureId = response.data.id;
       //navigate(`./${lectureId}`);
       navigate(`./`);
       window.location.reload(); 
@@ -84,6 +119,7 @@ const LectureView = () => {
       setError("Failed to generate lecture. Please try again.");
     } finally {
       setGeneratingNewLecture(false);
+      console.log("Generating new lecture",generatingNewLecture);
     }
   };
 
@@ -124,7 +160,7 @@ const LectureView = () => {
                   lesson's objectives. And you have some Pre-Assestments and Post-assessments to test your understanding.
                 </li>
                 <li>
-                  <strong>View Lecture through 3D classromm</strong> You can view the lecture through 3D classroom with 3d avatar.
+                  <strong>View Lecture through 3D classroom:</strong> You can view the lecture through 3D classroom with 3d avatar.
                 </li>
                 <li>
                   <strong>Answering Pre-Assestment Questions:</strong> Here you will receive pre-assessment questions to test your knowledge before entering the lecture content. If you don't know the answers, please don't be afraid to select 'Don't know.
@@ -159,7 +195,7 @@ const LectureView = () => {
 
             <p className="text-sm text-gray-500 mt-6">
               By proceeding, you acknowledge that you understand the nature of
-              this AI-assisted tutorial and agree to use it as a supplementary
+              this AI-assisted Lecture and agree to use it as a supplementary
               learning tool.
             </p>
           </div>
@@ -195,41 +231,87 @@ const GenerateLectureModal = ({
   onCancel: () => void;
   onSubmit: (values: { learningLevel: string }) => void;
   options: string[];
-}) => (
-  <Modal
-    title="Generate New Lecture"
-    open={visible}
-    onCancel={onCancel}
-    footer={null}
-  >
-    <Form layout="vertical" onFinish={onSubmit}>
-      <Form.Item
-        name="learningLevel"
-        label="Select Learning Level"
-        rules={[{ required: true, message: "Please select a learning level" }]}
-      >
-        <Select
-          placeholder="Select"
-          options={options.map((option) => ({
-            value: option,
-            label: option.charAt(0).toUpperCase() + option.slice(1),
-          }))}
-        />
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" htmlType="submit" block>
-          Generate Lecture
-        </Button>
-      </Form.Item>
-    </Form>
-  </Modal>
-);
+}) => {
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
 
+  const handleLevelChange = (value: string) => {
+    setSelectedLevel(value);
+  };
+
+  return (
+    <Modal
+      title="Generate New Lecture"
+      open={visible}
+      onCancel={onCancel}
+      footer={null}
+    >
+      <Form layout="vertical" onFinish={onSubmit}>
+        <Form.Item
+          name="learningLevel"
+          label="Select Learning Level"
+          rules={[
+            { required: true, message: "Please select a learning level" },
+          ]}
+        >
+          <Select
+            placeholder="Select"
+            onChange={handleLevelChange}
+            options={options.map((option) => ({
+              value: option,
+              label: option.charAt(0).toUpperCase() + option.slice(1),
+            }))}
+          />
+        </Form.Item>
+
+        {/* Show the full description for the selected learning level */}
+        {selectedLevel && (
+          <div
+            className={`border-l-4 pl-4 mb-4 ${
+              learningLevelDetails[
+                selectedLevel as keyof typeof learningLevelDetails
+              ].borderColor
+            }`}
+          >
+            <h2
+              className={`text-xl font-semibold ${
+                learningLevelDetails[
+                  selectedLevel as keyof typeof learningLevelDetails
+                ].textColor
+              }`}
+            >
+              {
+                learningLevelDetails[
+                  selectedLevel as keyof typeof learningLevelDetails
+                ].title
+              }
+            </h2>
+            <ul className="list-disc list-inside text-gray-700">
+              {learningLevelDetails[
+                selectedLevel as keyof typeof learningLevelDetails
+              ].points.map((point, index) => (
+                <li key={index}>{point}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <Form.Item>
+          <Button type="primary" htmlType="submit" block>
+            Generate Lecture
+          </Button>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
 const PastLecturesTable = ({ pastLectures }: { pastLectures: Lecture[] }) => {
   const navigate = useNavigate();
+  const { setLearningLevel } = useAITeacher(); // Move this hook call outside the handler
 
   const handleViewClick = (id: string, learningLevel: string) => {
+    setLearningLevel(learningLevel);
     navigate(`./${id}`, { state: { learningLevel } });
+    console.log("Learning Level", learningLevel);
   };
 
   return (
