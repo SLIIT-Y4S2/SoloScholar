@@ -219,5 +219,19 @@ export async function getLearningOutcomesByLessonTitle(lessonTitle: string) {
   }
 }
 
+export const updateSubLectureCompletion = async (
+  subLectureId: number,
+  isCompleted: boolean
+) => {
+  return prisma.sub_lecture.update({
+    where: {
+      id: subLectureId,
+    },
+    data: {
+      is_completed: isCompleted,
+    },
+  });
+};
+
 
 
