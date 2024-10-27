@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import axiosInstance from '../utils/axiosInstance';
 import { API_URLS } from '../utils/api_routes';
 
-export const teachers = ["Ava", "Naoki"];
+export const teachers = ["Ava", "Andrew"];
 
 export const useAITeacher = create((set, get) => ({
   messages: [],
@@ -11,7 +11,7 @@ export const useAITeacher = create((set, get) => ({
   isPlaying: false,
   avatarState: 'idle', // State to manage avatar animation
   isComplete: false, // New boolean variable
-  learningLevel12: "beginner", // New string variable
+  learningLevel12: "", // New string variable
   setTeacher: (teacher) => {
     set(() => ({
       teacher,

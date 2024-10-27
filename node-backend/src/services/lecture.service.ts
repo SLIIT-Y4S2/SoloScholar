@@ -138,6 +138,8 @@ export async function generateLectureForSubtopic(
                 `;
             case 'advanced':
                 return `
+                - no need to explain terms
+                - use academic language
                 - Use highly technical language without explanations
                 - Focus on cutting-edge concepts and current research
                 - Discuss advanced applications and theoretical implications
@@ -249,35 +251,39 @@ export async function generateMCQsForLecture(
 
     // Generate MCQ questions using the related context and subtopics
     const lectureMCQPrompt = PromptTemplate.fromTemplate(
-        type == "pre" ? LectureMCQPrompt : PostAssessmentMCQPrompt
-    );
+    type == "pre" ? LectureMCQPrompt : PostAssessmentMCQPrompt
+);
 
-    // Create a runnable sequence for generating MCQs
-    const mcqPipeline = RunnableSequence.from([
-        {
-            context: (input) => input.context,
-            lesson_title: (input) => input.lesson_title,
-            generated_content: (input) => input.generated_content.join("\n"),
-            format_instructions: (input) => input.format_instructions,
-        },
-        lectureMCQPrompt,
-        getChatModel,
-        jsonParser,
-    ]);
+// Create a runnable sequence for generating MCQs
+const mcqPipeline = RunnableSequence.from([
+    {
+        context: (input) => input.context,
+        lesson_title: (input) => input.lesson_title,
+        generated_content: (input) => input.generated_content.join("\n"),
+        format_instructions: (input) => input.format_instructions,
+    },
+    lectureMCQPrompt,
+    getChatModel,
+    jsonParser,
+]);
 
-    const mcqQuestions = await mcqPipeline.invoke({
-        context: context,
-        lesson_title: lesson_title,
-        generated_content: generatedContent,
-        format_instructions: jsonParser.getFormatInstructions(),
-    });
+const mcqQuestions = await mcqPipeline.invoke({
+    context: context,
+    lesson_title: lesson_title,
+    generated_content: generatedContent,
+    format_instructions: jsonParser.getFormatInstructions(),
+});
 
-    return mcqQuestions.map((mcq, index) => ({
-        ...mcq,
-        question_number: index + 1,
-        type: type,
-        options: shuffle([mcq.answer, ...mcq.distractors]),
-    }));
+return mcqQuestions.map((mcq, index) => ({
+    ...mcq,
+    question_number: index + 1,
+    type: type,
+    options: shuffle([
+        mcq.answer,
+        ...mcq.distractors,
+        ...(type === "pre" ? ["Don't know"] : [])
+    ]),
+}));
 }
 
 

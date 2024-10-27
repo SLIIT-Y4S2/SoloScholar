@@ -21,9 +21,8 @@ const learningLevelDetails = {
     textColor: "text-green-500",
 
     points: [
-      "You're just starting or need a review of the basics.",
-      "Focus on learning basic ideas and terms.",
-      "Expect simple questions to build a strong foundation.",
+      "Ideal if you're new to the topic. ",
+      "The content will be simple, using everyday language with detailed explanations."
     ],
   },
   intermediate: {
@@ -31,9 +30,8 @@ const learningLevelDetails = {
     borderColor: "border-blue-500",
     textColor: "text-blue-500",
     points: [
-      "You know the basics and are ready to learn more.",
-      "Apply your knowledge to solve problems.",
-      "Expect a mix of fact-based and problem-solving questions.",
+      "If you have some prior knowledge, this level dives deeper into the subject, explaining technical terms briefly and discussing practical applications.",
+      "You'll explore more complex ideas and connections.",
     ],
   },
   advanced: {
@@ -41,9 +39,8 @@ const learningLevelDetails = {
     borderColor: "border-red-500",
     textColor: "text-red-500",
     points: [
-      "You have a strong understanding and want to go deeper.",
-      "Dive into complex ideas and explore new ones.",
-      "Expect tough questions that test your knowledge and skills.",
+      "For those with significant expertise.",
+      "The content is technical and assumes familiarity with advanced concepts, emphasizing theoretical analysis and in-depth exploration.",
     ],
   },
 };
@@ -309,13 +306,12 @@ const GenerateLectureModal = ({
 };
 const PastLecturesTable = ({ pastLectures }: { pastLectures: Lecture[] }) => {
   const navigate = useNavigate();
+  const { setLearningLevel } = useAITeacher(); // Move this hook call outside the handler
 
   const handleViewClick = (id: string, learningLevel: string) => {
-    navigate(`./${id}`, { state: { learningLevel } });
-    
-
-    const { setLearningLevel } = useAITeacher();
     setLearningLevel(learningLevel);
+    navigate(`./${id}`, { state: { learningLevel } });
+    console.log("Learning Level", learningLevel);
   };
 
   return (

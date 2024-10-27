@@ -74,3 +74,25 @@ export const generateSlides = async (lessonTitle: string, content: string) => {
     throw error;
   }
 };
+
+
+export const updateSubLectureCompletion = async (
+  lectureId: string,
+  subLectureId: string,
+  isCompleted: boolean
+) => {
+  try {
+    const response = await axiosInstance.patch(`/lecture/${lectureId}/sublecture/${subLectureId}/completion`, {
+      is_completed: isCompleted,
+    });
+
+    if (response.status === 200) {
+      return response.data; // Return the entire response data
+    } else {
+      throw new Error('Failed to update sub-lecture completion status.');
+    }
+  } catch (error) {
+    console.error('Error updating sub-lecture completion status:', error);
+    throw error;
+  }
+};

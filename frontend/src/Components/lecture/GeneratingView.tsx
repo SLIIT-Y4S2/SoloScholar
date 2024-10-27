@@ -24,7 +24,7 @@ const GeneratingView = () => {
         showInfo={false}
         className="w-1/2"
       />
-      <p>Loading... Please wait for about 2 minutes.</p>
+      <p>Generating the content... Please wait for about 2 minutes.</p>
     </div>
   );
 };
