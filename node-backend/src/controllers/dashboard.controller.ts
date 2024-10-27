@@ -45,7 +45,6 @@ export async function getIndicators(
 ): Promise<void> {
   try {
     res.status(200).send({
-      //result: await dashboardDbService.getIndicators(req.params.instructorId),
       result: await dashboardDbService.getIndicators(res.locals.user.id),
     });
   } catch (error: any) {
