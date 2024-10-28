@@ -580,29 +580,36 @@ export async function updateLabSheetStatusAsCompletedHandler(
 
         const lesson = await getLessonDetailsByLabSheetId(labSheetId);
 
-        const feedback = await generateFeedbackForLabActivity(
-            {
-                topicOfTheLab: lesson.title,
-                realWorldScenario: labSheet.real_world_scenario!,
-                supportingMaterial: labSheet.supportMaterial,
-                questions: labSheet.labsheet_question.map((question) => {
-                    return {
-                        question: question.question,
-                        studentAnswer: question.student_answers.map((answer) => answer.student_answer!),
-                        reflection: question.reflection_on_answer!,
-                    }
-                }),
-            },
-        );
+        const isFeedbackEnabled = labSheet.is_feedback_enabled;
+
+        let feedback = null;
+
+        if (isFeedbackEnabled === true) {
+
+            feedback = await generateFeedbackForLabActivity(
+                {
+                    topicOfTheLab: lesson.title,
+                    realWorldScenario: labSheet.real_world_scenario!,
+                    supportingMaterial: labSheet.supportMaterial,
+                    questions: labSheet.labsheet_question.map((question) => {
+                        return {
+                            question: question.question,
+                            studentAnswer: question.student_answers.map((answer) => answer.student_answer!),
+                            reflection: question.reflection_on_answer!,
+                        }
+                    }),
+                },
+            );
+        }
 
         // Update lab sheet feedback
         await updateLabSheetFeedbackByLabSheetId(
             labSheetId,
             {
-                areasForImprovement: JSON.stringify(feedback.areasForImprovement),
-                overallScore: feedback.overallScore,
-                recommendations: JSON.stringify(feedback.recommendations),
-                strengths: JSON.stringify(feedback.strengths),
+                areasForImprovement: isFeedbackEnabled && feedback?.areasForImprovement ? JSON.stringify(feedback.areasForImprovement) : null,
+                overallScore: isFeedbackEnabled && feedback?.overallScore ? feedback.overallScore : null,
+                recommendations: isFeedbackEnabled && feedback?.recommendations ? JSON.stringify(feedback.recommendations) : null,
+                strengths: isFeedbackEnabled && feedback?.strengths ? JSON.stringify(feedback.strengths) : null,
             }
         );
 
