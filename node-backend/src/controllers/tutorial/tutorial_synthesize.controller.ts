@@ -23,7 +23,7 @@ import { getHighestCognitiveLevel } from "../../utils/tutorial.util";
 import { groupBy } from "lodash";
 
 /**
- * Generate tutorial
+ * MARK: Generate tutorial
  * @param req
  * @param res
  * @returns
@@ -33,7 +33,6 @@ export const generateTutorialHandler = async (
   req: Request<{}, {}, TutorialGenerationSchema["body"]>,
   res: Response
 ) => {
-  // const { moduleName, lessonTitle, learningLevel } = req.body;
   const { moduleName, lessonTitle, learningLevel } = req.body;
   const { id: learner_id } = res.locals.user;
 
@@ -199,7 +198,7 @@ export const generateTutorialHandler = async (
 };
 
 /**
- * Request feedback
+ * MARK: Request feedback
  * @param req
  * @param res
  * @returns

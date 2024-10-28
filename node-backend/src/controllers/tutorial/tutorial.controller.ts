@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { logger } from "../utils/logger.utils";
+import { logger } from "../../utils/logger.utils";
 import { groupBy } from "lodash";
 import {
   GetTutorialByIdSchema,
   GetTutorialsByLearnerSchema,
-} from "../models/tutorial.schema";
-import { markStudentAnswerCorrectOrIncorrect } from "../services/tutorial.rag.service";
+} from "../../models/tutorial.schema";
+import { markStudentAnswerCorrectOrIncorrect } from "../../services/tutorial.rag.service";
 import {
   getTutorialByLearnerId,
   getTutorialByIdWithQuestions,
@@ -13,15 +13,15 @@ import {
   updateTutorialQuestionResult,
   updateTutorialStatus,
   updateQuestionHintViewedStatus,
-} from "../services/db/tutorial.db.service";
+} from "../../services/db/tutorial.db.service";
 import {
   getModuleByName,
   getLessonByModuleIdAndTitle,
   findSubtopicById,
-} from "../services/db/module.db.service";
+} from "../../services/db/module.db.service";
 
 /**
- * Get tutorials by learner
+ * MARK: Get tutorials by learner
  * @param req
  * @param res
  * @returns
@@ -35,7 +35,6 @@ export const getTutorialsByLearnerHandler = async (
     const { id: learner_id } = res.locals.user;
     const { moduleName, lessonTitle } = req.query;
 
-    // TODO: might be better to use the module name and lesson title to get the tutorial in (getTutorialByLearnerId)
     const module = await getModuleByName(moduleName);
 
     if (!module) {
@@ -90,7 +89,7 @@ export const getTutorialsByLearnerHandler = async (
 };
 
 /**
- * Get tutorial by id
+ * MARK: Get tutorial by id
  * @param req
  * @param res
  * @returns
@@ -168,7 +167,7 @@ export const saveTutorialAnswerHandler = async (
 };
 
 /**
- * Submit tutorial
+ * MARK: Submit tutorial
  * @param req
  * @param res
  * @returns
@@ -277,7 +276,7 @@ export const submitTutorialHandler = async (req: Request, res: Response) => {
 };
 
 /**
- * Mark tutorial as completed
+ * MARK: Mark tutorial as completed
  * @param req
  * @param res
  * @returns
@@ -319,7 +318,7 @@ export const markTutorialAsCompletedHandler = async (
 };
 
 /**
- * Mark Hint for question as viewed
+ * MARK: Mark Hint for question as viewed
  * @param req
  * @param res
  * @returns
