@@ -11,6 +11,7 @@ const OPENAI_API_KEY: string = process.env.OPENAI_API_KEY!;
 const JWT_SECRET: string = process.env.JWT_SECRET!;
 
 const PROD_CLIENT_DOMAIN: string = process.env.PROD_CLIENT_DOMAIN!;
+const PROD_CLIENT_DOMAIN_2: string = process.env.PROD_CLIENT_DOMAIN_2!;
 
 const DEPLOYMENT_ENV: string = process.env.DEPLOYMENT_ENV!;
 
@@ -22,5 +23,6 @@ export {
   JWT_SECRET,
   OPENAI_API_KEY,
   PROD_CLIENT_DOMAIN,
+  PROD_CLIENT_DOMAIN_2,
   DEPLOYMENT_ENV,
 };
