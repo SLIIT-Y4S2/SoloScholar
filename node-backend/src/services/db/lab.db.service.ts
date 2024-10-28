@@ -5,10 +5,16 @@ import { omit, pick } from "lodash";
 interface LabSheetQuestion {
     question: string;
     answer: string;
-    exampleQuestion: string;
-    exampleAnswer: string
 }
 
+interface Feedback {
+    overallScore: number;
+    areasForImprovement: string;
+    recommendations: string;
+    strengths: string;
+}
+
+//MARK: Create a new lab sheet
 /**
  * 
  * @param lessonId 
@@ -16,7 +22,7 @@ interface LabSheetQuestion {
  * @param learningLevel 
  * @returns 
  */
-export async function createLabMaterials(lessonId: number, learnerId: string, learningLevel: string
+export async function createLabMaterials(lessonId: number, learnerId: string, learningLevel: string, enableFeedback: boolean
 ): Promise<{
     id: string;
     lessonId: number;
@@ -25,6 +31,7 @@ export async function createLabMaterials(lessonId: number, learnerId: string, le
     const labSheet = await prisma.labsheet.create({
         data: {
             status: "GENERATING",
+            is_feedback_enabled: enableFeedback,
             learning_material: {
                 create: {
                     lesson: {
@@ -54,6 +61,7 @@ export async function createLabMaterials(lessonId: number, learnerId: string, le
 }
 
 
+// MARK: Get all lab sheets
 /**
  * 
  * @param labSheetId 
@@ -75,8 +83,6 @@ export async function updateLabMaterial(labSheetId: string, realWorldScenario: s
                         return {
                             question: question.question,
                             answer: question.answer,
-                            example_question: question.exampleQuestion,
-                            example_answer: question.exampleAnswer,
                             question_number: index + 1,
                             is_answer_submitted: false,
                         };
@@ -101,6 +107,8 @@ export async function updateLabMaterial(labSheetId: string, realWorldScenario: s
 
 }
 
+
+// MARK: Get all lab sheets by learner id
 /**
  * 
  * @param labSheetId 
@@ -135,6 +143,7 @@ export async function getLabSheetByLabSheetIdAndLearnerId(labSheetId: string, le
 }
 
 
+// MARK: Get all lab sheets by learner id and lesson id
 /**
  * 
  * @param lessonId Id of the lesson
@@ -167,6 +176,8 @@ export async function getLearningMaterialDetailsByLearnerIdAndLessonId(lessonId:
     }, ["support_material", "learning_material"]));
 }
 
+
+// MARK: Update lab sheet answers by learner id and lab sheet id
 /**
  * 
  * @param labSheetId 
@@ -174,7 +185,7 @@ export async function getLearningMaterialDetailsByLearnerIdAndLessonId(lessonId:
  * @param answer 
  * @returns 
  */
-export async function updateLabSheetAnswersByLearnerIdAndLabSheetId(learnerId: string, labSheetId: string, questionId: number, answer: string, isCorrect: boolean) {
+export async function updateLabSheetAnswersByLearnerIdAndLabSheetId(learnerId: string, labSheetId: string, questionId: number, answer: string | null, isCorrect: boolean | null) {
     const updatedLabSheet = await prisma.labsheet.update(
         {
             where: {
@@ -216,13 +227,15 @@ export async function updateLabSheetAnswersByLearnerIdAndLabSheetId(learnerId: s
     }, ["support_material", "learning_material"]);
 }
 
+
+// MARK: Update Lab Sheet Question Answer Submission Status By Learner Id And Lab Sheet Id
 /**
  * 
  * @param labSheetId 
  * @param questionId 
  * @returns 
  */
-export async function updateLabSheetQuestionAnswerSubmissionStatusByLearnerIdAndLabSheetId(learnerId: string, labSheetId: string, questionId: number, reflection: string) {
+export async function updateLabSheetQuestionAnswerSubmissionStatusByLearnerIdAndLabSheetId(learnerId: string, labSheetId: string, questionId: number, reflection: string | null) {
     const updatedLabSheetQuestionAnswerSubmissionStatus = await prisma.labsheet.update({
         where: {
             id: labSheetId, AND: {
@@ -258,7 +271,40 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusByLearnerIdAnd
     return pick(updatedLabSheetQuestionAnswerSubmissionStatus, ["labsheet_question"]);
 }
 
-export async function updateLabSheetStatusAsCompletedByLearnerIdAndLabSheetId(learnerId: string, labSheetId: string, questionId: number, reflection: string) {
+// MARK: Update hint count by lab sheet id and question id
+/**
+ * 
+ * @param labSheetId 
+ * @param questionNumber 
+ * @returns 
+ */
+export async function updateHintCountByLabSheetIdAndQuestionId(labSheetId: string, questionId: number) {
+    const updatedLabSheet = await prisma.labsheet_question.update({
+        where: {
+            id: questionId,
+            labsheet_id: labSheetId
+        },
+        data: {
+            hint_views: {
+                increment: 1
+            }
+        }
+    });
+
+    return updatedLabSheet;
+}
+
+
+// MARK: Update Lab Sheet Status As Completed By Learner Id And Lab Sheet Id
+/**
+ * 
+ * @param learnerId 
+ * @param labSheetId 
+ * @param questionId 
+ * @param reflection 
+ * @returns 
+ */
+export async function updateLabSheetStatusAsCompletedByLearnerIdAndLabSheetId(learnerId: string, labSheetId: string, questionId: number, reflection: string | null) {
     const updatedLabSheet = await prisma.labsheet.update({
         where: {
             id: labSheetId,
@@ -293,13 +339,12 @@ export async function updateLabSheetStatusAsCompletedByLearnerIdAndLabSheetId(le
     return updatedLabSheet;
 }
 
-
+// MARK: Get all lab sheets by learner id and lesson id
 /**
  * 
  * @param labSheetId 
  * @returns 
  */
-
 export async function getLessonDetailsByLabSheetId(labSheetId: string) {
     const labSheet = await prisma.labsheet.findUnique({
         where: {
@@ -322,17 +367,15 @@ export async function getLessonDetailsByLabSheetId(labSheetId: string) {
     }, ["learning_material"]);
 }
 
+
+// MARK: Delete lab sheet by id
 /**
  * 
  * @param labSheetId 
  */
 export async function deleteLabSheetById(labSheetId: string) {
     await prisma.$transaction([
-        prisma.labsheet_question.deleteMany({
-            where: {
-                labsheet_id: labSheetId
-            }
-        }),
+        // Delete related student answers
         prisma.student_answer.deleteMany({
             where: {
                 labsheet_question: {
@@ -340,6 +383,13 @@ export async function deleteLabSheetById(labSheetId: string) {
                 }
             }
         }),
+        // Delete lab sheet questions
+        prisma.labsheet_question.deleteMany({
+            where: {
+                labsheet_id: labSheetId
+            }
+        }),
+        // Delete the lab sheet itself
         prisma.labsheet.delete({
             where: {
                 id: labSheetId
@@ -348,7 +398,7 @@ export async function deleteLabSheetById(labSheetId: string) {
     ]);
 }
 
-
+// MARK: Get student answers by lab sheet id and question number and learner id
 /**
  * 
  * @param labSheetId 
@@ -376,4 +426,31 @@ export async function getStudentAnswersByLabSheetIdAndQuestionNumberANDLearnerId
     return pick(studentAnswers, ["student_answers"]);
 
 
+}
+
+// MARK: Update lab sheet feedback by lab sheet id
+/**
+ * 
+ * @param labSheetId 
+ * @param overallScore 
+ * @param areasForImprovement 
+ * @param recommendations 
+ * @param strengths 
+ * @returns 
+ */
+export async function updateLabSheetFeedbackByLabSheetId(labSheetId: string, { overallScore, areasForImprovement, recommendations, strengths }: Feedback) {
+    const updatedLabSheet = await prisma.labsheet.update({
+        where: {
+            id: labSheetId
+        },
+        data: {
+            areas_for_improvement: areasForImprovement,
+            overall_score: overallScore,
+            recommendations: recommendations,
+            strengths: strengths
+
+        }
+    });
+
+    return updatedLabSheet;
 }

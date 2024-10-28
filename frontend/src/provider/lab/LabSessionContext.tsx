@@ -28,10 +28,15 @@ interface LabSessionContextType {
     hintForCurrentQuestion: string;
     isAnsForCurrQuesCorrect: boolean | null;
     isLabCompleted: boolean;
+    isFeedbackEnabled: boolean;
+    overallScore: number;
+    strengths: string[] | null;
+    areasForImprovement: string[] | null;
+    recommendations: string[] | null;
     evaluateStudentAnswerHandler: (answer: string) => void;
     getHintForCurrentQuestion: () => void;
-    goToNextQuestion: (reflection: string) => void;
-    submitLabSheet: (reflection: string) => void;
+    goToNextQuestion: (reflection: string | null) => void;
+    submitLabSheet: (reflection: string | null) => void;
 }
 
 interface LabQuestion {
@@ -39,8 +44,6 @@ interface LabQuestion {
     question_number: number;
     question: string;
     answer: string;
-    example_question: string;
-    example_answer: string;
     is_correct: boolean | null;
     current_answer: string | null;
     current_question_index: number;
@@ -82,6 +85,11 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [totalQuestions, setTotalQuestions] = useState<number>(0);
     const [isGenerationError, setIsGenerationError] = useState<boolean>(false);
+    const [isFeedbackEnabled, setIsFeedbackEnabled] = useState<boolean>(false);
+    const [overallScore, setOverallScore] = useState<number>(0);
+    const [strengths, setStrengths] = useState<string[]>([]);
+    const [areasForImprovement, setAreasForImprovement] = useState<string[] | null>([]);
+    const [recommendations, setRecommendations] = useState<string[]>([]);
 
     const params = useParams();
 
@@ -98,6 +106,11 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                 setStatus(labSheet.status);
                 setRealWorldScenario(labSheet.real_world_scenario);
                 setSupportMaterials(labSheet.supportMaterial);
+                setIsFeedbackEnabled(labSheet.is_feedback_enabled);
+                setOverallScore(labSheet.overall_score);
+                setStrengths(JSON.parse(labSheet.strengths));
+                setAreasForImprovement(JSON.parse(labSheet.areas_for_improvement));
+                setRecommendations(JSON.parse(labSheet.recommendations));
                 setQuestions([
                     ...labSheet.labsheet_question.map((data: LabQuestion) => {
                         return ({
@@ -105,8 +118,6 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                             question_number: data.question_number,
                             question: data.question,
                             answer: data.answer,
-                            exampleQuestion: data.example_question,
-                            exampleAnswer: data.example_answer,
                             is_correct: data.is_correct,
                             current_answer: data.student_answers.length == 0 ? null : data.student_answers[data.student_answers.length - 1].student_answer,
                             attempts: data.student_answers.length,
@@ -146,7 +157,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                             index === currentQuestionIndex
                                 ? {
                                     ...question,
-                                    currentAnswer: answer,
+                                    current_answer: answer,
                                     isAnswered: true,
                                     attempts: question.attempts + 1,
                                     isCorrect: response.data.studentAnswerEvaluation.is_correct
@@ -182,7 +193,7 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
         }, [setHintForCurrentQuestion, labSheetId, currentQuestionIndex, questions]);
 
     const goToNextQuestion = useCallback(
-        (reflection: string) => {
+        (reflection: string | null) => {
             if (!labSheetId) {
                 return;
             }
@@ -196,19 +207,28 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
                     console.log("Error updating submission status", error);
                 });
             } else {
-                alert("Lab completed");
                 setIsLabCompleted(true);
+                // Show success message and reload the page after 3 seconds to show the feedback
+                message.success("Lab sheet submitted successfully");
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
             }
         }, [questions, currentQuestionIndex, totalQuestions, setCurrentQuestionIndex, setHintForCurrentQuestion, setIsLabCompleted, labSheetId]
     );
 
     const submitLabSheet = useCallback(
-        (reflection: string) => {
+        (reflection: string | null) => {
             if (!labSheetId) {
                 return;
             }
             updateLabSheetStatusAsCompleted(labSheetId, questions[currentQuestionIndex].id, reflection).then(() => {
                 setIsLabCompleted(true);
+                // Show success message and reload the page after 3 seconds to show the feedback
+                message.success("Lab sheet submitted successfully");
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
             }).catch((error) => {
                 console.log("Error updating submission status", error);
             });
@@ -228,6 +248,11 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             isLabCompleted,
             isEvaluatingAnswer,
             isGenerationError,
+            isFeedbackEnabled,
+            overallScore,
+            strengths,
+            areasForImprovement,
+            recommendations,
             evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,
@@ -247,6 +272,11 @@ export function LabSessionProvider({ children }: Readonly<LabSessionProviderProp
             isLabCompleted,
             isEvaluatingAnswer,
             isGenerationError,
+            isFeedbackEnabled,
+            overallScore,
+            strengths,
+            areasForImprovement,
+            recommendations,
             evaluateStudentAnswerHandler,
             getHintForCurrentQuestion,
             goToNextQuestion,

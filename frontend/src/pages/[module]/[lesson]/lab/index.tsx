@@ -17,37 +17,41 @@ export default function LabOverview() {
     const { isLoading, previousLabSheetSummary, generatedLearningLevel, setIsGenerationError } = useLabContext();
 
     if (isLoading) {
-        console.log(isLoading);
         return <LabSkelton />;
     }
 
     if (generatingNewLabSheet) {
         return (
             <div className="flex content-center justify-center">
-                 <GeneratingView />
+                <GeneratingView />
             </div>
         );
     }
 
     const generateLabSheet = async ({
         learningLevel,
+        enableFeedback,
     }: {
-        learningLevel: string;
+        learningLevel: string,
+        enableFeedback: boolean;
     }) => {
         if (!module || !lesson) {
             return;
         }
         setGeneratingNewLabSheet(true);
 
-        await generateLabExercise(module.replace(/-/g, " "), lesson.replace(/-/g, " "), learningLevel)
+        await generateLabExercise(module.replace(/-/g, " "), lesson.replace(/-/g, " "), learningLevel, enableFeedback)
             .then((response) => {
                 const labSheetId = response.data.id;
+                setTimeout(() => {
+                    message.success("Lab sheet generated successfully", 3);
+                }, 2000);
                 navigate(`./session/${labSheetId}`);
             })
             .catch(error => {
                 setIsGenerationError(true);
                 console.error("Error generating lab sheet: ", error);
-                message.error({ content: "Error generating lab sheet", key: error.message, duration: 3});
+                message.error({ content: "Error generating lab sheet", key: error.message, duration: 3 });
             })
             .finally(() => {
                 setGeneratingNewLabSheet(false);
@@ -56,24 +60,15 @@ export default function LabOverview() {
     };
 
     return (
-        <Layout style={{ padding: "0 24px 24px" }}>
-            <Content
-                style={{
-                    padding: 24,
-                    margin: 0,
-                    minHeight: 280,
-                    background: "#ffff",
-                    borderRadius: "15px",
-                }}
-                className="flex flex-col gap-4"
-            >
+        <Layout>
+            <Layout className="flex flex-col gap-4 container mx-auto p-4 bg-white rounded-2xl">
                 <h1 className="text-3xl font-bold">
                     <span className="text-gray-700"> Lab for </span>
                     {(toProperString(lesson ?? ""))}
                 </h1>
-                <div className="bg-gray-100 rounded-xl p-4">
-                    <section className="mb-2">
-                        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+                <div className=" rounded-xl p-4 bg-gray-100">
+                    <section className="mb-2 ">
+                        <h2 className="text-2xl font-semibold  text-gray-700 mb-4">
                             How the Lab Works
                         </h2>
                         <ol className="space-y-3 list-decimal list-inside text-gray-600">
@@ -188,7 +183,7 @@ export default function LabOverview() {
                         />
                     </Table>
                 </div>
-            </Content>
+            </Layout>
         </Layout>
     );
 }

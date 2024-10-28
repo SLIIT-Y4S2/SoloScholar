@@ -1,7 +1,7 @@
 import { LAB_API_URLS } from "../utils/api_routes";
 import axiosInstance from "../utils/axiosInstance";
 
-export async function evaluateStudentsAnswer(studentsAnswer: string, labSheetId: string, questionsId: number) {
+export async function evaluateStudentsAnswer(studentsAnswer: string | null, labSheetId: string, questionsId: number) {
     console.log("Evaluating answer", studentsAnswer, labSheetId, questionsId);
     const response = await axiosInstance.post(LAB_API_URLS.EVALUATE_ANSWER, {
         studentsAnswer,
@@ -20,11 +20,12 @@ export async function evaluateStudentsAnswer(studentsAnswer: string, labSheetId:
  * @param learningLevel 
  * @returns 
  */
-export async function generateLabExercise(moduleName: string, lessonTitle: string, learningLevel: string) {
+export async function generateLabExercise(moduleName: string, lessonTitle: string, learningLevel: string, enableFeedback: boolean) {
     const response = axiosInstance.post(LAB_API_URLS.GENERATE_LAB_SHEET, {
         moduleName,
         lessonTitle,
-        learningLevel
+        learningLevel,
+        enableFeedback
     });
 
     return response;
@@ -58,7 +59,7 @@ export async function getHintForQuestion(labSheetId: string, questionNumber: num
     return response;
 }
 
-export async function updateSubmissionStatus(labSheetId: string, questionId: number, reflection: string) {
+export async function updateSubmissionStatus(labSheetId: string, questionId: number, reflection: string | null) {
     const response = axiosInstance.post(`${LAB_API_URLS.UPDATE_SUBMISSION_STATUS}/${labSheetId}/update-submission-status`, {
         questionId,
         reflection
@@ -67,7 +68,7 @@ export async function updateSubmissionStatus(labSheetId: string, questionId: num
     return response;
 }
 
-export async function updateLabSheetStatusAsCompleted(labSheetId: string, questionId: number, reflection: string) {
+export async function updateLabSheetStatusAsCompleted(labSheetId: string, questionId: number, reflection: string | null) {
     const response = axiosInstance.post(`${LAB_API_URLS.UPDATE_SUBMISSION_STATUS}/${labSheetId}/complete`, {
         questionId,
         reflection

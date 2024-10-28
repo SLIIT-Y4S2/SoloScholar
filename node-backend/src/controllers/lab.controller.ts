@@ -21,6 +21,8 @@ import {
     getStudentAnswersByLabSheetIdAndQuestionNumberANDLearnerId,
     updateLabSheetQuestionAnswerSubmissionStatusByLearnerIdAndLabSheetId,
     updateLabSheetStatusAsCompletedByLearnerIdAndLabSheetId,
+    updateHintCountByLabSheetIdAndQuestionId,
+    updateLabSheetFeedbackByLabSheetId
 } from "../services/db/lab.db.service";
 import { StatusCodes } from "http-status-codes";
 
@@ -34,10 +36,11 @@ import { StatusCodes } from "http-status-codes";
 export async function generateLabMaterialsHandler(req: Request, res: Response) {
     let labMaterials: { id: string, lessonId: number, learnerId: string } | null = null;
     try {
-        const { moduleName, lessonTitle, learningLevel } = req.body;
+        const { moduleName, lessonTitle, learningLevel, enableFeedback } = req.body;
         const { id: learnerId } = res.locals.user;
 
-        if (!moduleName || !lessonTitle || !learningLevel) {
+
+        if (!moduleName || !lessonTitle || !learningLevel || enableFeedback === undefined) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 message: "Invalid request body",
             });
@@ -74,7 +77,8 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
         labMaterials = await createLabMaterials(
             lessonOutline.id,
             learnerId,
-            learningLevel
+            learningLevel,
+            enableFeedback
         );
 
         const practicalLabData = await responseSynthesizerForLabs({
@@ -123,6 +127,8 @@ export async function generateLabMaterialsHandler(req: Request, res: Response) {
     }
 }
 
+
+// MARK: Get Lab Materials By Id
 /**
  *
  * @param req
@@ -168,6 +174,7 @@ export async function getLabSheetByIdHandler(req: Request, res: Response) {
     }
 }
 
+// MARK: Get Learning Material Summary By Lesson Name
 /**
  *
  * @param req
@@ -255,6 +262,8 @@ export async function getLearningMaterialSummaryByLessonNameHandler(
     }
 }
 
+
+// MARK: Evaluate Student Answers
 /**
  *
  * @param req
@@ -269,7 +278,7 @@ export async function evaluateStudentAnswersHandler(
         const { studentsAnswer, labSheetId, questionsId } = req.body;
         const { id: learnerId } = res.locals.user;
 
-        if (!labSheetId || !studentsAnswer) {
+        if (!labSheetId || !studentsAnswer || !questionsId) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 message: "Invalid request body",
             });
@@ -281,36 +290,60 @@ export async function evaluateStudentAnswersHandler(
         );
         const lesson = await getLessonDetailsByLabSheetId(labSheetId);
 
+        if (!lesson) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+                message: "Lesson not found",
+            });
+        }
+
         if (!labSheet) {
             return res.status(StatusCodes.NOT_FOUND).json({
                 message: "Lab sheet not found",
             });
         }
 
-        const question_object = labSheet.labsheet_question.find(
+        const questionObject = labSheet.labsheet_question.find(
             (question) => question.id === questionsId
         );
 
-        if (!question_object) {
+        if (!questionObject) {
             return res.status(StatusCodes.NOT_FOUND).json({
                 message: "Question not found",
             });
         }
 
-        const results = await evaluateStudentAnswers({
-            question: question_object.question,
-            studentAnswer: studentsAnswer,
-            topicOfTheLab: lesson.title,
-            realWorldScenario: labSheet.real_world_scenario!,
-            supportingMaterial: labSheet.supportMaterial,
+        // Get questions and answers prior to this question
+        const previousQuestionsAndAnswers = labSheet.labsheet_question.filter(
+            (question) => question.question_number < questionObject.question_number
+        ).map((question) => {
+            return {
+                question: question.question,
+                answer: question.answer
+            };
         });
+
+        // Get is_correct value for current question from labsheet_question
+        const isCorrect = questionObject.is_correct;
+
+        let results = null;
+
+        if (studentsAnswer !== null && studentsAnswer !== undefined && studentsAnswer.length > 0) {
+            results = await evaluateStudentAnswers({
+                question: questionObject.question,
+                studentAnswer: studentsAnswer,
+                previousQuestionsAndAnswers: previousQuestionsAndAnswers,
+                topicOfTheLab: lesson.title,
+                realWorldScenario: labSheet.real_world_scenario!,
+                supportingMaterial: labSheet.supportMaterial,
+            });
+        }
 
         await updateLabSheetAnswersByLearnerIdAndLabSheetId(
             learnerId,
             labSheetId,
             questionsId,
             studentsAnswer,
-            results.studentAnswerEvaluation.isCorrect
+            results === null ? isCorrect : results.studentAnswerEvaluation.isCorrect
         );
 
         return res.status(StatusCodes.OK).json(results);
@@ -330,6 +363,8 @@ export async function evaluateStudentAnswersHandler(
     }
 }
 
+
+// MARK: Generate Hint For Question
 /**
  *
  * @param req
@@ -356,8 +391,6 @@ export async function generateHintForQuestionHandler(
             });
         }
 
-        console.log(labSheetId, questionNumber);
-
         const studentAnswers =
             await getStudentAnswersByLabSheetIdAndQuestionNumberANDLearnerId(
                 labSheetId,
@@ -383,9 +416,19 @@ export async function generateHintForQuestionHandler(
             });
         }
 
+        const question = labSheet.labsheet_question.filter(
+            (question) => question.question_number === Number(questionNumber)
+        );
+
+        if (question.length === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+                message: "Question not found",
+            });
+        }
+
         const hint = await generateHintsForStudentAnswers({
             previousAnswers: studentAnswers.student_answers?.map(
-                (answer) => answer.student_answer
+                (answer) => answer.student_answer!
             )!,
             realWorldScenario: labSheet.real_world_scenario!,
             supportingMaterial: labSheet.supportMaterial,
@@ -393,6 +436,8 @@ export async function generateHintForQuestionHandler(
                 (question) => question.question_number === Number(questionNumber)
             )!.question,
         });
+
+        await updateHintCountByLabSheetIdAndQuestionId(labSheetId, question[0].id);
 
         return res.status(StatusCodes.OK).json({ ...hint });
     } catch (error) {
@@ -411,6 +456,8 @@ export async function generateHintForQuestionHandler(
     }
 }
 
+
+// MARK: Delete Lab Sheet By Id
 /**
  *
  * @param req
@@ -448,6 +495,8 @@ export async function deleteLabSheetByIdHandler(req: Request, res: Response) {
     }
 }
 
+
+// MARK: Update Lab Sheet Question Answer Submission Status
 /**
  *
  * @param req
@@ -463,7 +512,7 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(
         const { labSheetId } = req.params;
         const { learnerId } = res.locals.user;
 
-        if (!labSheetId || !questionId || typeof reflection !== "string") {
+        if (!labSheetId || !questionId) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 message: "Invalid request body",
             });
@@ -497,6 +546,14 @@ export async function updateLabSheetQuestionAnswerSubmissionStatusHandler(
     }
 }
 
+
+// MARK: Update Lab Sheet Status As Completed
+/**
+ *
+ * @param req
+ * @param res
+ * @returns
+ */
 export async function updateLabSheetStatusAsCompletedHandler(
     req: Request,
     res: Response
@@ -531,17 +588,28 @@ export async function updateLabSheetStatusAsCompletedHandler(
                 questions: labSheet.labsheet_question.map((question) => {
                     return {
                         question: question.question,
-                        studentAnswer: question.student_answers.map((answer) => answer.student_answer),
+                        studentAnswer: question.student_answers.map((answer) => answer.student_answer!),
                         reflection: question.reflection_on_answer!,
                     }
                 }),
             },
         );
 
+        // Update lab sheet feedback
+        await updateLabSheetFeedbackByLabSheetId(
+            labSheetId,
+            {
+                areasForImprovement: JSON.stringify(feedback.areasForImprovement),
+                overallScore: feedback.overallScore,
+                recommendations: JSON.stringify(feedback.recommendations),
+                strengths: JSON.stringify(feedback.strengths),
+            }
+        );
+
         return res.status(StatusCodes.OK).json({
             message: "Lab sheet status updated",
-            feedback,
         });
+
     } catch (error) {
         if (error instanceof Error) {
             console.error(error.message);

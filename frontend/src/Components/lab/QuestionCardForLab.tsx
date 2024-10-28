@@ -15,28 +15,30 @@ export default function QuestionCardForLab() {
     currentQuestionIndex,
     totalQuestions,
     questions,
-    evaluateStudentAnswerHandler,
     isEvaluatingAnswer,
     hintForCurrentQuestion,
+    isFeedbackEnabled,
+    evaluateStudentAnswerHandler,
     getHintForCurrentQuestion,
     goToNextQuestion,
-    submitLabSheet
+    submitLabSheet,
   } = useLabSessionContext();
 
-  const [currentAnswer, setCurrentAnswer] = useState<string>("");
+  const [currentAnswer, setCurrentAnswer] = useState<string | null>(null);
   const [showAnswer, setShowAnswer] = useState<boolean>(false);
   const [showEmptyAnswerAlert, setShowEmptyAnswerAlert] = useState<boolean>(false);
   const [showEmptyReflectionAlert, setShowEmptyReflectionAlert] = useState<boolean>(false);
   const [isSupportMaterialModelOpen, setIsSupportMaterialModelOpen] = useState<boolean>(false);
-  const [reflection, setReflection] = useState<string>("");
+  const [isSkipModalOpen, setIsSkipModalOpen] = useState<boolean>(false);
+  const [reflection, setReflection] = useState<string | null>(null);
   const { labSheetId } = useParams<{ labSheetId: string }>();
 
   useEffect(() => {
-    setCurrentAnswer(questions?.[currentQuestionIndex]?.current_answer ?? "");
+    setCurrentAnswer(questions?.[currentQuestionIndex]?.current_answer ?? null);
   }, [currentQuestionIndex, questions]);
 
   const handleEvaluation = () => {
-    if (currentAnswer.trim() !== "") {
+    if (currentAnswer && currentAnswer.trim() !== "") {
       evaluateStudentAnswerHandler(currentAnswer);
     } else {
       setShowEmptyAnswerAlert(true);
@@ -53,16 +55,19 @@ export default function QuestionCardForLab() {
 
     const currentQuestion = questions[currentQuestionIndex];
 
-    if (!currentQuestion.is_correct && !currentQuestion.is_answer_submitted && currentQuestion.attempts >= 6) {
-      setCurrentAnswer("");
-      setShowAnswer(false);
-      goToNextQuestion("");
-      return;
-    }
-    console.log(reflection, currentQuestion.is_correct, currentQuestion.is_answer_submitted);
-
-    if (reflection.trim() !== "" && isAnsForCurrQuesCorrect && !currentQuestion.is_answer_submitted) {
-      setCurrentAnswer("");
+    if (
+      !isFeedbackEnabled &&
+      isAnsForCurrQuesCorrect &&
+      !currentQuestion.is_answer_submitted
+    ) {
+      goToNextQuestion(null);
+    } else if (
+      reflection &&
+      reflection.trim() !== "" &&
+      isAnsForCurrQuesCorrect &&
+      !currentQuestion.is_answer_submitted
+    ) {
+      setCurrentAnswer(null);
       setShowEmptyReflectionAlert(false);
       goToNextQuestion(reflection);
     } else {
@@ -70,8 +75,26 @@ export default function QuestionCardForLab() {
     }
   };
 
+  const handleSkipQuestion = () => {
+    setCurrentAnswer(null);
+    setShowAnswer(false);
+    setReflection(null);
+    setShowEmptyAnswerAlert(false);
+    setShowEmptyReflectionAlert(false);
+    setIsSkipModalOpen(false);
+    if (currentQuestionIndex === totalQuestions - 1) {
+      submitLabSheet(null);
+    } else {
+      goToNextQuestion(null);
+    }
+  };
+
+  const showSkipConfirmation = () => {
+    setIsSkipModalOpen(true);
+  };
+
   const handleSubmission = () => {
-    if (reflection.trim() !== "") {
+    if (reflection && (reflection.trim() !== "" || !isFeedbackEnabled)) {
       submitLabSheet(reflection);
     } else {
       setShowEmptyReflectionAlert(true);
@@ -79,7 +102,6 @@ export default function QuestionCardForLab() {
   };
 
   const handleReflectionOnChange = (value: string) => {
-    console.log(value);
     setReflection(value);
   };
 
@@ -87,10 +109,14 @@ export default function QuestionCardForLab() {
 
   return (
     <>
-      <Content>
+      <Content className="container mx-auto">
         {showEmptyAnswerAlert && (
           <Alert
-            message={<p className="font-semibold text-bse">Please provide an answer before evaluating.</p>}
+            message={
+              <p className="font-semibold text-bse">
+                Please provide an answer before evaluating.
+              </p>
+            }
             type="error"
             showIcon
             closable
@@ -98,30 +124,69 @@ export default function QuestionCardForLab() {
             className="mb-4"
           />
         )}
-        <div className="bg-white flex flex-col mx-auto p-8 w-full max-w-[1200px] max-h-[800] h-max rounded-2xl">
-          <Modal open={isSupportMaterialModelOpen} onCancel={() => setIsSupportMaterialModelOpen(false)} width={1000} footer={[]}>
+        <div className="bg-white flex flex-col mx-auto p-8 w-full h-max rounded-2xl">
+          <Modal
+            open={isSupportMaterialModelOpen}
+            onCancel={() => setIsSupportMaterialModelOpen(false)}
+            width={1000}
+            footer={[]}
+          >
             <SupportMaterialsForLab isNewTab={false} labSheetId={labSheetId} />
           </Modal>
-          <form onSubmit={handleNextQuestion}>
+
+          <Modal
+            title="Skip Question"
+            open={isSkipModalOpen}
+            onCancel={() => setIsSkipModalOpen(false)}
+            footer={[
+              <Button key="cancel" onClick={() => setIsSkipModalOpen(false)}>
+                Cancel
+              </Button>,
+              <Button key="skip" type="primary" onClick={handleSkipQuestion} disabled={isAnsForCurrQuesCorrect === true}>
+                Skip Question
+              </Button>,
+            ]}
+          >
+            <p>
+              Are you sure you want to skip this question? Your current answer will not be
+              saved.
+            </p>
+          </Modal>
+
+          <form onSubmit={handleNextQuestion} className="w-full">
             <div className="flex flex-row justify-between items-center flex-shrink-0">
               <h1 className="text-2xl font-bold my-2">
                 Question {currentQuestionIndex + 1} of {totalQuestions}
               </h1>
-              <Button className="w-max" onClick={() => setIsSupportMaterialModelOpen(true)}><FileMarkdownOutlined />Support Material</Button>
+              <Button className="w-max" onClick={() => setIsSupportMaterialModelOpen(true)}>
+                <FileMarkdownOutlined />
+                Support Material
+              </Button>
             </div>
             <p className="text-lg">{currentQuestion?.question}</p>
             <div className="my-4">
               <div className="flex flex-col justify-center items-center">
-                <CodeEditor handleCodeOnChange={handleCodeOnChange} currentSnippet={currentAnswer} />
+                <CodeEditor
+                  handleCodeOnChange={handleCodeOnChange}
+                  currentSnippet={currentAnswer ?? ""}
+                />
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <div className="flex flex-row gap-4 items-center justify-between">
+              <div className="flex flex-row gap-4 items-center">
                 <p className="font-medium text-lg">
-                  Number of attempts : {currentQuestion?.attempts}
+                  Number of attempts: {currentQuestion?.attempts}
                 </p>
+                <Button type="default" onClick={getHintForCurrentQuestion}>
+                  Hint
+                </Button>
+                <Button type="default" onClick={showSkipConfirmation} disabled={isAnsForCurrQuesCorrect === true}>
+                  Skip Question
+                </Button>
               </div>
-              {isAnsForCurrQuesCorrect === null ? <></> : isAnsForCurrQuesCorrect ? (
+              {isAnsForCurrQuesCorrect === null ? (
+                <></>
+              ) : isAnsForCurrQuesCorrect ? (
                 <p className="text-green-600 text-lg font-medium">Correct Answer</p>
               ) : (
                 <p className="text-red-500 text-lg font-medium">Incorrect Answer</p>
@@ -134,53 +199,30 @@ export default function QuestionCardForLab() {
                 />
               ) : isAnsForCurrQuesCorrect ? (
                 <div className="flex flex-row gap-4">
-                  {currentQuestion?.attempts >= 6 && !isAnsForCurrQuesCorrect && <Button type="text" className="text-red-500 flex flex-row gap-4" onClick={() => setShowAnswer(true)}>Show Answer</Button>}
-
                   {currentQuestionIndex === totalQuestions - 1 ? (
-                    <Button
-                      type="primary"
-                      htmlType="button"
-                      onClick={handleSubmission}
-                    >
+                    <Button type="primary" htmlType="button" onClick={handleSubmission}>
                       Submit Lab Sheet
                     </Button>
                   ) : (
-                    <Button
-                      type="primary"
-                      htmlType="button"
-                      onClick={handleNextQuestion}
-                    >
+                    <Button type="primary" htmlType="button" onClick={handleNextQuestion}>
                       Next Question
                     </Button>
                   )}
                 </div>
               ) : (
-                <div className="flex flex-row gap-4">
-                  {currentQuestion?.attempts >= 3 &&
-                    currentQuestion?.attempts < 6 && (
-                      <Button
-                        type="default"
-                        htmlType="button"
-                        onClick={getHintForCurrentQuestion}
-                      >
-                        Hint
-                      </Button>
-                    )}
-                  <Button type="primary" htmlType="button" onClick={handleEvaluation}>
-                    Evaluate Answer
-                  </Button>
-                </div>
+                <Button type="primary" htmlType="button" onClick={handleEvaluation}>
+                  Evaluate Answer
+                </Button>
               )}
             </div>
           </form>
           <div>
-            {currentQuestion?.attempts < 6 &&
-              hintForCurrentQuestion && (
-                <div className="my-4">
-                  <p className="font-semibold my-2">Hint:</p>
-                  <p>{hintForCurrentQuestion}</p>
-                </div>
-              )}
+            {hintForCurrentQuestion && (
+              <div className="my-4">
+                <p className="font-semibold my-2">Hint:</p>
+                <p>{hintForCurrentQuestion}</p>
+              </div>
+            )}
             {showAnswer && (
               <div className="my-4">
                 <p className="font-semibold my-2">Answer:</p>
@@ -191,12 +233,18 @@ export default function QuestionCardForLab() {
         </div>
       </Content>
       <Content>
-        {
-          questions && isAnsForCurrQuesCorrect && !currentQuestion?.is_answer_submitted && (
+        {questions &&
+          isFeedbackEnabled &&
+          isAnsForCurrQuesCorrect &&
+          !currentQuestion?.is_answer_submitted && (
             <div>
               {showEmptyReflectionAlert && (
                 <Alert
-                  message={<p className="font-semibold text-bse">Please provide a reflection before moving to the next question.</p>}
+                  message={
+                    <p className="font-semibold text-bse">
+                      Please provide a reflection before moving to the next question.
+                    </p>
+                  }
                   type="error"
                   showIcon
                   closable
@@ -206,8 +254,7 @@ export default function QuestionCardForLab() {
               )}
               <ReflectionCardForLab onChange={handleReflectionOnChange} />
             </div>
-          )
-        }
+          )}
       </Content>
     </>
   );

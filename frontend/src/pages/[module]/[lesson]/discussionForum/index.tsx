@@ -79,10 +79,12 @@ export default function DiscussionForum() {
 
     return (
         <Layout className="flex flex-col gap-8 my-6 mx-4 h-max">
-            <CustomBreadcrumb />
-            <Layout className="min-h-screen">
-                <Content className="p-8">
-                    <div className="flex justify-between items-center mb-4">
+            <div className='container mx-auto'>
+                <CustomBreadcrumb />
+            </div>
+            <Layout className="container mx-auto">
+                <Content>
+                    <div className="flex flex-row justify-between items-center mb-4">
                         <Title level={2}>Discussions</Title>
                         <Button type="primary" onClick={() => setIsNewDiscussionModalVisible(true)}>
                             New Discussion
