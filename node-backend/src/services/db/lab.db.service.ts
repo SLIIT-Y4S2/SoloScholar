@@ -8,10 +8,10 @@ interface LabSheetQuestion {
 }
 
 interface Feedback {
-    overallScore: number;
-    areasForImprovement: string;
-    recommendations: string;
-    strengths: string;
+    overallScore: number | null;
+    areasForImprovement: string | null;
+    recommendations: string | null;
+    strengths: string | null;
 }
 
 //MARK: Create a new lab sheet

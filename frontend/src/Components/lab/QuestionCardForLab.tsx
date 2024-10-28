@@ -94,7 +94,9 @@ export default function QuestionCardForLab() {
   };
 
   const handleSubmission = () => {
-    if (reflection && (reflection.trim() !== "" || !isFeedbackEnabled)) {
+    if (isFeedbackEnabled === false) {
+      submitLabSheet(reflection);
+    } else if (reflection && (reflection.trim() !== "")) {
       submitLabSheet(reflection);
     } else {
       setShowEmptyReflectionAlert(true);
