@@ -395,3 +395,230 @@ export const getLearnerPerformanceLab = (results: any[]) => {
 
   return data;
 };
+
+/**
+ * For lecture component
+ */
+export const getSummaryStatisticsLecture = (results: any[]) => {
+  const totalLectureCount = new Set(results.map((item) => item.lecture_id))
+    .size;
+
+  // Group results by sub_lecture_id
+  const subLectures = results.reduce((acc, item) => {
+    acc[item.sub_lecture_id] = acc[item.sub_lecture_id] || [];
+    acc[item.sub_lecture_id].push(item);
+    return acc;
+  }, {});
+
+  const subVideosCompletedWatching = Object.values(subLectures).filter(
+    (subLecture: any) => subLecture[0].is_sub_lecture_completed
+  ).length;
+
+  // Lecture completion rate = preassessment score + postassessment score + video completion rate
+  // Group results by lecture_id
+  const lectures = results.reduce((acc, item) => {
+    acc[item.lecture_id] = acc[item.lecture_id] || [];
+    acc[item.lecture_id].push(item);
+    return acc;
+  }, {});
+
+  const completionPercentages = Object.values(lectures).map((lecture: any) => {
+    // Total unique preassessment questions
+    const preAssessmentQuestionsCount = new Set(
+      lecture
+        .filter((item: any) => item.lecture_assessment_question_type === "pre")
+        .map((item: any) => item.lecture_assessment_question_id)
+    ).size;
+
+    // Total unique postassessment questions
+    const postAssessmentQuestionsCount = new Set(
+      lecture
+        .filter((item: any) => item.lecture_assessment_question_type === "post")
+        .map((item: any) => item.lecture_assessment_question_id)
+    ).size;
+
+    const preAssessmentCompletionPercentage =
+      (new Set(
+        lecture
+          .filter(
+            (item: any) =>
+              item.lecture_assessment_question_type === "pre" &&
+              item.student_answer !== null
+          )
+          .map((item: any) => item.lecture_assessment_question_id)
+      ).size /
+        preAssessmentQuestionsCount) *
+      100;
+
+    const postAssessmentCompletionPercentage =
+      (new Set(
+        lecture
+          .filter(
+            (item: any) =>
+              item.lecture_assessment_question_type === "post" &&
+              item.student_answer !== null
+          )
+          .map((item: any) => item.lecture_assessment_question_id)
+      ).size /
+        postAssessmentQuestionsCount) *
+      100;
+
+    // Group results by sub_lecture_id
+    const subLectures = lecture.reduce((acc: any, item: any) => {
+      acc[item.sub_lecture_id] = acc[item.sub_lecture_id] || [];
+      acc[item.sub_lecture_id].push(item);
+      return acc;
+    }, {});
+
+    // Total unique sublectures
+    const subLecturesCount = new Set(
+      lecture.map((item: any) => item.sub_lecture_id)
+    ).size;
+
+    const subLecturesCompletedWatchingCount = Object.values(subLectures).filter(
+      (subLecture: any) => subLecture[0].is_sub_lecture_completed
+    ).length;
+
+    const videCompletionPercentage =
+      (subLecturesCompletedWatchingCount / subLecturesCount) * 100;
+
+    return {
+      preAssessmentCompletionPercentage,
+      postAssessmentCompletionPercentage,
+      videCompletionPercentage,
+    };
+  });
+
+  // Calculate the average completion rate across all lectures
+  // (Theory: Each lecture has a pre-assessment, post-assessment, and video and each has equal weightage)
+  let lectureCompletionRateAvg = 0;
+  for (const item of completionPercentages) {
+    lectureCompletionRateAvg +=
+      (item.preAssessmentCompletionPercentage +
+        item.postAssessmentCompletionPercentage +
+        item.videCompletionPercentage) /
+      Object.keys(item).length;
+  }
+  lectureCompletionRateAvg /= completionPercentages.length;
+
+  return {
+    totalLectureCount: totalLectureCount,
+    subLectureVideosCompletedAvg:
+      subVideosCompletedWatching / totalLectureCount,
+    lectureCompletionRateAvg,
+  };
+};
+
+export const getEngagementAndPerformanceLecture = (results: any[]) => {
+  // Group results by lecture_id
+  const lectures = results.reduce((acc, item) => {
+    acc[item.lecture_id] = acc[item.lecture_id] || [];
+    acc[item.lecture_id].push(item);
+    return acc;
+  }, {});
+
+  let totalPreAssessmentQuestions: any[] = [];
+  let totalPostAssessmentQuestions: any[] = [];
+  for (const lecture of Object.values(lectures) as any[]) {
+    const uniquePreAssessmentQuestions = new Map();
+    lecture
+      .filter((item: any) => item.lecture_assessment_question_type === "pre")
+      .forEach((item: any) => {
+        uniquePreAssessmentQuestions.set(
+          item.lecture_assessment_question_id,
+          item
+        );
+      });
+    totalPreAssessmentQuestions.push(...uniquePreAssessmentQuestions.values());
+
+    const uniquePostAssessmentQuestions = new Map();
+    lecture
+      .filter((item: any) => item.lecture_assessment_question_type === "post")
+      .forEach((item: any) => {
+        uniquePostAssessmentQuestions.set(
+          item.lecture_assessment_question_id,
+          item
+        );
+      });
+    totalPostAssessmentQuestions.push(
+      ...uniquePostAssessmentQuestions.values()
+    );
+  }
+
+  // Calculate the average score percentage for pre-assessment and post-assessment questions
+  const preAssessmentScorePercentageAvg =
+    (totalPreAssessmentQuestions.reduce((acc, item) => {
+      acc += item.correct_answer === item.student_answer ? 1 : 0;
+      return acc;
+    }, 0) /
+      totalPreAssessmentQuestions.length) *
+    100;
+
+  const postAssessmentScorePercentageAvg =
+    (totalPostAssessmentQuestions.reduce((acc, item) => {
+      acc += item.correct_answer === item.student_answer ? 1 : 0;
+      return acc;
+    }, 0) /
+      totalPostAssessmentQuestions.length) *
+    100;
+
+  // Group totalPreAssessmentQuestions and totalPostAssessmentQuestions again by lecture_id
+  const preAssessmentQuestionsByLecture = totalPreAssessmentQuestions.reduce(
+    (acc, item) => {
+      acc[item.lecture_id] = acc[item.lecture_id] || [];
+      acc[item.lecture_id].push(item);
+      return acc;
+    },
+    {}
+  );
+
+  const postAssessmentQuestionsByLecture = totalPostAssessmentQuestions.reduce(
+    (acc, item) => {
+      acc[item.lecture_id] = acc[item.lecture_id] || [];
+      acc[item.lecture_id].push(item);
+      return acc;
+    },
+    {}
+  );
+
+  // Calculate the participation rates
+  // Theory: If the student_answer column is not null, then the student has participated in the question
+  let preAssessmentParticipationRate: number = 0;
+  for (const item of Object.values(preAssessmentQuestionsByLecture) as any[]) {
+    const totalQuestions = item.length;
+    const answeredQuestions = item.filter(
+      (item: any) => item.student_answer !== null
+    ).length;
+    preAssessmentParticipationRate +=
+      (answeredQuestions / totalQuestions) * 100;
+  }
+  preAssessmentParticipationRate /= Object.keys(
+    preAssessmentQuestionsByLecture
+  ).length;
+
+  let postAssessmentParticipationRate: number = 0;
+  for (const item of Object.values(postAssessmentQuestionsByLecture) as any[]) {
+    const totalQuestions = item.length;
+    const answeredQuestions = item.filter(
+      (item: any) => item.student_answer !== null
+    ).length;
+    postAssessmentParticipationRate +=
+      (answeredQuestions / totalQuestions) * 100;
+  }
+  postAssessmentParticipationRate /= Object.keys(
+    postAssessmentQuestionsByLecture
+  ).length;
+
+  return {
+    preAssessmentParticipationRate: Math.round(preAssessmentParticipationRate),
+    preAssessmentScorePercentageAvg: Math.round(
+      preAssessmentScorePercentageAvg
+    ),
+    postAssessmentParticipationRate: Math.round(
+      postAssessmentParticipationRate
+    ),
+    postAssessmentScorePercentageAvg: Math.round(
+      postAssessmentScorePercentageAvg
+    ),
+  };
+};
