@@ -57,7 +57,7 @@ export const getTTS = async (teacher: string, text: string) => {
 };
 
 
-export const generateMarkdownSlides = async (lessonTitle: string, content: string): Promise<string[]> => {
+export const generateSlides = async (lessonTitle: string, content: string) => {
   try {
     const response = await axiosInstance.post(`/lecture/subtopicslides`, {
       lesson_title: lessonTitle,
@@ -65,14 +65,34 @@ export const generateMarkdownSlides = async (lessonTitle: string, content: strin
     });
 
     if (response.status === 200 && response.data.markdownSlides) {
-      // Assuming markdownSlides is returned as a single string separated by some delimiter, e.g., "\n\n" for paragraphs
-      const markdownSlides: string[] = response.data.markdownSlides.split('\n\n'); // Adjust delimiter as necessary
-      return markdownSlides;
+      return response.data; // Return the entire response data
     } else {
-      throw new Error('Failed to generate markdown slides. No valid slides returned.');
+      throw new Error('Failed to generate slides. No valid slides returned.');
     }
   } catch (error) {
-    console.error('Error fetching markdown slides:', error);
+    console.error('Error fetching slides:', error);
+    throw error;
+  }
+};
+
+
+export const updateSubLectureCompletion = async (
+  lectureId: string,
+  subLectureId: string,
+  isCompleted: boolean
+) => {
+  try {
+    const response = await axiosInstance.patch(`/lecture/${lectureId}/sublecture/${subLectureId}/completion`, {
+      is_completed: isCompleted,
+    });
+
+    if (response.status === 200) {
+      return response.data; // Return the entire response data
+    } else {
+      throw new Error('Failed to update sub-lecture completion status.');
+    }
+  } catch (error) {
+    console.error('Error updating sub-lecture completion status:', error);
     throw error;
   }
 };

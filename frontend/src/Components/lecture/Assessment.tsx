@@ -1,8 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Spin, Radio, Button, Alert, message, Progress, Card, Typography } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CloseCircleOutlined, TrophyOutlined, QuestionCircleOutlined,} from '@ant-design/icons';
 import { useLectureContext } from "../../provider/lecture/useLectureContext";
-import { submitAnswerByQuestionId } from "../../services/lecture.service"; // Assuming this service exists
+import { submitAnswerByQuestionId } from "../../services/lecture.service";
+
+// @ts-ignore
+import { useAITeacher } from "../../hooks/useAITeacher.js";
+
+
+const StatisticCard = ({
+  title,
+  value,
+  icon,
+  color,
+}: {
+  title: string;
+  value: number | string;
+  icon: JSX.Element;
+  color: string;
+}) => (
+  <div className="flex flex-col items-center p-4 bg-white rounded-lg shadow-md">
+    <div className={`text-3xl ${color}`}>{icon}</div>
+    <div className="text-2xl font-bold mt-2">{value}</div>
+    <div className="text-sm text-gray-500">{title}</div>
+  </div>
+);
 
 const { Title, Paragraph } = Typography;
 
@@ -17,6 +39,8 @@ const Assessment = ({ type }: { type: "pre" | "post" }) => {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [isQuizAlreadyCompleted, setIsQuizAlreadyCompleted] = useState(false);
   const [answers, setAnswers] = useState<{ questionId: number; studentAnswer: string | null }[]>([]);
+
+  const { setLearningLevel , learningLevel12} = useAITeacher();
 
   useEffect(() => {
     if (lecture && lecture.assessment_question) {
@@ -90,6 +114,8 @@ const Assessment = ({ type }: { type: "pre" | "post" }) => {
       }
       message.success('All answers saved successfully!');
       setQuizCompleted(true);
+      setLearningLevel(learningLevel12);
+      window.location.reload();
     } catch (error) {
       message.error('An error occurred while saving the answers.');
       console.error('Error saving answers:', error);
@@ -106,9 +132,47 @@ const Assessment = ({ type }: { type: "pre" | "post" }) => {
     return (
       <div style={{ padding: '20px', backgroundColor: '#fff' }}>
         <Title level={3}>{type === "pre" ? "Pre-Assessment Results" : "Post-Assessment Results"}</Title>
-        <p>Your score: {scorePercentage}%</p>
-        <br></br>
-        <div style={{ maxHeight: '480px', overflowY: 'auto' }}>
+        <div className="flex flex-wrap -mx-2">
+        <div className="w-full sm:w-1/2 lg:w-1/3 px-2 mb-4">
+          <StatisticCard
+            title="Score"
+            value={`${scorePercentage}%`}
+            icon={<TrophyOutlined />}
+            color="text-yellow-500"
+          />
+        </div>
+        <div className="w-full sm:w-1/2 lg:w-2/3 px-2">
+          <div className="flex flex-wrap -mx-2">
+            <div className="w-full sm:w-1/2 lg:w-1/4 px-2 mb-4">
+              <StatisticCard
+                title="Total Questions"
+                value={type==="pre" ? 5 : 10}
+                icon={<QuestionCircleOutlined />}
+                color="text-blue-500"
+              />
+            </div>
+            <div className="w-full sm:w-1/2 lg:w-1/4 px-2 mb-4">
+              <StatisticCard
+                title="Correct Answers"
+                value={correctAnswers}
+                icon={<CheckCircleOutlined />}
+                color="text-green-500"
+              />
+            </div>
+            <div className="w-full sm:w-1/2 lg:w-1/4 px-2 mb-4">
+              <StatisticCard
+                title="Incorrect Answers"
+                value={questions.length - correctAnswers}
+                icon={<CloseCircleOutlined />}
+                color="text-red-500"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+        {/* <p>Your {learningLevel12} score: {scorePercentage}%</p> */}
+        <br/>
+        <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
         {questions.map((question, index) => (
           <Card key={index} style={{ marginTop: '20px' }} bordered>
             <Title level={4}>Question {index + 1}: {question.question}</Title>
@@ -152,6 +216,9 @@ const Assessment = ({ type }: { type: "pre" | "post" }) => {
   return (
     <div style={{ padding: '24px', backgroundColor: '#fff', borderRadius: '8px' }}>
       <Title level={3}>{type === "pre" ? "Pre-Assessment" : "Post-Assessment"}</Title>
+      {type === "pre" && (
+        <p style={{marginTop:"20px", fontSize:"18px", marginBottom:"20px"}}>We're here to test your knowledge before the lecture begins to see how well you know the facts related to this topic.</p>
+      )}
       <Progress percent={progressPercentage} status="active" style={{ marginBottom: '16px' }} />
       <p style={{ fontWeight: 'bold' }}>
         Question {currentQuestionIndex + 1} of {questions.length}

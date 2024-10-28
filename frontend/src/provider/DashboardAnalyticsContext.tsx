@@ -8,9 +8,11 @@ import {
   getAcademicPerformanceAndLearningStrategiesTutorial,
   getAffectiveStateLab,
   getAffectiveStateTutorial,
+  getEngagementAndPerformanceLecture,
   getLearnerPerformanceLab,
   getLearnerPerformanceTutorial,
   getSummaryStatisticsLab,
+  getSummaryStatisticsLecture,
   getSummaryStatisticsTutorial,
 } from "../utils/dashboard_analytics_util";
 
@@ -109,6 +111,20 @@ export function DashboardAnalyticsProvider({
       }[]
     | null
   >(null);
+
+  // For lecture component
+  const [summaryStatisticsLecture, setSummaryStatisticsLecture] = useState<{
+    totalLectureCount: number;
+    subLectureVideosCompletedAvg: number;
+    lectureCompletionRateAvg: number;
+  } | null>(null);
+  const [engagementAndPerformanceLecture, setEngagementAndPerformanceLecture] =
+    useState<{
+      preAssessmentParticipationRate: number;
+      preAssessmentScorePercentageAvg: number;
+      postAssessmentParticipationRate: number;
+      postAssessmentScorePercentageAvg: number;
+    } | null>(null);
 
   const getLessonsOfModule = async (moduleId: string) => {
     try {
@@ -224,17 +240,70 @@ export function DashboardAnalyticsProvider({
     }
   };
 
+  // For lecture analytics
+  const getLectureAnalytics = async ({
+    moduleId,
+    learningLevel,
+    lessonId,
+    lessonTitle,
+  }: {
+    moduleId: number;
+    learningLevel: string;
+    lessonId: number;
+    lessonTitle: string;
+  }) => {
+    try {
+      const response: AxiosResponse = await axiosInstance.post(
+        DASHBOARD_ANALYTICS_API_URLS.LECTURE_ANALYTICS,
+        {
+          moduleId,
+          learningLevel,
+          lessonId,
+          lessonTitle,
+        }
+      );
+      const responseData: { result?: any[]; error?: any } = await response.data;
+      if (responseData.error) {
+        setCustomMessage({
+          type: "error",
+          content: "Sorry, an unexpected server error occurred",
+        });
+      } else {
+        const results: any[] = await response.data.result;
+        if (results.length > 0) {
+          setCustomMessage(null);
+          // setAcademicPerformanceAndLearningStrategiesLab(
+          //   getAcademicPerformanceAndLearningStrategiesLab(results)
+          // );
+          // setAffectiveStateLab(getAffectiveStateLab(results));
+          setSummaryStatisticsLecture(getSummaryStatisticsLecture(results));
+          setEngagementAndPerformanceLecture(
+            getEngagementAndPerformanceLecture(results)
+          );
+          // setLearnerPerformanceLab(getLearnerPerformanceLab(results));
+        } else {
+          setCustomMessage({ type: "info", content: "No data to display." });
+        }
+      }
+    } catch (error: any) {
+      setCustomMessage({ type: "error", content: error.message });
+    }
+  };
+
   const contextValue = useMemo(
     () => ({
       getLessonsOfModule,
       getTutorialAnalytics,
       getLabAnalytics,
+      getLectureAnalytics,
       academicPerformanceAndLearningStrategiesTutorial,
       academicPerformanceAndLearningStrategiesLab,
       affectiveStateTutorial,
       affectiveStateLab,
       summaryStatisticsTutorial,
       summaryStatisticsLab,
+      summaryStatisticsLecture,
+      engagementAndPerformanceLecture,
       learnerPerformanceTutorial,
       learnerPerformanceLab,
       customMessage,
@@ -243,12 +312,15 @@ export function DashboardAnalyticsProvider({
       getLessonsOfModule,
       getTutorialAnalytics,
       getLabAnalytics,
+      getLectureAnalytics,
       academicPerformanceAndLearningStrategiesTutorial,
       academicPerformanceAndLearningStrategiesLab,
       affectiveStateTutorial,
       affectiveStateLab,
       summaryStatisticsTutorial,
       summaryStatisticsLab,
+      summaryStatisticsLecture,
+      engagementAndPerformanceLecture,
       learnerPerformanceTutorial,
       learnerPerformanceLab,
       customMessage,

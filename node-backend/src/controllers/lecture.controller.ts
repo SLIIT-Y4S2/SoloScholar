@@ -290,3 +290,44 @@ export const generateMarkdownPPTSlides = async (req: Request, res: Response) => 
     logger.error({ message });
   }
 };
+
+
+//controller for update sublecture completion status
+export const updateSubLectureCompletionHandler = async (req: Request, res: Response) => {
+  try {
+    const { lectureId, subLectureId } = req.params;
+    const { is_completed } = req.body;
+
+    if (!lectureId || !subLectureId || is_completed === undefined) {
+      return res.status(400).json({
+        message: "Invalid request body",
+      });
+    }
+
+    const updatedLecture = await prisma.lecture.update({
+      where: {
+        id: lectureId,
+      },
+      data: {
+        sub_lecture: {
+          update: {
+            where: {
+              id: parseInt(subLectureId),
+            },
+            data: {
+              is_completed,
+            },
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      message: "Sublecture completion status updated successfully",
+      data: updatedLecture,
+    });
+  } catch (error) {
+    const message = (error as Error).message;
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};

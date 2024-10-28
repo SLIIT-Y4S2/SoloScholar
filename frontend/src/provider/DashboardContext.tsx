@@ -121,7 +121,7 @@ export function DashboardProvider({
       setCustomMessage({
         type: "error",
         content:
-          "Sorry, an unexpected server eror occured. Please try again later.",
+          "Sorry, an unexpected server error occured. Please try again later.",
       });
     }
   };
